@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// A seller/business using the platform (multi-tenant).
+model Seller {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  products  Product[]
+  customers Customer[]
+  orders    Order[]
+}
+
+// A product sold by a seller. Variants (color/size) are modeled
+// as separate ProductVariant rows so each has its own stock count.
+model Product {
+  id        String   @id @default(cuid())
+  sellerId  String
+  seller    Seller   @relation(fields: [sellerId], references: [id])
+  name      String
+  price     Decimal  @db.Decimal(12, 2)
+  imageUrl  String?
+  category  String?
+  createdAt DateTime @default(now())
+
+  variants   ProductVariant[]
+  orderItems OrderItem[]
+}
+
+model ProductVariant {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  color     String?
+  size      String?
+  sku       String? @unique
+  stock     Int     @default(0)
+
+  orderItems OrderItem[]
+}
+
+// A customer of a given seller, aggregated from social-media/chat conversations.
+model Customer {
+  id          String   @id @default(cuid())
+  sellerId    String
+  seller      Seller   @relation(fields: [sellerId], references: [id])
+  name        String?
+  phone       String?
+  address     String?
+  createdAt   DateTime @default(now())
+
+  orders Order[]
+
+  @@unique([sellerId, phone])
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PREPARING
+  SHIPPED
+  DELIVERED
+  CANCELED
+  RETURNED
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  sellerId   String
+  seller     Seller      @relation(fields: [sellerId], references: [id])
+  customerId String
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  status     OrderStatus @default(PENDING_PAYMENT)
+  totalPrice Decimal     @db.Decimal(12, 2)
+
+  // Shipping/logistics (spec section 10)
+  shippingAddress  String?
+  shippingMethod   String?
+  shippingCost     Decimal?    @db.Decimal(12, 2)
+  trackingCode     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items OrderItem[]
+}
+
+model OrderItem {
+  id               String          @id @default(cuid())
+  orderId          String
+  order            Order           @relation(fields: [orderId], references: [id])
+  productId        String
+  product          Product         @relation(fields: [productId], references: [id])
+  productVariantId String?
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
+  quantity         Int
+  unitPrice        Decimal         @db.Decimal(12, 2)
+}
