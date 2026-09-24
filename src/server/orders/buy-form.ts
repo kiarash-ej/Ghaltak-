@@ -1,8 +1,7 @@
 import * as z from "zod";
-import { normalizeIranMobile } from "@/lib/format";
+import { formatNumber, normalizeIranMobile } from "@/lib/format";
 import {
   MAX_LINES,
-  MAX_QUANTITY,
   mergeLines,
   parseQuantity,
   type FieldErrors,
@@ -11,6 +10,14 @@ import {
 
 // Validation of the PUBLIC purchase-link form (/buy/[token]). Everything here
 // comes from an anonymous visitor, so every field is checked. Pure, no database.
+
+/**
+ * Most of one item a customer can order through a purchase link. Much lower
+ * than the seller's manual form (MAX_QUANTITY): unpaid link orders hold stock
+ * for up to 48 hours, so a high cap would let one visitor hold it all (#18).
+ */
+export const MAX_BUY_QUANTITY = 10;
+const MAX_BUY_QUANTITY_FA = formatNumber(MAX_BUY_QUANTITY);
 
 export type BuyInput = {
   name: string;
@@ -81,8 +88,12 @@ export function parseBuyForm(formData: FormData): BuyParseResult {
   for (const i of [...indexes].sort((a, b) => a - b)) {
     const rawQty = text(formData.get(`items.${i}.quantity`)).trim();
     const quantity = rawQty === "" ? 0 : parseQuantity(rawQty);
-    if (quantity === null || quantity > MAX_QUANTITY) {
+    if (quantity === null) {
       addError(`items.${i}.quantity`, "تعداد معتبر نیست.");
+      continue;
+    }
+    if (quantity > MAX_BUY_QUANTITY) {
+      addError(`items.${i}.quantity`, `از هر کالا حداکثر ${MAX_BUY_QUANTITY_FA} عدد.`);
       continue;
     }
     if (quantity === 0) continue;
@@ -101,7 +112,10 @@ export function parseBuyForm(formData: FormData): BuyParseResult {
   if (items.length === 0 && !Object.keys(errors).some((k) => k.startsWith("items."))) {
     addError("items", "حداقل یک کالا انتخاب کنید.");
   }
-  if (items.some((l) => l.quantity > MAX_QUANTITY)) addError("items", "تعداد بیش از حد مجاز است.");
+  // The same variant can appear on two lines; the cap applies to the total.
+  if (items.some((l) => l.quantity > MAX_BUY_QUANTITY)) {
+    addError("items", `از هر کالا حداکثر ${MAX_BUY_QUANTITY_FA} عدد.`);
+  }
 
   if (Object.keys(errors).length > 0 || !customer.success) return { success: false, errors };
   return { success: true, data: { ...customer.data, items } };

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatToman } from "@/lib/format";
 import type { BuyFormState } from "@/server/orders/buy-actions";
+import { MAX_BUY_QUANTITY } from "@/server/orders/buy-form";
 import type { PublicLinkProduct } from "@/server/orders/purchase-links";
 
 type Choice = { variantId: string; quantity: number };
@@ -126,7 +127,7 @@ export function BuyForm({
                         size="sm"
                         className="size-10 p-0 text-lg"
                         aria-label="زیاد کردن"
-                        disabled={choice.quantity >= 99}
+                        disabled={choice.quantity >= MAX_BUY_QUANTITY}
                         onClick={() => setChoice(i, { quantity: choice.quantity + 1 })}
                       >
                         +

@@ -51,20 +51,26 @@ export async function createOrderInTx(
     if (!found) throw new OrderError("customerId", "مشتری پیدا نشد.");
     customer = found;
   } else {
-    customer =
-      (await tx.customer.findUnique({
-        where: { sellerId_phone: { sellerId, phone: input.customer.phone } },
-        select: { id: true, address: true },
-      })) ??
-      (await tx.customer.create({
-        data: {
+    // INSERT ... ON CONFLICT DO NOTHING, then read. Safe when two orders with
+    // the same new phone arrive together (a double-click): the second insert
+    // waits for the first, skips, and both orders get the same customer.
+    // (Catching the unique-constraint error instead is not an option: Postgres
+    // aborts the whole transaction on it.)
+    await tx.customer.createMany({
+      data: [
+        {
           sellerId,
           name: input.customer.name,
           phone: input.customer.phone,
           address: input.shippingAddress,
         },
-        select: { id: true, address: true },
-      }));
+      ],
+      skipDuplicates: true,
+    });
+    customer = await tx.customer.findUniqueOrThrow({
+      where: { sellerId_phone: { sellerId, phone: input.customer.phone } },
+      select: { id: true, address: true },
+    });
   }
 
   // Variants: only this seller's, only active products (and only the link's

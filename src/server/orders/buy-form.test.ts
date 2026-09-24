@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseBuyForm } from "./buy-form";
+import { MAX_BUY_QUANTITY, parseBuyForm } from "./buy-form";
 
 function form(fields: Record<string, string>): FormData {
   const fd = new FormData();
@@ -73,6 +73,31 @@ describe("parseBuyForm", () => {
   it.each(["-1", "abc", "1.5", "5000"])("rejects quantity %s", (qty) => {
     const result = parseBuyForm(form({ ...buyer, "items.0.variantId": "v1", "items.0.quantity": qty }));
     expect(!result.success && result.errors["items.0.quantity"]).toBeDefined();
+  });
+
+  it(`caps each item at ${MAX_BUY_QUANTITY} on the public page`, () => {
+    const at = parseBuyForm(
+      form({ ...buyer, "items.0.variantId": "v1", "items.0.quantity": String(MAX_BUY_QUANTITY) }),
+    );
+    expect(at.success).toBe(true);
+
+    const over = parseBuyForm(
+      form({ ...buyer, "items.0.variantId": "v1", "items.0.quantity": String(MAX_BUY_QUANTITY + 1) }),
+    );
+    expect(!over.success && over.errors["items.0.quantity"]).toBeDefined();
+  });
+
+  it("applies the cap to the same variant spread over two lines", () => {
+    const result = parseBuyForm(
+      form({
+        ...buyer,
+        "items.0.variantId": "v1",
+        "items.0.quantity": "6",
+        "items.1.variantId": "v1",
+        "items.1.quantity": "5",
+      }),
+    );
+    expect(!result.success && result.errors.items).toBeDefined();
   });
 
   it("rejects variant ids with unexpected characters", () => {
