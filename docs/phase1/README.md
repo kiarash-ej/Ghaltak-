@@ -57,6 +57,7 @@ Log in with `09120000000`. Without SMS credentials the 6-digit code is printed i
 | `Product` | `lowStockThreshold Int @default(3)` | Low-stock warning (Track A, read by Track B report) |
 | `Product` | `isActive Boolean @default(true)` | Hide products without deleting |
 | `StockMovement` | new model | Audit log of every stock change |
+| `ProductVariant` | `sellerId` (added in A1, migration `20260924170000`) | SKU unique per seller; direct tenant scoping of stock queries. Must equal the product's `sellerId` |
 | `Customer` | `tag CustomerTag` (`NEW`, `LOYAL`, `INACTIVE`) | Customer grouping |
 | `Order` | `publicToken`, `purchaseLinkId` | Customer-facing order page, and which link created the order |
 | `Order` | `paymentMethod`, `paidAt`, `receiptImageUrl` | Payment status |
