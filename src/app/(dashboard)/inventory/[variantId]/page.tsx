@@ -9,6 +9,7 @@ import { requireSeller } from "@/server/auth";
 import { HISTORY_LIMIT, getVariantHistory } from "@/server/catalog/inventory-queries";
 import { STOCK_REASON_LABELS, variantLabel } from "@/server/catalog/labels";
 import { getVariantStockStatus } from "@/server/catalog/stock-status";
+import { orderCode } from "@/server/orders/queries";
 
 export const metadata: Metadata = { title: "تاریخچهٔ موجودی | غلتک" };
 
@@ -109,7 +110,17 @@ export default async function VariantHistoryPage(props: PageProps<"/inventory/[v
                       </span>
                     </td>
                     <td className="p-3 whitespace-nowrap">{STOCK_REASON_LABELS[m.reason]}</td>
-                    <td className="p-3 text-neutral-600">{m.note ?? "—"}</td>
+                    <td className="p-3 text-neutral-600">
+                      {m.orderId ? (
+                        <Link href={`/orders/${m.orderId}`} className="underline">
+                          سفارش <span dir="ltr" className="font-mono">{orderCode(m.orderId)}</span>
+                        </Link>
+                      ) : (
+                        !m.note && "—"
+                      )}
+                      {m.orderId && m.note && " · "}
+                      {m.note}
+                    </td>
                   </tr>
                 ))}
               </tbody>

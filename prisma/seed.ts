@@ -70,19 +70,12 @@ async function main() {
         category,
         price: int(15, 250) * 10_000, // 150,000 .. 2,500,000 toman
         variants: {
-          create: Array.from({ length: int(2, 4) }, (_, i) => {
-            const stock = int(0, 12);
-            return {
-              sellerId: seller.id,
-              color: COLORS[i % COLORS.length],
-              size: SIZES[i % SIZES.length],
-              stock,
-              // Keep the invariant: movements of a variant sum to its stock.
-              stockMovements: {
-                create: stock > 0 ? [{ delta: stock, reason: "INITIAL" as const }] : [],
-              },
-            };
-          }),
+          create: Array.from({ length: int(2, 4) }, (_, i) => ({
+            sellerId: seller.id,
+            color: COLORS[i % COLORS.length],
+            size: SIZES[i % SIZES.length],
+            stock: int(0, 12), // current stock; the history is written after the orders
+          })),
         },
       },
       include: { variants: true },
@@ -105,9 +98,16 @@ async function main() {
     );
   }
 
+  // Orders take stock like real ones: ORDER_PLACED per line, given back by
+  // cancel/return. The INITIAL movement is written last so that every
+  // variant's movements sum to its current stock.
+  const stockLog: Prisma.StockMovementCreateManyInput[] = [];
+  const heldByVariant = new Map<string, number>();
+
   for (let i = 0; i < 30; i++) {
     const customer = pick(customers);
     const status = pick(ORDER_STATUSES);
+    const createdAt = new Date(Date.now() - int(0, 40) * 86_400_000);
     const lines = Array.from({ length: int(1, 3) }, () => {
       const product = pick(products);
       const variant = pick(product.variants);
@@ -117,7 +117,8 @@ async function main() {
     const paid = ["PAID", "PREPARING", "SHIPPED", "DELIVERED", "RETURNED"].includes(status);
     const shipped = ["SHIPPED", "DELIVERED", "RETURNED"].includes(status);
 
-    await prisma.order.create({
+    const order = await prisma.order.create({
+      select: { id: true },
       data: {
         sellerId: seller.id,
         customerId: customer.id,
@@ -132,7 +133,7 @@ async function main() {
         trackingCode: shipped ? String(int(10 ** 19, 10 ** 20 - 1)).slice(0, 20) : null,
         shippingStatus:
           status === "DELIVERED" ? "DELIVERED" : shipped ? "IN_TRANSIT" : "NOT_SHIPPED",
-        createdAt: new Date(Date.now() - int(0, 40) * 86_400_000),
+        createdAt,
         items: {
           create: lines.map((l) => ({
             productId: l.product.id,
@@ -143,7 +144,32 @@ async function main() {
         },
       },
     });
+
+    const gaveBack = status === "CANCELED" || status === "RETURNED";
+    for (const l of lines) {
+      stockLog.push({ variantId: l.variant.id, delta: -l.quantity, reason: "ORDER_PLACED", orderId: order.id, createdAt });
+      if (gaveBack) {
+        stockLog.push({
+          variantId: l.variant.id,
+          delta: l.quantity,
+          reason: status === "CANCELED" ? "ORDER_CANCELED" : "ORDER_RETURNED",
+          orderId: order.id,
+          createdAt: new Date(createdAt.getTime() + 60_000),
+        });
+      } else {
+        heldByVariant.set(l.variant.id, (heldByVariant.get(l.variant.id) ?? 0) + l.quantity);
+      }
+    }
   }
+
+  const initialAt = new Date(Date.now() - 45 * 86_400_000);
+  for (const product of products) {
+    for (const v of product.variants) {
+      const initial = v.stock + (heldByVariant.get(v.id) ?? 0);
+      if (initial > 0) stockLog.push({ variantId: v.id, delta: initial, reason: "INITIAL", createdAt: initialAt });
+    }
+  }
+  await prisma.stockMovement.createMany({ data: stockLog });
 
   console.log(
     `Seeded demo seller ${DEMO_MOBILE}: ${products.length} products, ${customers.length} customers, 30 orders.`,

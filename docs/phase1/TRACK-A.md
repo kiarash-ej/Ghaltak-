@@ -94,6 +94,21 @@ Plus Step 0 files while Step 0 is open: `prisma/`, `src/server/auth.ts`, dashboa
 - Support Track B's integration: fix catalog bugs they find
 - Joint end-to-end test of the whole buy flow (product → purchase link → order → stock reduced)
 
+### A5 — Real stock for orders (week 4, from the README timeline)
+Not in the original task list; defined from the timeline's week-4 item for Person A, "Swap stub for real `adjustStock`; integration tests", once issue #10 was fixed.
+
+**Status: implemented** (branch `track-a/real-stock`, stacked on Track B's #14).
+
+Track B did the switch itself in #14 (its own folder), with a better return rule than mine: an order gives back what its own stock movements took. A5 builds on it with the Track A side:
+
+- **Deadlock fix in `src/server/orders/stock.ts`** (a small change in Track B's file, for Person B to review): stock is changed in variant-id order in both `takeStock` and `returnStock`. Checked: with #14 as-is, 10 simultaneous orders touching two variants in opposite line order hang until the test times out; with the fix they finish in about half a second.
+- **Stub deleted**, with its signature type test (nothing imports it after #14).
+- **Seed:** demo orders take stock like real ones (`ORDER_PLACED` with the order id, plus cancel/return movements), so each variant's history sums to its stock and each order's movements net to what it holds. With #14's return rule, canceling a demo order gives back exactly what it took. **Run `npm run db:seed` after pulling.**
+- **Stock history** (`/inventory/[variantId]`) links each order-related change to its order.
+- **Cross-track tests** (`src/test/integration/order-stock.int.test.ts`), only what Track B's own tests don't cover: all-or-nothing multi-line orders, no deadlock with opposite line order, and Track A's invariant after both.
+
+**Found for Track B (not changed here):** a new customer's "find by phone, else create" in `createOrderInTx` fails when two orders with the same new phone arrive at once (e.g. a double-click on the buy page): the second gets a generic error. Documented as an expected-failure test (`it.fails`) in the integration file; remove `.fails` when fixed.
+
 ## Working with your coding agent
 
 - Give it this file and the README at the start of each session, and tell it which task you're on

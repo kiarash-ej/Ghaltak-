@@ -122,8 +122,14 @@ export function adjustStock(
   - `VariantNotFoundError`: the variant doesn't exist.
   - `RangeError`: `reason` doesn't match the sign of `delta` (e.g. `ORDER_PLACED` with a positive delta). This is a bug in the caller.
 - The caller must already have checked that the variant belongs to the seller it acts for. Track B's order code does: order lines come from seller-scoped queries.
-- **The stub** in `src/server/catalog/inventory.stub.ts` has exactly the same signature (a type test enforces it), so Track B can pass `reason` and `orderId` now. Switching is a one-line import change in `src/server/orders/stock.ts`.
-- **When to switch:** only after issue #10 is fixed (rate limit bypass and expiry of unpaid purchase-link orders). With the real function, fake unpaid orders would hold stock. Re-seed development data at the same time: orders created under the stub never reduced stock, so canceling them afterwards would add stock that was never taken.
+- **Live** since Track B's switch (#14, after issue #10 was fixed in #13). Orders use the real function through `src/server/orders/stock.ts`:
+  - `takeStock(orderId, lines, tx)` logs `ORDER_PLACED` with the order id.
+  - `returnStock(orderId, reason, tx)` gives back what the order's **own stock movements** took (cancel `ORDER_CANCELED`, return `ORDER_RETURNED`): never twice, and nothing for orders created while the stub was active.
+  - Only `InsufficientStockError` becomes `OutOfStockError` ("out of stock").
+  - Stock is always changed in variant-id order (added in A5), so two orders with the same variants can't deadlock.
+- **The stub is deleted** (A5).
+- **Development data:** run `npm run db:seed` after pulling. The seed makes its demo orders take stock like real ones, so the stock history shows them and canceling a demo order gives back what it took.
+- **Tests:** Track B's `src/server/orders/orders.int.test.ts` (take, cancel once, return, stub-era orders, race for the last item, expiry) and the cross-track `src/test/integration/order-stock.int.test.ts` (all-or-nothing orders, no deadlock, Track A's stock invariant).
 
 ## Definition of done (every task)
 
