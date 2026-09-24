@@ -19,6 +19,7 @@ src/app/uploads/**              (serves product images, public)
 src/server/catalog/**
 src/server/customers/**
 src/components/catalog/**
+src/components/customers/**
 ```
 
 Plus Step 0 files while Step 0 is open: `prisma/`, `src/server/auth.ts`, dashboard layout, `src/lib/format.ts`, CI.
@@ -63,6 +64,16 @@ Plus Step 0 files while Step 0 is open: `prisma/`, `src/server/auth.ts`, dashboa
 - Tags `NEW` / `LOYAL` / `INACTIVE`: set manually, plus a helper that suggests a tag from order history
 - Phone numbers stored normalized (Iranian format `09xxxxxxxxx`), unique per seller
 - **Done when:** a seller can find a customer by phone and see their order history
+
+**Status: implemented** (branch `track-a/customers`).
+
+- `/customers`: search by name or phone (Persian digits and partial numbers work), tag tabs with counts, 20 per page. Each row shows purchases, total spent and last purchase.
+- `/customers/[id]`: phone (tap to call), address, stats (orders, paid purchases, total spent, average, last purchase, returns), order history linking to Track B's order page, and an edit form (name, phone, address).
+- **What counts as a purchase:** an order in `PAID`, `PREPARING`, `SHIPPED` or `DELIVERED` (`PURCHASE_STATUSES` in `src/server/customers/stats.ts`). Pending, canceled and returned orders don't count toward "total spent". **Track B's report (B5) should use the same definition** so the numbers match.
+- **Tags:** set with their own buttons on the profile, not in the edit form, so two controls never write the same field (that caused a real bug during testing: saving the name undid a tag just applied). The suggestion is shown with its reason and never applied automatically: INACTIVE after 90 days without a purchase, LOYAL from 3 purchases, otherwise NEW.
+- **Phone:** normalized to `09xxxxxxxxx` on save and unique per seller. A number that belongs to another customer is refused with a clear message. Changing a phone changes which customer future purchase-link orders attach to (Track B's buy flow matches by phone).
+- Reads Track B's orders read-only, and reuses `OrderStatusBadge` and `orderCode()` from Track B.
+- Tests: 11 unit tests (stats, tag rules, form) and 5 database tests (stats from real orders, phone search, tag filter, seller isolation).
 
 ### A4 — Contract functions for Track B (week 3)
 - `getProductsForSeller(sellerId)` — active products with variants and stock, for the order form and buy link
