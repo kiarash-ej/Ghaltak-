@@ -70,12 +70,19 @@ async function main() {
         category,
         price: int(15, 250) * 10_000, // 150,000 .. 2,500,000 toman
         variants: {
-          create: Array.from({ length: int(2, 4) }, (_, i) => ({
-            sellerId: seller.id,
-            color: COLORS[i % COLORS.length],
-            size: SIZES[i % SIZES.length],
-            stock: int(0, 12),
-          })),
+          create: Array.from({ length: int(2, 4) }, (_, i) => {
+            const stock = int(0, 12);
+            return {
+              sellerId: seller.id,
+              color: COLORS[i % COLORS.length],
+              size: SIZES[i % SIZES.length],
+              stock,
+              // Keep the invariant: movements of a variant sum to its stock.
+              stockMovements: {
+                create: stock > 0 ? [{ delta: stock, reason: "INITIAL" as const }] : [],
+              },
+            };
+          }),
         },
       },
       include: { variants: true },

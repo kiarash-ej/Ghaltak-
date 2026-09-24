@@ -40,6 +40,26 @@ npm run dev
 
 Log in with `09120000000`. Without SMS credentials the 6-digit code is printed in the server console (`[dev sms] login code for ...`).
 
+### Database integration tests
+
+Files named `*.int.test.ts` test code against a real Postgres. They are **skipped** unless `TEST_DATABASE_URL` is set, and they must never point at your development database (they create and delete their own rows). CI runs them against a throwaway Postgres service.
+
+One-time setup, then run (PowerShell):
+
+```bash
+psql -U postgres -h localhost -c "CREATE DATABASE ghaltak_test;"
+$env:DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/ghaltak_test?schema=public"; npm run db:deploy
+$env:TEST_DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/ghaltak_test?schema=public"; npm test
+```
+
+After pulling new migrations, run `db:deploy` against the test database again.
+
+### Shared conventions added after Step 0
+
+- **Iran time.** Dates are stored in UTC and always formatted in `Asia/Tehran` (`APP_TIME_ZONE` in `src/lib/format.ts`), whatever time zone the server runs in. Anything that computes "today" or "this month" (Track B's report) must use Tehran day boundaries too.
+- **Light theme only.** The components are designed for light mode; the dark-mode switch from the Next.js template was removed until a dark theme is designed.
+- **Stale sessions.** If the session cookie is valid but its seller no longer exists, `requireSeller()` sends the user to `/logout`, which clears the cookie.
+
 ### Deviations from the original plan
 
 - **No Auth.js.** Sessions use a signed cookie (`jose`) with a database table for one-time codes, which is the approach Next.js 16's own authentication guide recommends. Fewer moving parts, and it works with an Iranian SMS provider directly.
@@ -89,12 +109,21 @@ export function adjustStock(
   variantId: string,
   delta: number, // negative to reduce
   tx?: Prisma.TransactionClient, // pass the order transaction so both succeed or fail together
+  options?: {
+    reason?: "ORDER_PLACED" | "ORDER_CANCELED" | "ORDER_RETURNED"; // default by sign: placed / canceled
+    orderId?: string | null; // shown in the stock history
+  },
 ): Promise<void>;
 ```
 
-- Track A ships the real version in task A4.
-- Until then, Track B uses a stub in `src/server/catalog/inventory.stub.ts` with the same signature that only logs. Switch the import when A4 merges.
-- It must throw if stock would go below zero. Track B must catch that and show "out of stock".
+- **Implemented in A4.** It wraps `changeStock()` (A2): one conditional UPDATE, so concurrent orders cannot oversell, and every change is logged in `StockMovement`.
+- **Errors** (import them from `inventory.ts`):
+  - `InsufficientStockError`: stock would go below zero. Show "out of stock". Nothing was changed.
+  - `VariantNotFoundError`: the variant doesn't exist.
+  - `RangeError`: `reason` doesn't match the sign of `delta` (e.g. `ORDER_PLACED` with a positive delta). This is a bug in the caller.
+- The caller must already have checked that the variant belongs to the seller it acts for. Track B's order code does: order lines come from seller-scoped queries.
+- **The stub** in `src/server/catalog/inventory.stub.ts` has exactly the same signature (a type test enforces it), so Track B can pass `reason` and `orderId` now. Switching is a one-line import change in `src/server/orders/stock.ts`.
+- **When to switch:** only after issue #10 is fixed (rate limit bypass and expiry of unpaid purchase-link orders). With the real function, fake unpaid orders would hold stock. Re-seed development data at the same time: orders created under the stub never reduced stock, so canceling them afterwards would add stock that was never taken.
 
 ## Definition of done (every task)
 
