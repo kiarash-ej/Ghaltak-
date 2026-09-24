@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { ReceiptUpload } from "@/components/orders/receipt-upload";
+import { uploadReceiptAction } from "@/server/orders/payment-actions";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
 import { getPublicOrder } from "@/server/orders/purchase-links";
 
@@ -29,6 +31,28 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
         </p>
         <p className="text-sm">این کد را نگه دارید. فروشنده برای هماهنگی پرداخت و ارسال با شما تماس می‌گیرد.</p>
       </div>
+
+      {order.payment === "PAID" && (
+        <p className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900">
+          پرداخت شما تأیید شد.
+        </p>
+      )}
+      {(order.payment === "UNPAID" || order.payment === "RECEIPT_SUBMITTED") && (
+        <section className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-4">
+          <h2 className="font-semibold">پرداخت</h2>
+          {order.payment === "RECEIPT_SUBMITTED" ? (
+            <p className="text-sm text-amber-800">رسید شما دریافت شد و در انتظار تأیید فروشنده است.</p>
+          ) : (
+            <p className="text-sm text-neutral-600">
+              اگر مبلغ را کارت به کارت واریز کرده‌اید، تصویر رسید را اینجا بفرستید.
+            </p>
+          )}
+          <ReceiptUpload
+            action={uploadReceiptAction.bind(null, token)}
+            hasReceipt={order.payment === "RECEIPT_SUBMITTED"}
+          />
+        </section>
+      )}
 
       <div className="flex items-center justify-between gap-2 text-sm text-neutral-600">
         <span>{formatDateTime(order.createdAt)}</span>

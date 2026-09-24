@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { paymentState } from "./payment";
 import { orderCode } from "./queries";
 
 // Purchase links: seller-side queries take the sellerId from requireSeller().
@@ -105,6 +106,8 @@ export async function getPublicOrder(publicToken: string) {
       status: true,
       totalPrice: true,
       createdAt: true,
+      paidAt: true,
+      receiptImageUrl: true,
       items: {
         orderBy: { id: "asc" },
         select: {
@@ -122,6 +125,8 @@ export async function getPublicOrder(publicToken: string) {
   return {
     code: orderCode(order.id),
     status: order.status,
+    // Only the state, never the receipt itself: the customer page is public.
+    payment: paymentState(order),
     totalPrice: order.totalPrice,
     createdAt: order.createdAt,
     items: order.items.map((i) => ({

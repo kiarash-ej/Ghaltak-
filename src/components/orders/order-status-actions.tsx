@@ -4,7 +4,12 @@ import { useActionState } from "react";
 import type { OrderStatus } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
 import { changeOrderStatusAction, type StatusChangeState } from "@/server/orders/actions";
-import { STATUS_LABELS, nextStatuses, restoresStock } from "@/server/orders/status";
+import {
+  STATUS_LABELS,
+  detailsRequiredFor,
+  nextStatuses,
+  restoresStock,
+} from "@/server/orders/status";
 
 export function OrderStatusActions({
   orderId,
@@ -17,11 +22,12 @@ export function OrderStatusActions({
     changeOrderStatusAction.bind(null, orderId),
     undefined,
   );
-  const options = nextStatuses(status);
-
-  if (options.length === 0) {
+  if (nextStatuses(status).length === 0) {
     return <p className="text-sm text-neutral-500">این سفارش بسته شده است.</p>;
   }
+  // Moves that need details (payment) have their own form on the order page.
+  const options = nextStatuses(status).filter((to) => !detailsRequiredFor(to));
+  if (options.length === 0) return null;
 
   return (
     <form

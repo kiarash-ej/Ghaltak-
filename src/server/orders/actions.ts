@@ -6,7 +6,13 @@ import { prisma } from "@/lib/prisma";
 import { requireSeller } from "@/server/auth";
 import { OrderError, createOrderInTx } from "./create-order";
 import { parseOrderForm, type FieldErrors } from "./order-form";
-import { STATUS_LABELS, canTransition, isOrderStatus, restoresStock } from "./status";
+import {
+  STATUS_LABELS,
+  canTransition,
+  detailsRequiredFor,
+  isOrderStatus,
+  restoresStock,
+} from "./status";
 import { OutOfStockError, returnStock } from "./stock";
 
 export type OrderFormState = { errors?: FieldErrors; message?: string } | undefined;
@@ -55,6 +61,7 @@ export async function changeOrderStatusAction(
 
   const to = formData.get("to");
   if (!isOrderStatus(to)) return { message: "وضعیت نامعتبر است." };
+  if (detailsRequiredFor(to)) return { message: "این تغییر وضعیت از فرم مخصوص خودش انجام می‌شود." };
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -62,7 +69,6 @@ export async function changeOrderStatusAction(
         where: { id: orderId, sellerId: seller.id },
         select: {
           status: true,
-          paidAt: true,
           items: { select: { productVariantId: true, quantity: true } },
         },
       });
@@ -77,10 +83,7 @@ export async function changeOrderStatusAction(
       // is restored at most once even with two clicks or two tabs.
       const { count } = await tx.order.updateMany({
         where: { id: orderId, sellerId: seller.id, status: order.status },
-        data: {
-          status: to,
-          ...(to === "PAID" && !order.paidAt ? { paidAt: new Date() } : {}),
-        },
+        data: { status: to },
       });
       if (count !== 1) throw new StatusError("وضعیت سفارش همزمان تغییر کرد. صفحه را تازه کنید.");
 
