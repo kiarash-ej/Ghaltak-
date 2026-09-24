@@ -1,11 +1,16 @@
 // Persian formatting helpers. Amounts are integer tomans everywhere in the app;
 // format only at the display edge.
 
+// Dates are stored in UTC and always shown in Iran time, whatever time zone
+// the server runs in (production servers are usually UTC).
+export const APP_TIME_ZONE = "Asia/Tehran";
+
 const numberFormat = new Intl.NumberFormat("fa-IR");
 const jalaliDate = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
   year: "numeric",
   month: "long",
   day: "numeric",
+  timeZone: APP_TIME_ZONE,
 });
 const jalaliDateTime = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
   year: "numeric",
@@ -13,6 +18,7 @@ const jalaliDateTime = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
   day: "numeric",
   hour: "2-digit",
   minute: "2-digit",
+  timeZone: APP_TIME_ZONE,
 });
 
 /** 1250000 -> "۱٬۲۵۰٬۰۰۰" */
