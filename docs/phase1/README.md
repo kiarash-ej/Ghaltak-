@@ -13,7 +13,7 @@ Read this file first, then your track file.
 
 Owner: Person A. Reviewer: Person B. Nobody starts a track until this is merged into `main`.
 
-Status: **implemented on branch `step-0-foundation`**, waiting for review and merge. Checked items below are done and verified (lint, type-check, 20 unit tests, production build, and a manual browser test of login, logout and the route guard).
+Status: **merged into `main`** (PR #1). The tracks can start. Checked items below are done and verified (lint, type-check, 20 unit tests, production build, and a manual browser test of login, logout and the route guard).
 
 - [x] RTL + Persian: `<html lang="fa" dir="rtl">`, Vazirmatn font (self-hosted via `@fontsource-variable/vazirmatn`, no CDN), Persian digits and Jalali date helpers in `src/lib/format.ts`
 - [x] Dashboard shell: sidebar layout in `src/app/(dashboard)/layout.tsx`. Sidebar entries live in `src/components/dashboard/nav-items.ts`
@@ -26,7 +26,7 @@ Status: **implemented on branch `step-0-foundation`**, waiting for review and me
 - [x] CI: `.github/workflows/ci.yml` runs lint, type-check, tests and build on every PR
 - [x] `.env.example` with every variable the app needs
 - [x] `adjustStock` stub at `src/server/catalog/inventory.stub.ts`
-- [ ] Branch protection on `main` (PR required, CI must pass): **someone with admin rights must turn this on in GitHub settings**, after the first CI run
+- [ ] Branch protection on `main` (PR required, CI must pass): **blocked.** GitHub does not allow branch protection or rulesets on a private repo owned by a free personal account. It needs GitHub Pro on the owner's account (or the repo made public). Until then, follow rule 3 by hand: never push to `main` directly, always merge through a PR with green CI
 
 ### How to run it locally
 
