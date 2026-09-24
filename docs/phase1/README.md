@@ -1,5 +1,7 @@
 # Phase 1 — Shared rules and foundation
 
+> **Phase 1 is complete** (A1–A5, B1–B5 merged). Next: [Phase 2](../phase2/README.md). The shared rules below still apply.
+
 Ghaltak is a platform that helps small Iranian online sellers (Instagram/Telegram) manage products, inventory,
 customers, orders, payments and shipping in one place. Phase 1 is the MVP. Two people, each with a coding agent,
 work in parallel on two tracks:
