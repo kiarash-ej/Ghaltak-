@@ -13,27 +13,56 @@ Read this file first, then your track file.
 
 Owner: Person A. Reviewer: Person B. Nobody starts a track until this is merged into `main`.
 
-- [ ] RTL + Persian: `<html lang="fa" dir="rtl">`, Vazirmatn font (self-hosted, no CDN), Persian digits and Jalali dates helpers in `src/lib/format.ts`
-- [ ] Dashboard shell: sidebar layout in `src/app/(dashboard)/layout.tsx`, shadcn/ui installed
-- [ ] Auth: mobile number + SMS code login (Auth.js), session, and `requireSeller()` in `src/server/auth.ts` that returns the current `sellerId` or redirects
-- [ ] Final Phase 1 schema in ONE migration (see "Schema additions" below)
-- [ ] Money decision: store amounts as integer tomans (`Int`/`BigInt`), not `Decimal`. Change the existing fields in this migration
-- [ ] Seed script `prisma/seed.ts`: 1 seller, 20 products with variants, 15 customers, 30 orders in mixed statuses
-- [ ] CI: GitHub Action running lint, type-check, tests and build on every PR
-- [ ] `.env.example` with every variable the app needs (no real secrets)
-- [ ] Branch protection on `main`: PR required, CI must pass
+Status: **implemented on branch `step-0-foundation`**, waiting for review and merge. Checked items below are done and verified (lint, type-check, 20 unit tests, production build, and a manual browser test of login, logout and the route guard).
 
-### Schema additions (finalize in Step 0, not later)
+- [x] RTL + Persian: `<html lang="fa" dir="rtl">`, Vazirmatn font (self-hosted via `@fontsource-variable/vazirmatn`, no CDN), Persian digits and Jalali date helpers in `src/lib/format.ts`
+- [x] Dashboard shell: sidebar layout in `src/app/(dashboard)/layout.tsx`. Sidebar entries live in `src/components/dashboard/nav-items.ts`
+- [x] UI kit: `Button`, `Input`, `Label`, `Card` in `src/components/ui/`, written by hand (see "Deviations")
+- [x] Auth: mobile number + SMS code login, signed session cookie, and `requireSeller()` in `src/server/auth.ts` that returns the current seller or redirects to `/login`
+- [x] Route guard: `src/proxy.ts` (Next 16's replacement for `middleware.ts`). Public paths: `/login` and `/buy/*`
+- [x] Final Phase 1 schema in one migration (`prisma/migrations/20260924160000_phase1_schema`)
+- [x] Money: integer tomans (`Int`) everywhere
+- [x] Seed script: `npm run db:seed` gives demo seller `09120000000` with 20 products, 15 customers, 30 orders
+- [x] CI: `.github/workflows/ci.yml` runs lint, type-check, tests and build on every PR
+- [x] `.env.example` with every variable the app needs
+- [x] `adjustStock` stub at `src/server/catalog/inventory.stub.ts`
+- [ ] Branch protection on `main` (PR required, CI must pass): **someone with admin rights must turn this on in GitHub settings**, after the first CI run
+
+### How to run it locally
+
+```bash
+npm install
+cp .env.example .env        # then fill in DATABASE_URL and SESSION_SECRET
+npm run db:deploy           # apply migrations
+npm run db:seed             # demo data
+npm run dev
+```
+
+Log in with `09120000000`. Without SMS credentials the 6-digit code is printed in the server console (`[dev sms] login code for ...`).
+
+### Deviations from the original plan
+
+- **No Auth.js.** Sessions use a signed cookie (`jose`) with a database table for one-time codes, which is the approach Next.js 16's own authentication guide recommends. Fewer moving parts, and it works with an Iranian SMS provider directly.
+- **No shadcn CLI.** `ui.shadcn.com` is not reachable from every network (it timed out here), so the four base components are hand-written in the same style. Add more components by hand or copy them from the shadcn site.
+- **`purchaseLink` is its own model** (`PurchaseLink`, many-to-many with `Product`), because one link can cover several products. `Order.publicToken` is for the customer's order confirmation/tracking page instead.
+- **`StockMovement` model added** for the inventory audit log (task A2). The real `adjustStock` (A4) must write a row for every change.
+- **`SessionPayload` holds only `sellerId`.** Never put the mobile number or other personal data in the cookie.
+
+### Schema additions (all done in Step 0)
 
 | Model | Field | Purpose |
 |---|---|---|
+| `Seller` | `mobile String @unique` (was `email`) | Login identity, normalized `09xxxxxxxxx` |
+| `OtpCode` | new model | Hashed SMS codes with expiry, attempt count and consumed flag |
 | `Product` | `lowStockThreshold Int @default(3)` | Low-stock warning (Track A, read by Track B report) |
 | `Product` | `isActive Boolean @default(true)` | Hide products without deleting |
+| `StockMovement` | new model | Audit log of every stock change |
 | `Customer` | `tag CustomerTag` (`NEW`, `LOYAL`, `INACTIVE`) | Customer grouping |
-| `Order` | `publicToken String? @unique` | Purchase link `/buy/[token]` |
-| `Order` | `paymentMethod`, `paidAt DateTime?`, `receiptImageUrl String?` | Payment status |
-| `Order` | `shippingStatus` | Shipping tracking |
+| `Order` | `publicToken`, `purchaseLinkId` | Customer-facing order page, and which link created the order |
+| `Order` | `paymentMethod`, `paidAt`, `receiptImageUrl` | Payment status |
+| `Order` | `shippingStatus` (`NOT_SHIPPED`, `IN_TRANSIT`, `DELIVERED`, `FAILED`) | Shipping tracking |
 | `Order` | `source` (`MANUAL`, `PURCHASE_LINK`) | Where the order came from |
+| `PurchaseLink` | new model | Public `/buy/[token]` links |
 
 ## Ownership rules
 
