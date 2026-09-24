@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -12,60 +10,127 @@ datasource db {
   provider = "postgresql"
 }
 
-// A seller/business using the platform (multi-tenant).
+// Money rule: every amount is an integer number of TOMANS (Int). Never Decimal/Float.
+// Format only at the display edge (see src/lib/format.ts).
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+// A seller/business using the platform (multi-tenant root).
+// Every other table is scoped by sellerId.
 model Seller {
   id        String   @id @default(cuid())
   name      String
-  email     String   @unique
+  mobile    String   @unique // normalized "09xxxxxxxxx", used to log in
   createdAt DateTime @default(now())
 
-  products  Product[]
-  customers Customer[]
-  orders    Order[]
+  products      Product[]
+  customers     Customer[]
+  orders        Order[]
+  purchaseLinks PurchaseLink[]
 }
 
-// A product sold by a seller. Variants (color/size) are modeled
-// as separate ProductVariant rows so each has its own stock count.
-model Product {
+// One-time SMS login codes. The code itself is never stored, only its hash.
+model OtpCode {
   id        String   @id @default(cuid())
-  sellerId  String
-  seller    Seller   @relation(fields: [sellerId], references: [id])
-  name      String
-  price     Decimal  @db.Decimal(12, 2)
-  imageUrl  String?
-  category  String?
+  mobile    String
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  consumed  Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  variants   ProductVariant[]
-  orderItems OrderItem[]
+  @@index([mobile, createdAt])
 }
 
+// ---------------------------------------------------------------------------
+// Catalog (Track A)
+// ---------------------------------------------------------------------------
+
+model Product {
+  id                String   @id @default(cuid())
+  sellerId          String
+  seller            Seller   @relation(fields: [sellerId], references: [id])
+  name              String
+  price             Int // tomans
+  imageUrl          String?
+  category          String?
+  isActive          Boolean  @default(true)
+  lowStockThreshold Int      @default(3)
+  createdAt         DateTime @default(now())
+
+  variants       ProductVariant[]
+  orderItems     OrderItem[]
+  purchaseLinks  PurchaseLink[]
+
+  @@index([sellerId])
+}
+
+// Color/size combination with its own stock count.
 model ProductVariant {
   id        String  @id @default(cuid())
   productId String
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   color     String?
   size      String?
   sku       String? @unique
   stock     Int     @default(0)
 
-  orderItems OrderItem[]
+  orderItems     OrderItem[]
+  stockMovements StockMovement[]
+
+  @@index([productId])
 }
 
-// A customer of a given seller, aggregated from social-media/chat conversations.
+enum StockMovementReason {
+  MANUAL_ADJUSTMENT
+  ORDER_PLACED
+  ORDER_CANCELED
+  ORDER_RETURNED
+  INITIAL
+}
+
+// Audit log of every stock change (written by adjustStock).
+model StockMovement {
+  id        String              @id @default(cuid())
+  variantId String
+  variant   ProductVariant      @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  delta     Int // negative = stock reduced
+  reason    StockMovementReason
+  note      String?
+  orderId   String?
+  createdAt DateTime            @default(now())
+
+  @@index([variantId, createdAt])
+}
+
+enum CustomerTag {
+  NEW
+  LOYAL
+  INACTIVE
+}
+
+// A customer of one seller, unique per (seller, phone).
 model Customer {
-  id          String   @id @default(cuid())
-  sellerId    String
-  seller      Seller   @relation(fields: [sellerId], references: [id])
-  name        String?
-  phone       String?
-  address     String?
-  createdAt   DateTime @default(now())
+  id        String      @id @default(cuid())
+  sellerId  String
+  seller    Seller      @relation(fields: [sellerId], references: [id])
+  name      String?
+  phone     String // normalized "09xxxxxxxxx"
+  address   String?
+  tag       CustomerTag @default(NEW)
+  createdAt DateTime    @default(now())
 
   orders Order[]
 
   @@unique([sellerId, phone])
+  @@index([sellerId])
 }
+
+// ---------------------------------------------------------------------------
+// Sales (Track B)
+// ---------------------------------------------------------------------------
 
 enum OrderStatus {
   PENDING_PAYMENT
@@ -77,6 +142,24 @@ enum OrderStatus {
   RETURNED
 }
 
+enum OrderSource {
+  MANUAL
+  PURCHASE_LINK
+}
+
+enum PaymentMethod {
+  CARD_TO_CARD
+  CASH
+  OTHER
+}
+
+enum ShippingStatus {
+  NOT_SHIPPED
+  IN_TRANSIT
+  DELIVERED
+  FAILED
+}
+
 model Order {
   id         String      @id @default(cuid())
   sellerId   String
@@ -84,28 +167,60 @@ model Order {
   customerId String
   customer   Customer    @relation(fields: [customerId], references: [id])
   status     OrderStatus @default(PENDING_PAYMENT)
-  totalPrice Decimal     @db.Decimal(12, 2)
+  source     OrderSource @default(MANUAL)
+  totalPrice Int // tomans, computed on the server
 
-  // Shipping/logistics (spec section 10)
-  shippingAddress  String?
-  shippingMethod   String?
-  shippingCost     Decimal?    @db.Decimal(12, 2)
-  trackingCode     String?
+  // Token for the customer-facing confirmation/tracking page.
+  publicToken String? @unique
+
+  // Payment
+  paymentMethod    PaymentMethod?
+  paidAt           DateTime?
+  receiptImageUrl  String?
+
+  // Shipping
+  shippingAddress String?
+  shippingMethod  String?
+  shippingCost    Int?
+  trackingCode    String?
+  shippingStatus  ShippingStatus @default(NOT_SHIPPED)
+
+  purchaseLinkId String?
+  purchaseLink   PurchaseLink? @relation(fields: [purchaseLinkId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   items OrderItem[]
+
+  @@index([sellerId, status])
+  @@index([sellerId, createdAt])
 }
 
 model OrderItem {
   id               String          @id @default(cuid())
   orderId          String
-  order            Order           @relation(fields: [orderId], references: [id])
+  order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId        String
   product          Product         @relation(fields: [productId], references: [id])
   productVariantId String?
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
   quantity         Int
-  unitPrice        Decimal         @db.Decimal(12, 2)
+  unitPrice        Int // tomans, snapshot at order time
+}
+
+// Public purchase link: /buy/[token]. Shows only the attached products.
+model PurchaseLink {
+  id        String    @id @default(cuid())
+  sellerId  String
+  seller    Seller    @relation(fields: [sellerId], references: [id])
+  token     String    @unique
+  title     String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  products Product[]
+  orders   Order[]
+
+  @@index([sellerId])
 }
