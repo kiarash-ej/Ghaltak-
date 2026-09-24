@@ -41,9 +41,14 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">سفارش‌ها</h1>
-        <Link href="/orders/new" className={cn(buttonVariants())}>
-          سفارش جدید
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/orders/links" className={cn(buttonVariants({ variant: "outline" }))}>
+            لینک‌های خرید
+          </Link>
+          <Link href="/orders/new" className={cn(buttonVariants())}>
+            سفارش جدید
+          </Link>
+        </div>
       </div>
 
       <form method="GET" className="flex flex-wrap items-center gap-2">
