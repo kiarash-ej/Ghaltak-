@@ -43,6 +43,8 @@ type Props = {
   categories: string[];
   submitLabel: string;
   initial?: ProductFormInitial;
+  /** Where existing variants' stock is changed (edit form only). */
+  inventoryHref?: string;
 };
 
 const emptyRow = (key: number): VariantRow => ({
@@ -64,7 +66,7 @@ function FieldError({ messages }: { messages?: string[] }) {
   );
 }
 
-export function ProductForm({ action, categories, submitLabel, initial }: Props) {
+export function ProductForm({ action, categories, submitLabel, initial, inventoryHref }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const errors = state?.errors;
 
@@ -260,6 +262,14 @@ export function ProductForm({ action, categories, submitLabel, initial }: Props)
           {initial && (
             <p className="text-xs text-neutral-500">
               موجودی تنوع‌های ثبت‌شده در این فرم تغییر نمی‌کند تا هر تغییر موجودی ثبت و پیگیری شود.
+              {inventoryHref && (
+                <>
+                  {" "}
+                  <Link href={inventoryHref} className="text-neutral-900 underline">
+                    تغییر موجودی در صفحهٔ موجودی
+                  </Link>
+                </>
+              )}
             </p>
           )}
           <FieldError messages={errors?.variants} />

@@ -27,6 +27,7 @@ export default async function EditProductPage(
         action={updateProductAction.bind(null, product.id)}
         categories={categories}
         submitLabel="ذخیرهٔ تغییرات"
+        inventoryHref={`/inventory?product=${product.id}`}
         initial={{
           name: product.name,
           price: product.price,
