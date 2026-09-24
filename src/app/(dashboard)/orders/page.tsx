@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { formatDate, formatNumber, formatToman } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { requireSeller } from "@/server/auth";
+import { expireUnpaidLinkOrders } from "@/server/orders/expire-orders";
 import { listOrders } from "@/server/orders/queries";
 import { ORDER_STATUSES, STATUS_LABELS, isOrderStatus } from "@/server/orders/status";
 
@@ -22,6 +23,8 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
   const status = isOrderStatus(rawStatus) ? rawStatus : undefined;
   const requestedPage = Number(first(sp.page)) || 1;
 
+  // Abandoned purchase-link orders are canceled lazily, so the list is current.
+  await expireUnpaidLinkOrders(seller.id);
   const { items, total, page, pageCount } = await listOrders(seller.id, {
     q,
     status,
@@ -40,9 +43,9 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">سفارش‌ها</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link href="/orders/links" className={cn(buttonVariants({ variant: "outline" }))}>
             لینک‌های خرید
           </Link>

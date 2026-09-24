@@ -5,6 +5,7 @@ import { ReceiptUpload } from "@/components/orders/receipt-upload";
 import { uploadReceiptAction } from "@/server/orders/payment-actions";
 import { SHIPPING_STATUS_LABELS } from "@/server/orders/shipping";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
+import { UNPAID_ORDER_TTL_HOURS } from "@/server/orders/purchase-limits";
 import { getPublicOrder } from "@/server/orders/purchase-links";
 
 // The customer's confirmation/tracking page, reached by the order's public
@@ -31,6 +32,11 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
           </span>
         </p>
         <p className="text-sm">این کد را نگه دارید. فروشنده برای هماهنگی پرداخت و ارسال با شما تماس می‌گیرد.</p>
+        {order.status === "PENDING_PAYMENT" && (
+          <p className="text-sm">
+            سفارشی که تا {formatNumber(UNPAID_ORDER_TTL_HOURS)} ساعت پرداخت نشود، خودکار لغو می‌شود.
+          </p>
+        )}
       </div>
 
       {order.payment === "PAID" && (

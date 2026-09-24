@@ -34,11 +34,26 @@ export function createRateLimiter({
   };
 }
 
+/** How many reverse proxies we run in front of the app (TRUSTED_PROXY_HOPS). */
+export function trustedProxyHops(env: Record<string, string | undefined> = process.env): number {
+  const hops = Number(env.TRUSTED_PROXY_HOPS ?? "1");
+  return Number.isInteger(hops) && hops >= 1 && hops <= 10 ? hops : 1;
+}
+
 /**
- * The client's IP as reported by the reverse proxy. Behind a proxy the first
- * X-Forwarded-For entry is the client; falls back to X-Real-IP.
+ * The client's IP, taken only from what OUR proxies wrote.
+ *
+ * X-Forwarded-For is "client, proxy1, proxy2, ...": anything the client sends
+ * lands at the FRONT, and each of our proxies appends the address it saw at
+ * the END. So the entry `hops` places from the end is the one our outermost
+ * proxy saw, and the client can't change it. (Next.js itself only fills the
+ * header when it is missing, so without a proxy in front the value is not
+ * trustworthy: production must run behind one, see .env.example.)
  */
-export function clientIp(headers: Headers): string {
-  const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || headers.get("x-real-ip")?.trim() || "unknown";
+export function clientIp(headers: Headers, hops: number = trustedProxyHops()): string {
+  const entries = (headers.get("x-forwarded-for") ?? "")
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
+  return entries[entries.length - hops] ?? "unknown";
 }
