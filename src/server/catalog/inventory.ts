@@ -141,3 +141,49 @@ export async function setStock(
     return target;
   });
 }
+
+// ---------------------------------------------------------------------------
+// Cross-track contract (docs/phase1/README.md), used by Track B's orders.
+// ---------------------------------------------------------------------------
+
+export type OrderStockReason = "ORDER_PLACED" | "ORDER_CANCELED" | "ORDER_RETURNED";
+
+export type AdjustStockOptions = {
+  /** Defaults to ORDER_PLACED for a negative delta and ORDER_CANCELED for a positive one. */
+  reason?: OrderStockReason;
+  /** Recorded on the StockMovement so the history can point at the order. */
+  orderId?: string | null;
+};
+
+/**
+ * Changes stock for an order. Same rules as changeStock(): atomic, never below
+ * zero (throws InsufficientStockError), logged, and inside `tx` when given.
+ *
+ * The caller is responsible for having checked that the variant belongs to
+ * the seller it acts for (Track B does: order lines come from seller-scoped
+ * queries). The seller is taken from the variant itself.
+ */
+export async function adjustStock(
+  variantId: string,
+  delta: number,
+  tx?: Db,
+  options: AdjustStockOptions = {},
+): Promise<void> {
+  const reason = options.reason ?? (delta < 0 ? "ORDER_PLACED" : "ORDER_CANCELED");
+  if ((reason === "ORDER_PLACED") !== delta < 0) {
+    throw new RangeError(`delta ${delta} does not match reason ${reason}`);
+  }
+
+  await inTransaction(tx, async (db) => {
+    const variant = await db.productVariant.findUnique({
+      where: { id: variantId },
+      select: { sellerId: true },
+    });
+    if (!variant) throw new VariantNotFoundError();
+
+    await changeStock(
+      { sellerId: variant.sellerId, variantId, delta, reason, orderId: options.orderId },
+      db,
+    );
+  });
+}
