@@ -51,7 +51,7 @@ Plus Step 0 files while Step 0 is open: `prisma/`, `src/server/auth.ts`, dashboa
 
 **Status: implemented** (branch `track-a/inventory`).
 
-- `/inventory`: every variant with stock, threshold and a status badge (کافی / کم‌موجودی / ناموجود). Tabs with counts: all, «نیاز به تأمین» (stock at or below the product's threshold, including zero), out of stock. Search by product name or SKU, sort by name or stock, 30 per page. `?product=<id>` shows one product (linked from the product edit page).
+- `/inventory`: every variant with stock, threshold and a status badge (کافی / کم‌موجودی / ناموجود). Tabs with counts: all, «نیاز به تأمین» (variants of **active** products at or below the product's threshold, including zero; the same rule as the sales report's low-stock count, see #19), out of stock. Search by product name or SKU, sort by name or stock, 30 per page. `?product=<id>` shows one product (linked from the product edit page).
 - Change stock inline, three modes: add, subtract, or "set to" (after a physical count). Optional note (max 200). Live preview of the resulting stock; the list updates without a reload.
 - "Set to" only succeeds if the stock is still what the seller saw. If a sale happened meanwhile it is refused with the real number (a sale is never silently overwritten), and the row refreshes so a retry works.
 - `/inventory/[variantId]`: the last 100 stock movements (time in Iran time, change, reason, note).

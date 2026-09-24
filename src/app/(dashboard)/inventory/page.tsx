@@ -80,7 +80,7 @@ export default async function InventoryPage(props: PageProps<"/inventory">) {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">موجودی</h1>
         <p className="text-sm text-neutral-600">
-          «نیاز به تأمین» یعنی موجودی به آستانهٔ هشدار محصول یا کمتر رسیده است.
+          «نیاز به تأمین» یعنی محصولات فعالی که موجودی‌شان به آستانهٔ هشدار یا کمتر رسیده است.
         </p>
       </div>
 
