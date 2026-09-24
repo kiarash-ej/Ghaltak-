@@ -22,7 +22,7 @@ export async function expireUnpaidLinkOrders(sellerId: string, now = new Date())
     },
     orderBy: { createdAt: "asc" },
     take: BATCH,
-    select: { id: true, items: { select: { productVariantId: true, quantity: true } } },
+    select: { id: true },
   });
 
   let expired = 0;
@@ -35,7 +35,7 @@ export async function expireUnpaidLinkOrders(sellerId: string, now = new Date())
         data: { status: "CANCELED" },
       });
       if (count === 1) {
-        await returnStock(order.items, tx);
+        await returnStock(order.id, "ORDER_CANCELED", tx);
         expired += 1;
       }
     });

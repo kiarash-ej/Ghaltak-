@@ -1,8 +1,14 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
-// The one place Track B touches stock. When Track A merges A4, change this
-// import to "@/server/catalog/inventory" and nothing else.
-import { adjustStock } from "@/server/catalog/inventory.stub";
+import {
+  InsufficientStockError,
+  adjustStock,
+  type OrderStockReason,
+} from "@/server/catalog/inventory";
+import { stockToReturn } from "./stock-return";
+
+// The one place Track B touches stock. Everything goes through Track A's
+// adjustStock (atomic, never below zero, logged with the order's id).
 
 type StockLine = { productVariantId: string | null; quantity: number };
 
@@ -17,23 +23,46 @@ export class OutOfStockError extends Error {
   }
 }
 
-/** Reduces stock for every line. Must run inside the order's transaction. */
-export async function takeStock(lines: StockLine[], tx: Prisma.TransactionClient) {
+/** Reduces stock for every line of a new order. Must run inside the order's transaction. */
+export async function takeStock(
+  orderId: string,
+  lines: StockLine[],
+  tx: Prisma.TransactionClient,
+) {
   for (const line of lines) {
     if (!line.productVariantId) continue;
     try {
-      await adjustStock(line.productVariantId, -line.quantity, tx);
+      await adjustStock(line.productVariantId, -line.quantity, tx, {
+        reason: "ORDER_PLACED",
+        orderId,
+      });
     } catch (err) {
-      // The adjustStock contract: it throws when stock would go below zero.
-      throw new OutOfStockError(line.productVariantId, { cause: err });
+      if (err instanceof InsufficientStockError) {
+        throw new OutOfStockError(line.productVariantId, { cause: err });
+      }
+      throw err;
     }
   }
 }
 
-/** Gives stock back for every line (cancel/return). Must run inside a transaction. */
-export async function returnStock(lines: StockLine[], tx: Prisma.TransactionClient) {
-  for (const line of lines) {
-    if (!line.productVariantId) continue;
-    await adjustStock(line.productVariantId, line.quantity, tx);
+/**
+ * Gives back what this order took (cancel/return). Must run inside a transaction.
+ *
+ * Driven by the order's own stock movements, not its lines: an order only gets
+ * back what it actually reduced, and never twice. Orders created before the
+ * real adjustStock was wired in have no movements, so they return nothing
+ * instead of adding stock that was never taken.
+ */
+export async function returnStock(
+  orderId: string,
+  reason: Exclude<OrderStockReason, "ORDER_PLACED">,
+  tx: Prisma.TransactionClient,
+) {
+  const movements = await tx.stockMovement.findMany({
+    where: { orderId },
+    select: { variantId: true, delta: true },
+  });
+  for (const { variantId, quantity } of stockToReturn(movements)) {
+    await adjustStock(variantId, quantity, tx, { reason, orderId });
   }
 }
