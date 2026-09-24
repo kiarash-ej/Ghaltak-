@@ -32,6 +32,13 @@ src/components/orders/**
 - Work on the seed data; do not wait for Track A's UI
 - **Done when:** a seller can create an order, see stock drop, cancel it and see stock come back
 
+**Status: done** (#4; real stock since #14).
+- `/orders`, `/orders/new`, `/orders/[id]`.
+- All status rules are in `canTransition()` in `src/server/orders/status.ts`. PAID and SHIPPED go through their own forms (B3, B4), not the generic buttons.
+- Status changes are conditional updates, so stock is restored at most once.
+- Order creation is shared by the manual form and the purchase link: `createOrderInTx()` in `create-order.ts`. A new customer is inserted with `ON CONFLICT DO NOTHING`, so double submits are safe (#17).
+- **Stock:** every call goes through `src/server/orders/stock.ts`. Cancel and return give back what the order's own stock movements took (`stockToReturn()`).
+
 ### B2 — Purchase link (week 2)
 - Seller generates a link for a product or a set of products: `/buy/[token]`
 - Public page (no login): product, choose color and size, quantity, enter name/phone/address, submit
@@ -40,6 +47,14 @@ src/components/orders/**
 - Rate-limit submissions (basic per-IP limit) and validate everything with Zod, since this page is public
 - **Done when:** someone with no account can place an order from a phone, and it appears in the seller's order list
 
+**Status: done** (#5; hardened in #13 and #20).
+- **Pages:** `/orders/links` (create, copy, turn off) and the public `/buy/[token]`. After ordering, the customer lands on `/buy/order/[publicToken]`.
+- **Abuse limits:**
+  - per-IP limit that trusts only what our proxy appends (`TRUSTED_PROXY_HOPS`)
+  - at most 10 of each item (`MAX_BUY_QUANTITY`)
+  - at most 3 unpaid orders per phone per link, and 50 orders per link per hour, checked under a per-link advisory lock (`link-order.ts`)
+  - unpaid link orders expire after 48 hours and give their stock back (`expire-orders.ts`, run lazily)
+
 ### B3 — Payment status (week 3)
 - Seller marks an order paid manually (method: card-to-card, cash, other) with a timestamp
 - Card-to-card receipt: customer or seller uploads a receipt image; the seller reviews it and confirms
@@ -47,11 +62,22 @@ src/components/orders/**
 - No gateway yet (Zarinpal/IDPay is Phase 2), but keep the payment code behind a small interface so a gateway can be added
 - **Done when:** an order can go from `PENDING_PAYMENT` to `PAID` with a receipt attached
 
+**Status: done** (#7).
+- **Confirming payment:** `confirmPaymentInTx()` in `payment-store.ts` is the only way an order becomes PAID. A gateway implements `PaymentGateway` (in `payment.ts`) and calls the same function.
+- **Receipts are private:** they're stored in `uploads/receipts`, checked by content, and served only to the owning seller by `/orders/[id]/receipt` with no caching.
+- **Rejected receipts:** the customer can send a new one.
+- **Open:** there's no field for the seller's card number yet, so payment instructions are generic.
+
 ### B4 — Shipping (week 3)
 - On each order: method (post, courier, in-person), cost, tracking code, shipping status
 - Moving an order to `SHIPPED` requires a method; tracking code optional
 - Show the shipping info on the order page and on the customer's confirmation page
 - **Done when:** the seller can record a shipment and the customer can see the tracking code
+
+**Status: done** (#8).
+- **Shipping card:** «ثبت و ارسال سفارش» saves the details and moves PREPARING → SHIPPED in one step. It requires a method.
+- **Shipping status follows the order:** in transit when shipped, delivered when delivered. The seller can mark a parcel failed.
+- **Amount due** = items + shipping (`amountDue()`). `totalPrice` stays items only.
 
 ### B5 — Sales report (week 4)
 - Dashboard: sales today / this week / this month, order count, average order value, new vs returning customers, top-selling products, low-stock products, unfinished orders
@@ -59,9 +85,17 @@ src/components/orders/**
 - Query design: aggregate in SQL (`groupBy`/raw), not by loading all orders into memory
 - **Done when:** the numbers match a hand count on the seed data
 
+**Status: done** (#15).
+- **Page:** `/reports`.
+- **What counts as a sale:** `PAID`, `PREPARING`, `SHIPPED` or `DELIVERED`, counted on the day the order was placed, in Tehran time. This matches Track A's `PURCHASE_STATUSES`. Shipping is excluded.
+- **Periods:** Tehran midnight, a Saturday week and the Jalali month (`periods.ts`).
+- **Queries:** everything is aggregated in SQL.
+- **Chart:** plain SVG with a tooltip and a table view.
+- **Hand count:** matched on a hand-counted database test set (`queries.int.test.ts`) and on the seed data.
+
 ### Week 4–5
-- Swap the `adjustStock` stub for Track A's real function
-- Joint end-to-end test of the buy flow, and fix bugs found
+- Swap the `adjustStock` stub for Track A's real function: **done** (#14, after #10 was fixed in #13)
+- Joint end-to-end test of the buy flow, and fix bugs found: **still to do**. Bugs found so far in reviews were fixed: #10 (#13), #17 and #18 (#20).
 
 ## Working with your coding agent
 

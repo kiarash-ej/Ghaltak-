@@ -9,6 +9,23 @@ work in parallel on two tracks:
 
 Read this file first, then your track file.
 
+## Phase 1 status
+
+**All tasks are merged into `main`.** Each task's notes are in the track files.
+
+| | Done | PRs |
+|---|---|---|
+| Step 0 | Shared foundation; shared fixes (light theme, stale sessions, Tehran time) | #1, #6 |
+| Track A | A1 products, A2 inventory, A3 customers, A4 `adjustStock`, A5 real stock (deadlock fix, stub removed, seed) | #2, #9, #12, #11, #16, #21 |
+| Track B | B1 orders, B2 purchase link, B3 payment, B4 shipping, B5 sales report, switch to real stock | #4, #5, #7, #8, #15, #14 |
+| Fixes from review | Rate-limit bypass (#10), double submit for a new customer (#17), stock holding through purchase links (#18), restock count for active products only (#19) | #13, #20, #21 |
+
+**Still open:**
+- **Week 5:** the joint end-to-end test of the buy flow, then pilot prep.
+- **Branch protection on `main`:** blocked, see Step 0 below.
+
+Checks on `main`: lint, type-check, build, and 223 tests including the database tests.
+
 ## Step 0 — Shared foundation (do this BEFORE the tracks start)
 
 Owner: Person A. Reviewer: Person B. Nobody starts a track until this is merged into `main`.
@@ -25,7 +42,7 @@ Status: **merged into `main`** (PR #1). The tracks can start. Checked items belo
 - [x] Seed script: `npm run db:seed` gives demo seller `09120000000` with 20 products, 15 customers, 30 orders
 - [x] CI: `.github/workflows/ci.yml` runs lint, type-check, tests and build on every PR
 - [x] `.env.example` with every variable the app needs
-- [x] `adjustStock` stub at `src/server/catalog/inventory.stub.ts`
+- [x] `adjustStock` stub at `src/server/catalog/inventory.stub.ts` (deleted in A5, once the real function was live)
 - [ ] Branch protection on `main` (PR required, CI must pass): **blocked.** GitHub does not allow branch protection or rulesets on a private repo owned by a free personal account. It needs GitHub Pro on the owner's account (or the repo made public). Until then, follow rule 3 by hand: never push to `main` directly, always merge through a PR with green CI
 
 ### How to run it locally
