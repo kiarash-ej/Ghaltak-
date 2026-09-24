@@ -49,6 +49,15 @@ export function nextStatuses(from: OrderStatus): readonly OrderStatus[] {
   return TRANSITIONS[from];
 }
 
+/**
+ * Some moves need more than a button: PAID needs a payment method (and maybe
+ * a receipt). Those go through their own form and action, never through the
+ * generic status buttons.
+ */
+export function detailsRequiredFor(to: OrderStatus): "payment" | null {
+  return to === "PAID" ? "payment" : null;
+}
+
 /** Canceled and returned orders give their items back to stock. */
 export function restoresStock(to: OrderStatus): boolean {
   return to === "CANCELED" || to === "RETURNED";

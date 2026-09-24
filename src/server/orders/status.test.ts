@@ -3,6 +3,7 @@ import type { OrderStatus } from "@/generated/prisma/enums";
 import {
   ORDER_STATUSES,
   canTransition,
+  detailsRequiredFor,
   isOpenStatus,
   isOrderStatus,
   nextStatuses,
@@ -68,6 +69,15 @@ describe("restoresStock", () => {
     // no way out, so an order can never restore (or re-reduce) again.
     for (const s of ORDER_STATUSES.filter(restoresStock)) {
       expect(nextStatuses(s)).toEqual([]);
+    }
+  });
+});
+
+describe("detailsRequiredFor", () => {
+  it("sends PAID through the payment form and nothing else", () => {
+    expect(detailsRequiredFor("PAID")).toBe("payment");
+    for (const s of ORDER_STATUSES.filter((s) => s !== "PAID")) {
+      expect(detailsRequiredFor(s)).toBeNull();
     }
   });
 });

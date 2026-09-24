@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDate, formatNumber, formatToman } from "@/lib/format";
@@ -131,7 +132,10 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
                       </div>
                     </td>
                     <td className="p-3">
-                      <OrderStatusBadge status={o.status} />
+                      <div className="flex flex-wrap gap-1">
+                        <OrderStatusBadge status={o.status} />
+                        {o.receiptPending && <Badge variant="warning">رسید دریافت شد</Badge>}
+                      </div>
                     </td>
                     <td className="p-3 text-end">
                       <Link

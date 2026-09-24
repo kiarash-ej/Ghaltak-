@@ -3,9 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { OrderStatusActions } from "@/components/orders/order-status-actions";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
+import { PaymentPanel } from "@/components/orders/payment-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
 import { requireSeller } from "@/server/auth";
+import { paymentState } from "@/server/orders/payment";
 import { getOrder, orderCode } from "@/server/orders/queries";
 
 export const metadata: Metadata = { title: "جزئیات سفارش | غلتک" };
@@ -40,6 +42,21 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
         </CardHeader>
         <CardContent>
           <OrderStatusActions orderId={order.id} status={order.status} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>پرداخت</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PaymentPanel
+            orderId={order.id}
+            state={paymentState(order)}
+            method={order.paymentMethod}
+            paidAtText={order.paidAt ? formatDateTime(order.paidAt) : null}
+            hasReceipt={order.receiptImageUrl !== null}
+          />
         </CardContent>
       </Card>
 

@@ -21,6 +21,8 @@ export type OrderListItem = {
   source: "MANUAL" | "PURCHASE_LINK";
   totalPrice: number;
   itemCount: number;
+  /** A customer receipt is waiting for the seller to review. */
+  receiptPending: boolean;
   createdAt: Date;
 };
 
@@ -67,6 +69,7 @@ export async function listOrders(
       status: true,
       source: true,
       totalPrice: true,
+      receiptImageUrl: true,
       createdAt: true,
       customer: { select: { name: true, phone: true } },
       _count: { select: { items: true } },
@@ -83,6 +86,7 @@ export async function listOrders(
       source: o.source,
       totalPrice: o.totalPrice,
       itemCount: o._count.items,
+      receiptPending: o.status === "PENDING_PAYMENT" && o.receiptImageUrl !== null,
       createdAt: o.createdAt,
     })),
     total,
