@@ -43,6 +43,14 @@ function baseWhere(sellerId: string, productId?: string) {
     ${productId ? Prisma.sql`AND p."id" = ${productId}` : Prisma.empty}`;
 }
 
+/**
+ * "Needs restock": a variant of an ACTIVE product at or below the product's
+ * threshold. A product the seller turned off doesn't need restocking. This is
+ * the same rule as the sales report's low-stock count (src/server/reports),
+ * which links to this tab, so the two numbers always match.
+ */
+const NEEDS_RESTOCK = Prisma.sql`p."isActive" AND v."stock" <= p."lowStockThreshold"`;
+
 type RawRow = Omit<InventoryRow, "status">;
 
 export async function listInventory(
@@ -55,7 +63,7 @@ export async function listInventory(
     ${q
       ? Prisma.sql`AND (p."name" ILIKE ${likePattern(q)} ESCAPE '\\' OR v."sku" ILIKE ${likePattern(q)} ESCAPE '\\')`
       : Prisma.empty}
-    ${filter === "low" ? Prisma.sql`AND v."stock" <= p."lowStockThreshold"` : Prisma.empty}
+    ${filter === "low" ? Prisma.sql`AND ${NEEDS_RESTOCK}` : Prisma.empty}
     ${filter === "out" ? Prisma.sql`AND v."stock" <= 0` : Prisma.empty}`;
 
   const [{ count }] = await prisma.$queryRaw<{ count: bigint }[]>`
@@ -86,7 +94,7 @@ export async function listInventory(
 export async function inventorySummary(sellerId: string, productId?: string) {
   const [row] = await prisma.$queryRaw<{ total: bigint; low: bigint; out: bigint }[]>`
     SELECT count(*) AS total,
-           count(*) FILTER (WHERE v."stock" <= p."lowStockThreshold") AS low,
+           count(*) FILTER (WHERE ${NEEDS_RESTOCK}) AS low,
            count(*) FILTER (WHERE v."stock" <= 0) AS out
     FROM "ProductVariant" v JOIN "Product" p ON p."id" = v."productId"
     WHERE ${baseWhere(sellerId, productId)}`;
