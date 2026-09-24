@@ -71,6 +71,7 @@ async function main() {
         price: int(15, 250) * 10_000, // 150,000 .. 2,500,000 toman
         variants: {
           create: Array.from({ length: int(2, 4) }, (_, i) => ({
+            sellerId: seller.id,
             color: COLORS[i % COLORS.length],
             size: SIZES[i % SIZES.length],
             stock: int(0, 12),

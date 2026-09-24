@@ -5,7 +5,8 @@ import { SESSION_COOKIE, decryptSession } from "@/server/session-token";
 // Optimistic auth check only (cookie signature). The real authorization
 // happens in requireSeller() next to the data access.
 
-const PUBLIC_PREFIXES = ["/login", "/buy"];
+// /uploads serves product images, which also appear on the public /buy pages.
+const PUBLIC_PREFIXES = ["/login", "/buy", "/uploads"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

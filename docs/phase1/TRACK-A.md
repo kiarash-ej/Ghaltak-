@@ -15,6 +15,7 @@ You own the shared foundation in the README's "Step 0" list. Person B reviews. M
 src/app/(dashboard)/products/**
 src/app/(dashboard)/inventory/**
 src/app/(dashboard)/customers/**
+src/app/uploads/**              (serves product images, public)
 src/server/catalog/**
 src/server/customers/**
 src/components/catalog/**
@@ -31,6 +32,15 @@ Plus Step 0 files while Step 0 is open: `prisma/`, `src/server/auth.ts`, dashboa
 - Server actions in `src/server/catalog/actions.ts`, queries in `queries.ts`, validation with Zod
 - Product images: upload to S3-compatible storage (Arvan/Liara); use local disk storage behind an interface for dev
 - **Done when:** a seller can create a product with 3 variants and see it in the list, and cannot see another seller's products
+
+**Status: implemented** (branch `track-a/products`). Things the next tasks and Track B should know:
+
+- Pages: `/products` (search, category filter, pagination of 20), `/products/new`, `/products/[id]/edit`. No delete: use the active toggle, because products with orders cannot be removed.
+- **Stock is not editable on existing variants in the product form.** New variants take an initial stock (logged as a `StockMovement` with reason `INITIAL`). All later changes must go through the inventory page (A2) and `adjustStock` (A4), so every change is logged. A variant that appears in any order cannot be deleted from the form.
+- Images: max 2MB, JPG/PNG/WebP detected by content (not by file name or MIME type). The browser shrinks photos to 1600px WebP before upload. Stored on local disk under `UPLOAD_DIR` (default `./uploads`, git-ignored) and served publicly from `/uploads/products/<uuid>`. To move to Arvan/Liara S3, change only `src/server/catalog/image-storage.ts`.
+- `ProductVariant` now has its own `sellerId` (migration `20260924170000_variant_seller_scope`). SKUs are unique per seller, not globally. **Every code path that creates a variant must set `sellerId` equal to the product's `sellerId`.**
+- Shared files touched: `src/proxy.ts` (`/uploads` is public), `next.config.ts` (Server Action body limit 3MB), `src/components/ui/badge.tsx` (new shared component), `prisma/schema.prisma`.
+- Reusable helpers: `getStockStatus()` in `src/server/catalog/stock-status.ts` (out of stock / low / ok, used by the list and reusable by the inventory page and Track B's report).
 
 ### A2 — Inventory (week 2)
 - Inventory screen: every variant with its stock, sortable, with a low-stock filter
