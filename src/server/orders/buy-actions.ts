@@ -3,11 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { parseBuyForm } from "./buy-form";
-import { OrderError, createOrderInTx } from "./create-order";
-import { expireUnpaidLinkOrders } from "./expire-orders";
-import { purchaseQuotaProblem } from "./purchase-limits";
+import { OrderError } from "./create-order";
+import { QuotaError, placeLinkOrder } from "./link-order";
 import type { FieldErrors } from "./order-form";
 import { getPublicLink } from "./purchase-links";
 import { clientIp, createRateLimiter } from "./rate-limit";
@@ -22,8 +20,6 @@ export type BuyFormState = { errors?: FieldErrors; message?: string } | undefine
 const orderLimiter = createRateLimiter({ limit: 10, windowMs: 10 * 60 * 1000 });
 
 const GENERIC_ERROR = "خطایی رخ داد. لطفاً دوباره تلاش کنید.";
-
-class QuotaError extends Error {}
 
 export async function submitPurchaseAction(
   token: string,
@@ -40,41 +36,9 @@ export async function submitPurchaseAction(
   const link = await getPublicLink(token);
   if (!link) return { message: "این لینک خرید دیگر فعال نیست." };
 
-  // Free stock held by abandoned orders before checking stock for this one.
-  await expireUnpaidLinkOrders(link.sellerId);
-
   let publicToken: string;
   try {
-    const order = await prisma.$transaction(async (tx) => {
-      // Limits that don't depend on the IP (see purchase-limits.ts).
-      const [openOrdersForPhone, linkOrdersLastHour] = await Promise.all([
-        tx.order.count({
-          where: {
-            purchaseLinkId: link.linkId,
-            status: "PENDING_PAYMENT",
-            customer: { sellerId: link.sellerId, phone: parsed.data.phone },
-          },
-        }),
-        tx.order.count({
-          where: {
-            purchaseLinkId: link.linkId,
-            createdAt: { gt: new Date(Date.now() - 60 * 60 * 1000) },
-          },
-        }),
-      ]);
-      const quota = purchaseQuotaProblem({ openOrdersForPhone, linkOrdersLastHour });
-      if (quota) throw new QuotaError(quota);
-
-      return createOrderInTx(tx, {
-        sellerId: link.sellerId,
-        customer: { kind: "new", name: parsed.data.name, phone: parsed.data.phone },
-        shippingAddress: parsed.data.address,
-        items: parsed.data.items,
-        source: "PURCHASE_LINK",
-        purchaseLinkId: link.linkId,
-      });
-    });
-    publicToken = order.publicToken;
+    publicToken = (await placeLinkOrder(link, parsed.data)).publicToken;
   } catch (err) {
     if (err instanceof QuotaError) return { message: err.message };
     if (err instanceof OrderError) return { errors: { items: [err.message] } };

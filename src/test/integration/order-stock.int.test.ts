@@ -106,12 +106,9 @@ describe.skipIf(!hasTestDatabase)("orders on real stock, cross-track (database)"
     await expectLogInSync();
   });
 
-  // Known issue in Track B's createOrderInTx: a NEW customer's "find by
-  // phone, else create" is not safe against two simultaneous orders with the
-  // same phone (e.g. a double-click on the buy page). The second fails on the
-  // unique (sellerId, phone) constraint instead of reusing the customer.
-  // Remove `.fails` once that is fixed.
-  it.fails("two simultaneous orders from the same new phone both succeed", async () => {
+  // Two simultaneous orders with the same NEW phone (e.g. a double-click on
+  // the buy page) must both succeed and share one customer (issue #17).
+  it("two simultaneous orders from the same new phone both succeed", async () => {
     const phone = `0998${runId.slice(-3)}0001`;
     const place = () =>
       prisma.$transaction((tx) =>
@@ -125,5 +122,10 @@ describe.skipIf(!hasTestDatabase)("orders on real stock, cross-track (database)"
       );
     const results = await Promise.allSettled([place(), place()]);
     expect(results.filter((r) => r.status === "rejected")).toEqual([]);
+    const customers = await prisma.customer.findMany({ where: { sellerId, phone } });
+    expect(customers).toHaveLength(1);
+    const orders = await prisma.order.findMany({ where: { sellerId, customer: { phone } } });
+    expect(orders).toHaveLength(2);
+    expect(new Set(orders.map((o) => o.customerId))).toEqual(new Set([customers[0].id]));
   });
 });
