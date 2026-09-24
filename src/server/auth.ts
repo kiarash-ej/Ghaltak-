@@ -21,7 +21,9 @@ export const requireSeller = cache(async (): Promise<CurrentSeller> => {
     where: { id: session.sellerId },
     select: { id: true, name: true, mobile: true },
   });
-  if (!seller) redirect("/login");
+  // Valid cookie for a seller that no longer exists: clear it, or /login and
+  // the dashboard would redirect to each other forever.
+  if (!seller) redirect("/logout");
 
   return seller;
 });
