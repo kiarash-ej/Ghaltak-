@@ -74,9 +74,10 @@ describe("restoresStock", () => {
 });
 
 describe("detailsRequiredFor", () => {
-  it("sends PAID through the payment form and nothing else", () => {
+  it("sends PAID and SHIPPED through their own forms and nothing else", () => {
     expect(detailsRequiredFor("PAID")).toBe("payment");
-    for (const s of ORDER_STATUSES.filter((s) => s !== "PAID")) {
+    expect(detailsRequiredFor("SHIPPED")).toBe("shipping");
+    for (const s of ORDER_STATUSES.filter((s) => s !== "PAID" && s !== "SHIPPED")) {
       expect(detailsRequiredFor(s)).toBeNull();
     }
   });

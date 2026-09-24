@@ -51,11 +51,13 @@ export function nextStatuses(from: OrderStatus): readonly OrderStatus[] {
 
 /**
  * Some moves need more than a button: PAID needs a payment method (and maybe
- * a receipt). Those go through their own form and action, never through the
- * generic status buttons.
+ * a receipt), SHIPPED needs a shipping method. Those go through their own
+ * form and action, never through the generic status buttons.
  */
-export function detailsRequiredFor(to: OrderStatus): "payment" | null {
-  return to === "PAID" ? "payment" : null;
+export function detailsRequiredFor(to: OrderStatus): "payment" | "shipping" | null {
+  if (to === "PAID") return "payment";
+  if (to === "SHIPPED") return "shipping";
+  return null;
 }
 
 /** Canceled and returned orders give their items back to stock. */

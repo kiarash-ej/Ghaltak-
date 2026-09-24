@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { ReceiptUpload } from "@/components/orders/receipt-upload";
 import { uploadReceiptAction } from "@/server/orders/payment-actions";
+import { SHIPPING_STATUS_LABELS } from "@/server/orders/shipping";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
 import { getPublicOrder } from "@/server/orders/purchase-links";
 
@@ -72,11 +73,35 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
             <div className="whitespace-nowrap">{formatToman(item.unitPrice * item.quantity)}</div>
           </li>
         ))}
+        {order.shippingCost !== null && (
+          <li className="flex items-center justify-between p-3 text-sm">
+            <span>هزینهٔ ارسال</span>
+            <span>{formatToman(order.shippingCost)}</span>
+          </li>
+        )}
         <li className="flex items-center justify-between p-3 font-semibold">
-          <span>جمع کل</span>
-          <span>{formatToman(order.totalPrice)}</span>
+          <span>{order.shippingCost !== null ? "مبلغ قابل پرداخت" : "جمع کل"}</span>
+          <span>{formatToman(order.amountDue)}</span>
         </li>
       </ul>
+
+      {(order.shipping.method || order.shipping.status !== "NOT_SHIPPED") && (
+        <section className="flex flex-col gap-2 rounded-xl border border-neutral-200 p-4 text-sm">
+          <h2 className="font-semibold">ارسال</h2>
+          <p>
+            وضعیت: {SHIPPING_STATUS_LABELS[order.shipping.status]}
+            {order.shipping.method && ` · ${order.shipping.method}`}
+          </p>
+          {order.shipping.trackingCode && (
+            <p>
+              کد رهگیری:{" "}
+              <span dir="ltr" className="select-all font-mono text-base font-bold">
+                {order.shipping.trackingCode}
+              </span>
+            </p>
+          )}
+        </section>
+      )}
 
       <p className="text-xs text-neutral-500">
         برای پیگیری وضعیت سفارش، همین صفحه را نگه دارید یا دوباره باز کنید.

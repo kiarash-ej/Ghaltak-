@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PAYMENT_METHODS, isPaymentMethod, paymentState } from "./payment";
+import { PAYMENT_METHODS, amountDue, isPaymentMethod, paymentState } from "./payment";
 
 describe("isPaymentMethod", () => {
   it("accepts the three manual methods only", () => {
@@ -7,6 +7,16 @@ describe("isPaymentMethod", () => {
     expect(isPaymentMethod("ZARINPAL")).toBe(false);
     expect(isPaymentMethod("cash")).toBe(false);
     expect(isPaymentMethod(null)).toBe(false);
+  });
+});
+
+describe("amountDue", () => {
+  it("adds shipping to the items total", () => {
+    expect(amountDue({ totalPrice: 3_820_000, shippingCost: 60_000 })).toBe(3_880_000);
+  });
+
+  it("is the items total when there is no shipping cost", () => {
+    expect(amountDue({ totalPrice: 3_820_000, shippingCost: null })).toBe(3_820_000);
   });
 });
 

@@ -4,10 +4,11 @@ import { notFound } from "next/navigation";
 import { OrderStatusActions } from "@/components/orders/order-status-actions";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { PaymentPanel } from "@/components/orders/payment-panel";
+import { ShippingPanel } from "@/components/orders/shipping-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
 import { requireSeller } from "@/server/auth";
-import { paymentState } from "@/server/orders/payment";
+import { amountDue, paymentState } from "@/server/orders/payment";
 import { getOrder, orderCode } from "@/server/orders/queries";
 
 export const metadata: Metadata = { title: "جزئیات سفارش | غلتک" };
@@ -62,6 +63,22 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
 
       <Card>
         <CardHeader>
+          <CardTitle>ارسال</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ShippingPanel
+            orderId={order.id}
+            status={order.status}
+            method={order.shippingMethod}
+            cost={order.shippingCost}
+            trackingCode={order.trackingCode}
+            shippingStatus={order.shippingStatus}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>کالاها</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
@@ -97,10 +114,26 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
             <tfoot>
               <tr className="border-t border-neutral-300 font-semibold">
                 <td className="py-2" colSpan={3}>
-                  جمع کل
+                  جمع کالاها
                 </td>
                 <td className="py-2 whitespace-nowrap">{formatToman(order.totalPrice)}</td>
               </tr>
+              {order.shippingCost !== null && (
+                <>
+                  <tr>
+                    <td className="py-2" colSpan={3}>
+                      هزینهٔ ارسال
+                    </td>
+                    <td className="py-2 whitespace-nowrap">{formatToman(order.shippingCost)}</td>
+                  </tr>
+                  <tr className="border-t border-neutral-300 font-semibold">
+                    <td className="py-2" colSpan={3}>
+                      مبلغ قابل پرداخت
+                    </td>
+                    <td className="py-2 whitespace-nowrap">{formatToman(amountDue(order))}</td>
+                  </tr>
+                </>
+              )}
             </tfoot>
           </table>
         </CardContent>

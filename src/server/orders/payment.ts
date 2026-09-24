@@ -19,6 +19,11 @@ export function isPaymentMethod(value: unknown): value is PaymentMethod {
   return typeof value === "string" && (PAYMENT_METHODS as readonly string[]).includes(value);
 }
 
+/** What the customer pays: items (Order.totalPrice) plus shipping, in tomans. */
+export function amountDue(order: { totalPrice: number; shippingCost: number | null }): number {
+  return order.totalPrice + (order.shippingCost ?? 0);
+}
+
 /** The contract a future online gateway implements. Not used in Phase 1. */
 export type PaymentGateway = {
   id: string;
