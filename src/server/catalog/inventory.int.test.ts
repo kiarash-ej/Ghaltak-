@@ -5,6 +5,7 @@ import {
   InsufficientStockError,
   StaleStockError,
   VariantNotFoundError,
+  adjustStock,
   changeStock,
   setStock,
 } from "./inventory";
@@ -147,6 +148,67 @@ describe.skipIf(!hasTestDatabase)("inventory (database)", () => {
     ).rejects.toThrow("order creation failed");
     expect(await stockOf(variantId)).toBe(5);
     expect(await movementsOf(variantId)).toHaveLength(0);
+  });
+
+  describe("adjustStock (cross-track contract)", () => {
+    it("works exactly as Track B calls it, inside the order transaction", async () => {
+      await prisma.$transaction(async (tx) => {
+        await adjustStock(variantId, -2, tx);
+      });
+      expect(await stockOf(variantId)).toBe(3);
+
+      await prisma.$transaction(async (tx) => {
+        await adjustStock(variantId, 2, tx);
+      });
+      expect(await stockOf(variantId)).toBe(5);
+
+      const log = await movementsOf(variantId);
+      expect(log.map((m) => [m.delta, m.reason, m.orderId])).toEqual([
+        [-2, "ORDER_PLACED", null],
+        [2, "ORDER_CANCELED", null],
+      ]);
+    });
+
+    it("records an explicit reason and the order id", async () => {
+      await adjustStock(variantId, -1, undefined, { orderId: "order_7" });
+      await adjustStock(variantId, 1, undefined, { reason: "ORDER_RETURNED", orderId: "order_7" });
+      const log = await movementsOf(variantId);
+      expect(log.map((m) => [m.delta, m.reason, m.orderId])).toEqual([
+        [-1, "ORDER_PLACED", "order_7"],
+        [1, "ORDER_RETURNED", "order_7"],
+      ]);
+    });
+
+    it("throws InsufficientStockError and changes nothing when stock would go below zero", async () => {
+      await expect(adjustStock(variantId, -6)).rejects.toBeInstanceOf(InsufficientStockError);
+      expect(await stockOf(variantId)).toBe(5);
+      expect(await movementsOf(variantId)).toHaveLength(0);
+    });
+
+    it("rejects a reason that does not match the direction of the change", async () => {
+      await expect(
+        adjustStock(variantId, 3, undefined, { reason: "ORDER_PLACED" }),
+      ).rejects.toBeInstanceOf(RangeError);
+      await expect(
+        adjustStock(variantId, -1, undefined, { reason: "ORDER_RETURNED" }),
+      ).rejects.toBeInstanceOf(RangeError);
+      expect(await stockOf(variantId)).toBe(5);
+    });
+
+    it("throws VariantNotFoundError for an unknown variant", async () => {
+      await expect(adjustStock("no_such_variant", -1)).rejects.toBeInstanceOf(VariantNotFoundError);
+    });
+
+    it("rolls back with the caller's transaction", async () => {
+      await expect(
+        prisma.$transaction(async (tx) => {
+          await adjustStock(variantId, -3, tx, { orderId: "order_x" });
+          throw new Error("order insert failed");
+        }),
+      ).rejects.toThrow("order insert failed");
+      expect(await stockOf(variantId)).toBe(5);
+      expect(await movementsOf(variantId)).toHaveLength(0);
+    });
   });
 
   it("rejects a zero or fractional delta", async () => {

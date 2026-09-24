@@ -65,12 +65,19 @@ Plus Step 0 files while Step 0 is open: `prisma/`, `src/server/auth.ts`, dashboa
 - **Done when:** a seller can find a customer by phone and see their order history
 
 ### A4 — Contract functions for Track B (week 3)
-- `getProductsForSeller(sellerId)` — active products with variants and stock, for the order form and buy link
+- ~~`getProductsForSeller(sellerId)`~~ — not needed, see status below
 - `adjustStock(variantId, delta, tx?)` — exactly the signature in the README. Throws if stock would go below zero. Must work inside a caller's transaction
 - Unit tests: reduce, restore (on cancel/return), reject negative stock, works inside a transaction
 - **Done when:** Track B swaps their stub for your function with no other change
 
-> **Note from A2 (decide with Person B before A4):** the real logic already exists as `changeStock()`, so `adjustStock` will be a thin wrapper. But the contract signature has gaps: it has no `reason` (placed / canceled / returned all look alike in the history), no `orderId` (the history cannot link to the order), and no `sellerId` (it trusts the caller to have checked the variant belongs to the seller). Proposal: `adjustStock(variantId, delta, { sellerId, reason, orderId }, tx?)`. Changing it now costs nothing because Track B has not used the stub yet.
+**Status: implemented** (branch `track-a/stock-contract`).
+
+- `adjustStock(variantId, delta, tx?, { reason?, orderId? })` in `src/server/catalog/inventory.ts`, a thin wrapper over `changeStock()`. Both tracks asked for `reason` and `orderId` (Person B in #4). They were added as an optional **fourth** parameter instead of changing the order of the others, so Track B's existing calls keep working and switching stays a one-line import change. `reason` defaults by the sign of `delta` and must match it.
+- **`sellerId` was not added** (my earlier proposal). Track B's `takeStock`/`returnStock` don't receive it, so adding it would force changes in Track B's code. Track B's order lines already come from seller-scoped queries. The seller is read from the variant.
+- The stub got the same signature, and `inventory-contract.test.ts` fails type-check if the two ever differ.
+- **`getProductsForSeller` was not built.** B1 and B2 wrote their own seller-scoped queries (`getOrderFormOptions`, `getPublicLink`), so it would be dead code.
+- **Switching is Track B's call, after issue #10** (see the README contract section).
+- Tests: 6 database tests for the contract (Track B's exact call pattern inside a transaction, default and explicit reasons, `orderId` recorded, below-zero refused with nothing changed, reason/sign mismatch refused, unknown variant, rollback with the caller's transaction).
 
 ### Week 4–5
 - Support Track B's integration: fix catalog bugs they find
