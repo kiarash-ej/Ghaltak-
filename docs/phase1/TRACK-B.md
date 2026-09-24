@@ -95,7 +95,7 @@ src/components/orders/**
 
 ### Week 4–5
 - Swap the `adjustStock` stub for Track A's real function: **done** (#14, after #10 was fixed in #13)
-- Joint end-to-end test of the buy flow, and fix bugs found: **still to do**. Bugs found so far in reviews were fixed: #10 (#13), #17 and #18 (#20).
+- Joint end-to-end test of the buy flow: **done** (#23, `e2e/buy-flow.spec.ts`, runs in CI). Bugs found in reviews were fixed: #10 (#13), #17 and #18 (#20).
 
 ## Working with your coding agent
 

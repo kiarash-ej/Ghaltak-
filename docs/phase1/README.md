@@ -22,8 +22,9 @@ Read this file first, then your track file.
 | Track B | B1 orders, B2 purchase link, B3 payment, B4 shipping, B5 sales report, switch to real stock | #4, #5, #7, #8, #15, #14 |
 | Fixes from review | Rate-limit bypass (#10), double submit for a new customer (#17), stock holding through purchase links (#18), restock count for active products only (#19) | #13, #20, #21 |
 
+**Week 5:** the joint end-to-end test of the buy flow is done: `e2e/buy-flow.spec.ts` (Playwright, #23) runs in CI on every PR. Pilot prep moves to Phase 2, week 0.
+
 **Still open:**
-- **Week 5:** the joint end-to-end test of the buy flow, then pilot prep.
 - **Branch protection on `main`:** blocked, see Step 0 below.
 
 Checks on `main`: lint, type-check, build, and 223 tests including the database tests.
