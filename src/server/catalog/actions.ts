@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSeller } from "@/server/auth";
 import { deleteProductImage, saveProductImage } from "./image-storage";
+import { variantLabel } from "./labels";
 import {
   parseProductForm,
   type FieldErrors,
@@ -156,9 +157,7 @@ export async function updateProductAction(
   const removed = existing.variants.filter((v) => !keptIds.includes(v.id));
   const blocked = removed.filter((v) => v._count.orderItems > 0);
   if (blocked.length > 0) {
-    const labels = blocked
-      .map((v) => [v.color, v.size].filter(Boolean).join(" / ") || "بدون رنگ و سایز")
-      .join("، ");
+    const labels = blocked.map(variantLabel).join("، ");
     return {
       message: `این تنوع‌ها در سفارش‌ها استفاده شده‌اند و قابل حذف نیستند: ${labels}`,
     };

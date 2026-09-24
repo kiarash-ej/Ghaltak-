@@ -48,6 +48,15 @@ Plus Step 0 files while Step 0 is open: `prisma/`, `src/server/auth.ts`, dashboa
 - Low-stock warning badge using `Product.lowStockThreshold`
 - **Done when:** adjusting stock updates the list immediately and a variant under its threshold is flagged
 
+**Status: implemented** (branch `track-a/inventory`).
+
+- `/inventory`: every variant with stock, threshold and a status badge (کافی / کم‌موجودی / ناموجود). Tabs with counts: all, «نیاز به تأمین» (stock at or below the product's threshold, including zero), out of stock. Search by product name or SKU, sort by name or stock, 30 per page. `?product=<id>` shows one product (linked from the product edit page).
+- Change stock inline, three modes: add, subtract, or "set to" (after a physical count). Optional note (max 200). Live preview of the resulting stock; the list updates without a reload.
+- "Set to" only succeeds if the stock is still what the seller saw. If a sale happened meanwhile it is refused with the real number (a sale is never silently overwritten), and the row refreshes so a retry works.
+- `/inventory/[variantId]`: the last 100 stock movements (time in Iran time, change, reason, note).
+- **Core stock logic:** `changeStock()` and `setStock()` in `src/server/catalog/inventory.ts`. One conditional UPDATE per change, so concurrent orders cannot oversell; never below zero or above `MAX_STOCK`; writes a `StockMovement` in the same transaction; accepts a caller's transaction `tx`. **Invariant: a variant's movements sum to its stock** (the seed now follows it too).
+- **Integration tests** against a real Postgres: `src/server/catalog/inventory.int.test.ts` (11 tests, including 12 concurrent orders on a stock of 5 → exactly 5 succeed). They run when `TEST_DATABASE_URL` is set, and in CI (Postgres service added). See the README.
+
 ### A3 — Customers (week 3)
 - List with search by name/phone, filter by tag
 - Profile page: name, phone, address, order count, total spent, average order, last purchase, order history (read-only list of Track B's orders)
@@ -60,6 +69,8 @@ Plus Step 0 files while Step 0 is open: `prisma/`, `src/server/auth.ts`, dashboa
 - `adjustStock(variantId, delta, tx?)` — exactly the signature in the README. Throws if stock would go below zero. Must work inside a caller's transaction
 - Unit tests: reduce, restore (on cancel/return), reject negative stock, works inside a transaction
 - **Done when:** Track B swaps their stub for your function with no other change
+
+> **Note from A2 (decide with Person B before A4):** the real logic already exists as `changeStock()`, so `adjustStock` will be a thin wrapper. But the contract signature has gaps: it has no `reason` (placed / canceled / returned all look alike in the history), no `orderId` (the history cannot link to the order), and no `sellerId` (it trusts the caller to have checked the variant belongs to the seller). Proposal: `adjustStock(variantId, delta, { sellerId, reason, orderId }, tx?)`. Changing it now costs nothing because Track B has not used the stub yet.
 
 ### Week 4–5
 - Support Track B's integration: fix catalog bugs they find

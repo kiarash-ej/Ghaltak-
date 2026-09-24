@@ -40,6 +40,26 @@ npm run dev
 
 Log in with `09120000000`. Without SMS credentials the 6-digit code is printed in the server console (`[dev sms] login code for ...`).
 
+### Database integration tests
+
+Files named `*.int.test.ts` test code against a real Postgres. They are **skipped** unless `TEST_DATABASE_URL` is set, and they must never point at your development database (they create and delete their own rows). CI runs them against a throwaway Postgres service.
+
+One-time setup, then run (PowerShell):
+
+```bash
+psql -U postgres -h localhost -c "CREATE DATABASE ghaltak_test;"
+$env:DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/ghaltak_test?schema=public"; npm run db:deploy
+$env:TEST_DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/ghaltak_test?schema=public"; npm test
+```
+
+After pulling new migrations, run `db:deploy` against the test database again.
+
+### Shared conventions added after Step 0
+
+- **Iran time.** Dates are stored in UTC and always formatted in `Asia/Tehran` (`APP_TIME_ZONE` in `src/lib/format.ts`), whatever time zone the server runs in. Anything that computes "today" or "this month" (Track B's report) must use Tehran day boundaries too.
+- **Light theme only.** The components are designed for light mode; the dark-mode switch from the Next.js template was removed until a dark theme is designed.
+- **Stale sessions.** If the session cookie is valid but its seller no longer exists, `requireSeller()` sends the user to `/logout`, which clears the cookie.
+
 ### Deviations from the original plan
 
 - **No Auth.js.** Sessions use a signed cookie (`jose`) with a database table for one-time codes, which is the approach Next.js 16's own authentication guide recommends. Fewer moving parts, and it works with an Iranian SMS provider directly.
