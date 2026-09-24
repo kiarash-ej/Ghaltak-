@@ -126,6 +126,6 @@ export async function createOrderInTx(
     select: { id: true },
   });
 
-  await takeStock(lines, tx);
+  await takeStock(order.id, lines, tx);
   return { id: order.id, publicToken };
 }

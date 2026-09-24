@@ -68,10 +68,7 @@ export async function changeOrderStatusAction(
     await prisma.$transaction(async (tx) => {
       const order = await tx.order.findFirst({
         where: { id: orderId, sellerId: seller.id },
-        select: {
-          status: true,
-          items: { select: { productVariantId: true, quantity: true } },
-        },
+        select: { status: true },
       });
       if (!order) throw new StatusError("سفارش پیدا نشد.");
       if (!canTransition(order.status, to)) {
@@ -88,7 +85,9 @@ export async function changeOrderStatusAction(
       });
       if (count !== 1) throw new StatusError("وضعیت سفارش همزمان تغییر کرد. صفحه را تازه کنید.");
 
-      if (restoresStock(to)) await returnStock(order.items, tx);
+      if (restoresStock(to)) {
+        await returnStock(orderId, to === "RETURNED" ? "ORDER_RETURNED" : "ORDER_CANCELED", tx);
+      }
     });
   } catch (err) {
     if (err instanceof StatusError) return { message: err.message };
