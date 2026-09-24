@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSeller } from "@/server/auth";
 import { OrderError, createOrderInTx } from "./create-order";
 import { parseOrderForm, type FieldErrors } from "./order-form";
+import { shippingStatusFor } from "./shipping";
 import {
   STATUS_LABELS,
   canTransition,
@@ -83,7 +84,7 @@ export async function changeOrderStatusAction(
       // is restored at most once even with two clicks or two tabs.
       const { count } = await tx.order.updateMany({
         where: { id: orderId, sellerId: seller.id, status: order.status },
-        data: { status: to },
+        data: { status: to, shippingStatus: shippingStatusFor(to) },
       });
       if (count !== 1) throw new StatusError("وضعیت سفارش همزمان تغییر کرد. صفحه را تازه کنید.");
 
