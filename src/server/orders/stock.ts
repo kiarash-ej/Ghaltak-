@@ -12,6 +12,15 @@ import { stockToReturn } from "./stock-return";
 
 type StockLine = { productVariantId: string | null; quantity: number };
 
+/**
+ * Two orders that touch the same variants must lock their rows in the same
+ * order, or they can deadlock (each waits for a row the other holds). So stock
+ * is always changed in variant-id order.
+ */
+function byVariantId<T>(items: T[], id: (item: T) => string): T[] {
+  return [...items].sort((a, b) => (id(a) < id(b) ? -1 : id(a) > id(b) ? 1 : 0));
+}
+
 /** Thrown when an order needs more of a variant than is in stock. */
 export class OutOfStockError extends Error {
   constructor(
@@ -29,7 +38,7 @@ export async function takeStock(
   lines: StockLine[],
   tx: Prisma.TransactionClient,
 ) {
-  for (const line of lines) {
+  for (const line of byVariantId(lines, (l) => l.productVariantId ?? "")) {
     if (!line.productVariantId) continue;
     try {
       await adjustStock(line.productVariantId, -line.quantity, tx, {
@@ -62,7 +71,7 @@ export async function returnStock(
     where: { orderId },
     select: { variantId: true, delta: true },
   });
-  for (const { variantId, quantity } of stockToReturn(movements)) {
+  for (const { variantId, quantity } of byVariantId(stockToReturn(movements), (r) => r.variantId)) {
     await adjustStock(variantId, quantity, tx, { reason, orderId });
   }
 }
