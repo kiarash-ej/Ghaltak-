@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
+import { UNPAID_ORDER_TTL_HOURS } from "@/server/orders/purchase-limits";
 import { getPublicOrder } from "@/server/orders/purchase-links";
 
 // The customer's confirmation/tracking page, reached by the order's public
@@ -28,6 +29,11 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
           </span>
         </p>
         <p className="text-sm">این کد را نگه دارید. فروشنده برای هماهنگی پرداخت و ارسال با شما تماس می‌گیرد.</p>
+        {order.status === "PENDING_PAYMENT" && (
+          <p className="text-sm">
+            سفارشی که تا {formatNumber(UNPAID_ORDER_TTL_HOURS)} ساعت پرداخت نشود، خودکار لغو می‌شود.
+          </p>
+        )}
       </div>
 
       <div className="flex items-center justify-between gap-2 text-sm text-neutral-600">
