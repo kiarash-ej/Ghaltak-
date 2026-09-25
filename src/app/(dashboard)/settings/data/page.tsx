@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { requireSeller } from "@/server/auth";
-import { canExport, loginRole } from "@/server/exports/access";
+import { canExport, currentRole } from "@/server/exports/access";
 import type { OrderFilterError } from "@/server/exports/orders";
 import { ORDER_STATUSES, STATUS_LABELS } from "@/server/orders/status";
 
@@ -23,7 +23,7 @@ const isFilterError = (v: unknown): v is OrderFilterError => typeof v === "strin
 
 export default async function DataExportPage(props: PageProps<"/settings/data">) {
   const seller = await requireSeller();
-  if (!canExport(await loginRole(seller))) {
+  if (!canExport(await currentRole(seller))) {
     return (
       <p className="rounded-xl border border-neutral-200 p-6 text-neutral-700">
         فقط مالک فروشگاه می‌تواند از داده‌ها خروجی بگیرد.

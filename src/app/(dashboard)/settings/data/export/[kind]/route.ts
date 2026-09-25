@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { redirect } from "next/navigation";
 import { requireSeller } from "@/server/auth";
-import { canExport, loginRole } from "@/server/exports/access";
+import { canExport, currentRole } from "@/server/exports/access";
 import { CUSTOMER_HEADER, customerRows } from "@/server/exports/customers";
 import { formatJalaliDate } from "@/server/exports/jalali";
 import { ORDER_HEADER, orderRows, parseOrderFilter } from "@/server/exports/orders";
@@ -12,7 +12,7 @@ import { csvResponse } from "@/server/exports/stream";
 // server; every row is scoped by the seller from requireSeller().
 export async function GET(req: NextRequest, ctx: RouteContext<"/settings/data/export/[kind]">) {
   const seller = await requireSeller();
-  if (!canExport(await loginRole(seller))) {
+  if (!canExport(await currentRole(seller))) {
     return new Response("Only the store owner can export data.", { status: 403 });
   }
 
