@@ -4,7 +4,9 @@ import { SubscriptionBanner } from "@/components/billing/subscription-banner";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/app/login/actions";
-import { requireSeller } from "@/server/auth";
+import { settingsHomeFor } from "@/components/settings/settings-tabs";
+import { prisma } from "@/lib/prisma";
+import { requireMember } from "@/server/auth";
 import { subscriptionBanner } from "@/server/billing/banner";
 import { scheduleSubscriptionReminder } from "@/server/billing/reminder";
 import { getEffectivePlan } from "@/server/billing/usage";
@@ -12,10 +14,14 @@ import { getEffectivePlan } from "@/server/billing/usage";
 export default async function DashboardLayout({
   children,
 }: LayoutProps<"/">) {
-  const seller = await requireSeller();
+  const seller = await requireMember();
   const now = new Date();
-  const { stored, effective } = await getEffectivePlan(seller.id, now);
-  const banner = subscriptionBanner(stored.plan, effective, now);
+  const [{ stored, effective }, storeCount] = await Promise.all([
+    getEffectivePlan(seller.id, now),
+    prisma.membership.count({ where: { userId: seller.userId } }),
+  ]);
+  // The subscription is the owner's business: operators don't see its warnings.
+  const banner = seller.role === "OWNER" ? subscriptionBanner(stored.plan, effective, now) : null;
   scheduleSubscriptionReminder(seller.id);
 
   return (
@@ -28,7 +34,12 @@ export default async function DashboardLayout({
             <div className="text-sm text-neutral-500">{seller.name}</div>
           </div>
         </Link>
-        <SidebarNav />
+        {storeCount > 1 && (
+          <Link href="/select-store" className="text-sm text-neutral-600 underline underline-offset-4">
+            تغییر فروشگاه
+          </Link>
+        )}
+        <SidebarNav settingsHref={settingsHomeFor(seller.role)} />
         <form action={logoutAction} className="md:mt-auto">
           <Button type="submit" variant="ghost" size="sm" className="w-full">
             خروج

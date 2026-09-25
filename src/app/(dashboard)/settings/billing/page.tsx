@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PlanId } from "@/generated/prisma/enums";
 import { formatDate, formatNumber, formatToman } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { requireSeller } from "@/server/auth";
+import { requireOwner } from "@/server/auth";
 import { startSubscriptionPaymentAction } from "@/server/billing/actions";
 import { billingEnabled } from "@/server/billing/config";
 import { PAID_PLAN_IDS, PLANS } from "@/server/billing/plans";
@@ -17,7 +17,7 @@ import { getPlanUsage } from "@/server/billing/usage";
 
 // «اشتراک» tab (A9): plan, usage this month, the plans, invoices. Paying only
 // while BILLING_ENABLED=true (docs/phase2/specs/A9-billing.md).
-// TODO(A10): OWNER only.
+// Owner only (A10): operators get a 404.
 
 export const metadata: Metadata = { title: "اشتراک | غلتک" };
 
@@ -45,7 +45,7 @@ function limitText(n: number): string {
 }
 
 export default async function BillingSettingsPage(props: PageProps<"/settings/billing">) {
-  const seller = await requireSeller();
+  const seller = await requireOwner();
   const sp = await props.searchParams;
   const enabled = billingEnabled();
   if (enabled) {

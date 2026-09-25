@@ -109,3 +109,20 @@ export async function hasProductSlotInTx(
   const active = await countActiveProducts(tx, sellerId, opts.excludeProductId);
   return active < PLANS[effective.limitsPlan].limits.products;
 }
+
+/**
+ * canUse("addMember") inside the transaction that adds the member, with the
+ * store's subscription row locked, so two invitations at once can't both take
+ * the last place (A10).
+ */
+export async function hasMemberSlotInTx(
+  tx: Prisma.TransactionClient,
+  sellerId: string,
+  opts: { now?: Date } = {},
+): Promise<boolean> {
+  await tx.$queryRaw`SELECT "id" FROM "Subscription" WHERE "sellerId" = ${sellerId} FOR UPDATE`;
+  const effective = await effectiveFor(tx, sellerId, opts.now ?? new Date());
+  if (!effective.enforced) return true;
+  const members = await tx.membership.count({ where: { sellerId } });
+  return members < PLANS[effective.limitsPlan].limits.members;
+}

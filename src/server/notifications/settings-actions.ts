@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireSeller } from "@/server/auth";
+import { requireOwner } from "@/server/auth";
 
 export type SmsSettingsState = { savedAt?: number; message?: string } | undefined;
 
@@ -11,8 +11,7 @@ export async function saveSmsSettingsAction(
   _prev: SmsSettingsState,
   formData: FormData,
 ): Promise<SmsSettingsState> {
-  // TODO(A10): requireMember("OWNER"); today every seller is its owner.
-  const seller = await requireSeller();
+  const seller = await requireOwner();
   await prisma.seller.update({
     where: { id: seller.id },
     data: {

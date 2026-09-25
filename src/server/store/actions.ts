@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireSeller } from "@/server/auth";
+import { requireOwner } from "@/server/auth";
 import { deleteStoreLogo, saveStoreLogo } from "./logo";
 import type { PublicStoreProfile } from "./profile";
 import { parseStoreProfileForm, type FieldErrors } from "./profile-form";
@@ -24,7 +24,7 @@ export async function updateStoreProfileAction(
   _prev: StoreProfileFormState,
   formData: FormData,
 ): Promise<StoreProfileFormState> {
-  const seller = await requireSeller();
+  const seller = await requireOwner();
 
   const parsed = parseStoreProfileForm(formData);
   if (!parsed.success) return { errors: parsed.errors };

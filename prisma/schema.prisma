@@ -49,6 +49,7 @@ model Seller {
   orders          Order[]
   purchaseLinks   PurchaseLink[]
   memberships     Membership[]
+  sessions        Session[]
   subscription    Subscription?
   invoices        Invoice[]
   gateway         SellerGateway?
@@ -272,6 +273,7 @@ model User {
   createdAt DateTime @default(now())
 
   memberships Membership[]
+  sessions    Session[]
 }
 
 enum MemberRole {
@@ -290,6 +292,24 @@ model Membership {
 
   @@unique([userId, sellerId])
   @@index([sellerId])
+}
+
+// A signed-in device (Phase 2, A10). The cookie carries its id; a revoked
+// row (logout, member removed, device limit) signs that device out on its
+// next request. Device limits: docs/phase2/specs/A10-team.md, section 5.
+model Session {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sellerId   String
+  seller     Seller    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  userAgent  String? // shortened, for «کروم روی اندروید»
+  revokedAt  DateTime?
+
+  @@index([sellerId, revokedAt])
+  @@index([userId, revokedAt])
 }
 
 enum PlanId {

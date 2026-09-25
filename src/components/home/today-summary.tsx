@@ -30,7 +30,8 @@ function Tile({
   );
 }
 
-export function TodaySummary({ summary }: { summary: TodaySummaryData }) {
+/** `showMoney` false for operators (A10): no «فروش امروز» in tomans. */
+export function TodaySummary({ summary, showMoney = true }: { summary: TodaySummaryData; showMoney?: boolean }) {
   return (
     <section aria-labelledby="today-heading" className="flex flex-col gap-3">
       <h2 id="today-heading" className="text-lg font-semibold">
@@ -41,7 +42,7 @@ export function TodaySummary({ summary }: { summary: TodaySummaryData }) {
           href="/orders"
           label="سفارش‌های امروز"
           value={summary.ordersToday}
-          note={`فروش امروز: ${formatToman(summary.salesToday.total)}`}
+          note={showMoney ? `فروش امروز: ${formatToman(summary.salesToday.total)}` : "سفارش‌های ثبت‌شدهٔ امروز"}
         />
         <Tile
           href="/orders?status=PENDING_PAYMENT"

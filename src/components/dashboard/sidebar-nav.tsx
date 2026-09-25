@@ -5,14 +5,16 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "./nav-items";
 
-export function SidebarNav() {
+/** `settingsHref`: where «تنظیمات» goes for this member (an operator has no store settings, A10). */
+export function SidebarNav({ settingsHref = "/settings" }: { settingsHref?: string }) {
   const pathname = usePathname();
 
   return (
     <nav className="flex gap-1 overflow-x-auto md:flex-col md:overflow-visible">
-      {NAV_ITEMS.map((item) => {
+      {NAV_ITEMS.map((navItem) => {
+        const item = navItem.href === "/settings" ? { ...navItem, href: settingsHref } : navItem;
         const active =
-          item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+          navItem.href === "/" ? pathname === "/" : pathname.startsWith(navItem.href);
         return (
           <Link
             key={item.href}

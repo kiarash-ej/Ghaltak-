@@ -19,6 +19,7 @@ const ERRORS = {
   SMS_FAILED: "ارسال پیامک ناموفق بود. دوباره تلاش کنید.",
   INVALID_CODE: "کد وارد شده اشتباه است.",
   EXPIRED_CODE: "کد منقضی شده است. کد جدید بگیرید.",
+  PLAN_ENDED: "اشتراک فروشگاه تمام شده است. به مالک فروشگاه اطلاع دهید تا آن را تمدید کند.",
 } as const;
 
 const codeSchema = z.string().regex(/^\d{6}$/);
@@ -60,8 +61,15 @@ export async function loginAction(
     };
   }
 
-  await createSession(result.sellerId);
-  redirect("/");
+  // Into the most recently used store the member may work in; with more than
+  // one store, they can switch right away (A10).
+  const { userId, stores } = result.account;
+  for (const store of stores) {
+    const started = await createSession(userId, store.sellerId);
+    if (started.ok) redirect(stores.length > 1 ? "/select-store" : "/");
+  }
+  // Every store refused: an operator whose store's plan ended.
+  return { step: "code", mobile, error: ERRORS.PLAN_ENDED };
 }
 
 export async function logoutAction() {
