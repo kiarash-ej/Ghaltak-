@@ -8,6 +8,8 @@ import { defineConfig, devices } from "@playwright/test";
 export const E2E_PORT = 3100;
 // Only used by the e2e server; the tests need it to set a known login code.
 export const E2E_SESSION_SECRET = "e2e-only-session-secret-never-used-elsewhere";
+// Encrypts card details in the e2e database only (32 bytes, base64). Never a real key.
+const E2E_SECRETS_KEY = Buffer.from("e2e-only-secrets-key-32-bytes!!!").toString("base64");
 
 const databaseUrl = process.env.E2E_DATABASE_URL ?? "";
 
@@ -40,6 +42,7 @@ export default defineConfig({
     env: {
       DATABASE_URL: databaseUrl,
       SESSION_SECRET: E2E_SESSION_SECRET,
+      SECRETS_KEY: E2E_SECRETS_KEY,
       UPLOAD_DIR: path.resolve(".e2e-uploads"),
       TRUSTED_PROXY_HOPS: "1",
       APP_DIST_DIR: ".next-e2e",

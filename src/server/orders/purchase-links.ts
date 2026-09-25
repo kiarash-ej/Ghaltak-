@@ -104,6 +104,7 @@ export async function getPublicOrder(publicToken: string) {
     where: { publicToken },
     select: {
       id: true,
+      sellerId: true,
       status: true,
       totalPrice: true,
       createdAt: true,
@@ -128,6 +129,9 @@ export async function getPublicOrder(publicToken: string) {
   if (!order) return null;
 
   return {
+    // For server-side lookups only (e.g. the seller's card for payment
+    // instructions); never pass it to the client.
+    sellerId: order.sellerId,
     code: orderCode(order.id),
     status: order.status,
     // Only the state, never the receipt itself: the customer page is public.

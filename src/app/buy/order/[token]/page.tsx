@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { ReceiptUpload } from "@/components/orders/receipt-upload";
+import { CopyTextButton } from "@/components/payments/copy-text-button";
+import { getCardDetailsForCustomer } from "@/server/payments/card-store";
 import { uploadReceiptAction } from "@/server/orders/payment-actions";
 import { SHIPPING_STATUS_LABELS } from "@/server/orders/shipping";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
@@ -9,7 +11,9 @@ import { UNPAID_ORDER_TTL_HOURS } from "@/server/orders/purchase-limits";
 import { getPublicOrder } from "@/server/orders/purchase-links";
 
 // The customer's confirmation/tracking page, reached by the order's public
-// token. Shows the order only: no customer phone, no seller data.
+// token. Shows the order, no customer phone. The only seller data is what the
+// seller chose to publish for payment (card number and holder, B6), and only
+// while the order is waiting for payment.
 
 export const metadata: Metadata = {
   title: "سفارش شما",
@@ -20,6 +24,8 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
   const { token } = await props.params;
   const order = await getPublicOrder(token);
   if (!order) notFound();
+  // Payment instructions only while there is something to pay.
+  const card = order.payment === "UNPAID" ? await getCardDetailsForCustomer(order.sellerId) : null;
 
   return (
     <main className="mx-auto flex w-full max-w-lg flex-col gap-6 p-4 pb-10">
@@ -49,6 +55,27 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
           <h2 className="font-semibold">پرداخت</h2>
           {order.payment === "RECEIPT_SUBMITTED" ? (
             <p className="text-sm text-amber-800">رسید شما دریافت شد و در انتظار تأیید فروشنده است.</p>
+          ) : card ? (
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-neutral-700">
+                مبلغ <span className="font-semibold">{formatToman(order.amountDue)}</span> را به این کارت واریز کنید و
+                تصویر رسید را همین‌جا بفرستید:
+              </p>
+              <div className="flex flex-col gap-2 rounded-lg bg-neutral-50 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span dir="ltr" className="font-mono text-lg font-bold tracking-wide">
+                    {card.cardNumber}
+                  </span>
+                  <CopyTextButton text={card.cardNumber.replace(/\s/g, "")} label="کپی شماره کارت" />
+                </div>
+                <p className="text-sm">به نام: {card.cardHolder}</p>
+                {card.sheba && (
+                  <p className="text-xs text-neutral-600">
+                    شبا (برای انتقال بانکی): <span dir="ltr" className="font-mono">{card.sheba}</span>
+                  </p>
+                )}
+              </div>
+            </div>
           ) : (
             <p className="text-sm text-neutral-600">
               اگر مبلغ را کارت به کارت واریز کرده‌اید، تصویر رسید را اینجا بفرستید.
