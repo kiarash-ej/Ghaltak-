@@ -1,11 +1,27 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/settings/coming-soon";
+import { CardDetailsForm } from "@/components/payments/card-details-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireSeller } from "@/server/auth";
+import { saveCardDetailsAction } from "@/server/payments/card-actions";
+import { getCardDetailsForSettings } from "@/server/payments/card-store";
 
-// Placeholder created in Phase 2 Step 0 so the tab works. This folder belongs
-// to Track B (B6 card-to-card details and gateway, B7 SMS toggles): replace freely.
+// «پرداخت» tab (Track B). B6: card-to-card details, then the online gateway;
+// B7 adds the customer SMS switches here.
 
 export const metadata: Metadata = { title: "پرداخت | غلتک" };
 
-export default function PaymentSettingsPage() {
-  return <ComingSoon title="پرداخت و اطلاع‌رسانی" task="B6، B7" />;
+export default async function PaymentSettingsPage() {
+  const seller = await requireSeller();
+  const card = await getCardDetailsForSettings(seller.id);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>کارت‌به‌کارت</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <CardDetailsForm action={saveCardDetailsAction} initial={card} />
+      </CardContent>
+    </Card>
+  );
 }
