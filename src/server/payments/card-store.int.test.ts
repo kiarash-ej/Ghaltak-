@@ -16,7 +16,7 @@ const OTHER_CARD = "6274129876543219";
 const SHEBA = "IR820540102680020817909002";
 
 describe.skipIf(!hasTestDatabase)("card details (database)", () => {
-  const runId = String(Date.now()).slice(-7);
+  const runId = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
   const savedKey = process.env.SECRETS_KEY;
   let sellerId = "";
   let otherSellerId = "";

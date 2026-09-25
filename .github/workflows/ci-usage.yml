@@ -1,0 +1,113 @@
+name: CI minutes
+
+# Weekly check of how many GitHub Actions minutes this repo used this month
+# (C3). GitHub bills each job rounded UP to a whole minute. Every job here runs
+# on Linux; Windows and macOS minutes cost more and aren't counted separately.
+# Writes a summary on the run page, and opens (or comments on) an issue when
+# the month is on track to pass WARN_PERCENT of the owner's quota. The quota
+# resets at the start of each month.
+#
+# This repo only. The owner's other private repos share the same quota, so the
+# owner's billing page (Settings > Billing) is the real number.
+
+on:
+  schedule:
+    - cron: "30 4 * * 6" # Saturday 08:00 Tehran time
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  issues: write
+
+jobs:
+  usage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          # Included minutes per month on the owner's plan (GitHub Free: 2000).
+          MONTHLY_QUOTA: "2000"
+          WARN_PERCENT: "70"
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const quota = Number(process.env.MONTHLY_QUOTA);
+            const warnPercent = Number(process.env.WARN_PERCENT);
+
+            const DAY = 86_400_000;
+            const now = new Date();
+            const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+            const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+
+            const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+              owner, repo, per_page: 100,
+              created: `>=${monthStart.toISOString().slice(0, 10)}`,
+            });
+
+            // One API call per run; stay well under the token's 1000 requests an hour.
+            const MAX_RUNS = 800;
+            const counted = runs.slice(0, MAX_RUNS);
+
+            // The projection uses the recent pace (last 7 days, or since the
+            // first run if that's later), not the month's average, which
+            // understates a busy week.
+            const firstRun = Math.min(now, ...counted.map((r) => new Date(r.created_at)));
+            const recentStart = Math.max(now - 7 * DAY, firstRun);
+            let minutes = 0;
+            let recentMinutes = 0;
+            const byWorkflow = new Map();
+            for (const run of counted) {
+              const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+                owner, repo, run_id: run.id, filter: "all", per_page: 100,
+              });
+              let runMinutes = 0;
+              for (const job of jobs) {
+                if (!job.started_at || !job.completed_at) continue;
+                const ms = new Date(job.completed_at) - new Date(job.started_at);
+                if (ms <= 0) continue;
+                runMinutes += Math.ceil(ms / 60_000);
+              }
+              minutes += runMinutes;
+              if (new Date(run.created_at) >= recentStart) recentMinutes += runMinutes;
+              const w = byWorkflow.get(run.name) ?? { runs: 0, minutes: 0 };
+              w.runs += 1;
+              w.minutes += runMinutes;
+              byWorkflow.set(run.name, w);
+            }
+
+            const perDay = recentMinutes / Math.max((now - recentStart) / DAY, 1);
+            const projected = Math.round(minutes + perDay * ((monthEnd - now) / DAY));
+            const partial = runs.length > counted.length;
+            const pct = (n) => `${Math.round((n / quota) * 100)}%`;
+
+            await core.summary
+              .addHeading(`CI minutes, ${monthStart.toISOString().slice(0, 7)} (this repo)`)
+              .addTable([
+                [{ data: "Workflow", header: true }, { data: "Runs", header: true }, { data: "Billed minutes", header: true }, { data: "Per run", header: true }],
+                ...[...byWorkflow].map(([name, w]) => [name, String(w.runs), String(w.minutes), (w.minutes / w.runs).toFixed(1)]),
+              ])
+              .addList([
+                `Used so far: ${minutes} of ${quota} (${pct(minutes)})${partial ? ` — only the first ${MAX_RUNS} of ${runs.length} runs counted` : ""}`,
+                `Recent pace: ${Math.round(perDay)} a day`,
+                `On track for: ${projected} by the end of the month (${pct(projected)})`,
+              ])
+              .write();
+
+            if (projected < (quota * warnPercent) / 100 && minutes < (quota * warnPercent) / 100) return;
+
+            const title = "CI minutes: on track to pass the monthly quota";
+            const body = [
+              `This month so far: **${minutes}** billed minutes in this repo (${pct(minutes)} of ${quota}).`,
+              `At the recent pace (${Math.round(perDay)} a day): **${projected}** by the end of the month (${pct(projected)}).`,
+              "",
+              "Decide with the repo owner before the quota runs out (docs/phase2/DEPLOY.md, CI section).",
+              `Details: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`,
+            ].join("\n");
+            const open = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: "open", per_page: 100 });
+            const existing = open.find((i) => !i.pull_request && i.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: existing.number, body });
+            } else {
+              await github.rest.issues.create({ owner, repo, title, body });
+            }
