@@ -6,7 +6,7 @@ import { hasTestDatabase } from "@/test/setup";
 // payment), fixed in Step 0 so neither needs a schema change mid-phase.
 // Runs against a real Postgres (TEST_DATABASE_URL). See docs/phase1/README.md.
 describe.skipIf(!hasTestDatabase)("Phase 2 schema contracts (database)", () => {
-  const mobile = `0994${String(Date.now()).slice(-7)}`;
+  const mobile = `0994${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
   let sellerId = "";
   let orderId = "";
 

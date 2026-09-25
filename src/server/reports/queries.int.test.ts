@@ -26,7 +26,7 @@ import { getSalesReport } from "./queries";
 const NOW = new Date("2026-09-24T16:53:00Z");
 
 describe.skipIf(!hasTestDatabase)("sales report (database)", () => {
-  const runId = String(Date.now()).slice(-7);
+  const runId = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
   let sellerId = "";
   let otherSellerId = "";
 
