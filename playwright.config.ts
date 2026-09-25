@@ -30,7 +30,19 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    {
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        // Optional: an installed browser instead of Playwright's own Chromium,
+        // e.g. "chrome". CI uses the runner's Google Chrome, which saves
+        // downloading Chromium on every run. Locally, this skips
+        // `npx playwright install chromium` if Chrome is installed.
+        channel: process.env.E2E_BROWSER_CHANNEL || undefined,
+      },
+    },
+  ],
   webServer: {
     // Dev mode on its own port and build folder: production mode needs real
     // SMS credentials to log in, and Next.js allows one dev server per build

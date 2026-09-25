@@ -5,10 +5,10 @@ import { DEFAULT_STORE_NAME, ensureSellerAccount } from "./account";
 
 // Runs against a real Postgres (TEST_DATABASE_URL). See docs/phase1/README.md.
 describe.skipIf(!hasTestDatabase)("ensureSellerAccount (database)", () => {
-  const runId = String(Date.now()).slice(-7);
+  const runId = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
   const mobiles: string[] = [];
   const mobile = () => {
-    const m = `0996${runId}${mobiles.length}`.slice(0, 11);
+    const m = `0996${runId.slice(-6)}${mobiles.length}`;
     mobiles.push(m);
     return m;
   };
