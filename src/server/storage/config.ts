@@ -13,7 +13,9 @@ export function storageDriverName(env: Env = process.env): string {
 
 /** Where the local driver keeps files: UPLOAD_DIR, default ./uploads. */
 export function localStorageRoot(env: Env = process.env): string {
-  return path.resolve(env.UPLOAD_DIR ?? path.join(process.cwd(), "uploads"));
+  // Runtime data, not code: the ignore comment keeps Next's build from
+  // tracing the whole project into the server output because of this path.
+  return path.resolve(/*turbopackIgnore: true*/ env.UPLOAD_DIR ?? path.join(process.cwd(), "uploads"));
 }
 
 export function driverFromEnv(env: Env = process.env): StorageDriver {
