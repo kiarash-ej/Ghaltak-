@@ -19,7 +19,7 @@ DELETE FROM "Customer" WHERE "sellerId" = :'seller_id';
 DELETE FROM "ProductVariant" WHERE "sellerId" = :'seller_id';     -- and its stock history
 DELETE FROM "Product" WHERE "sellerId" = :'seller_id';
 DELETE FROM "OtpCode" WHERE mobile = (SELECT mobile FROM gone);
-DELETE FROM "Seller" WHERE id = :'seller_id';                     -- and memberships, subscription, gateway
+DELETE FROM "Seller" WHERE id = :'seller_id';                     -- and memberships, sessions, subscription, gateway
 DELETE FROM "User" u
   WHERE u.id = ANY ((SELECT users FROM gone)::text[])
     AND NOT EXISTS (SELECT 1 FROM "Membership" m WHERE m."userId" = u.id);  -- keep people who belong to another store

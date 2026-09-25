@@ -94,10 +94,20 @@ describe.skipIf(!hasTestDatabase)("deleting a store on request (database)", () =
         { userId: member.id, sellerId: otherId, role: "OPERATOR" },
       ],
     });
+    // Signed-in devices (A10): the owner's and the shared member's in this
+    // store, and the member's in the other store, which must stay.
+    await prisma.session.createMany({
+      data: [
+        { userId: owner.id, sellerId },
+        { userId: member.id, sellerId },
+        { userId: member.id, sellerId: otherId },
+      ],
+    });
   });
 
   afterAll(async () => {
     await prisma.smsMessage.deleteMany({ where: { to: { in: [mobile, otherMobile] } } });
+    await prisma.session.deleteMany({ where: { sellerId: { in: [sellerId, otherId].filter(Boolean) } } });
     await prisma.membership.deleteMany({ where: { sellerId: { in: [sellerId, otherId].filter(Boolean) } } });
     await prisma.user.deleteMany({ where: { mobile: { in: [mobile, otherMobile, memberMobile] } } });
     await prisma.customer.deleteMany({ where: { sellerId: otherId } });
@@ -141,6 +151,7 @@ describe.skipIf(!hasTestDatabase)("deleting a store on request (database)", () =
       prisma.membership.count(bySeller),
       prisma.subscription.count(bySeller),
       prisma.sellerGateway.count(bySeller),
+      prisma.session.count(bySeller),
       prisma.smsMessage.count({ where: { to: mobile } }),
       prisma.otpCode.count({ where: { mobile } }),
       prisma.user.count({ where: { mobile } }),
@@ -153,6 +164,7 @@ describe.skipIf(!hasTestDatabase)("deleting a store on request (database)", () =
     expect(await prisma.customer.count({ where: { sellerId: otherId } })).toBe(1);
     expect(await prisma.smsMessage.count({ where: { to: otherMobile } })).toBe(1);
     expect(await prisma.membership.count({ where: { sellerId: otherId } })).toBe(1);
+    expect(await prisma.session.count({ where: { sellerId: otherId } })).toBe(1);
     expect(await prisma.user.count({ where: { mobile: memberMobile } })).toBe(1);
   });
 });
