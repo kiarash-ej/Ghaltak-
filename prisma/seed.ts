@@ -49,6 +49,12 @@ async function main() {
   const existing = await prisma.seller.findUnique({ where: { mobile: DEMO_MOBILE } });
   if (existing) {
     const sellerId = existing.id;
+    // Payment attempts and invoices block deleting a seller (ON DELETE
+    // RESTRICT: payment records are never removed by accident), so they go first.
+    await prisma.paymentAttempt.deleteMany({ where: { sellerId } });
+    await prisma.invoice.deleteMany({ where: { sellerId } });
+    // SMS rows would survive with sellerId NULL (ON DELETE SET NULL); drop them.
+    await prisma.smsMessage.deleteMany({ where: { sellerId } });
     await prisma.orderItem.deleteMany({ where: { order: { sellerId } } });
     await prisma.order.deleteMany({ where: { sellerId } });
     await prisma.purchaseLink.deleteMany({ where: { sellerId } });

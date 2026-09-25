@@ -366,26 +366,38 @@ enum PaymentAttemptStatus {
   CANCELED
 }
 
+// Why an attempt did not end VERIFIED (B6). Kept so the seller can be shown,
+// for example, a payment the gateway verified for the wrong amount.
+enum PaymentFailureReason {
+  CANCELED_BY_USER // the customer canceled on the gateway page
+  AMOUNT_MISMATCH // verified for a different amount: the order is never confirmed
+  GATEWAY_ERROR // the gateway refused the request or the verification
+  EXPIRED // the customer never came back from the gateway
+}
+
 // One trip to a gateway: for an order (seller's gateway) or a subscription
 // invoice (the platform's gateway). Created before redirecting, so the
 // callback URL can carry its id; `authority` is set once the gateway answers.
 model PaymentAttempt {
-  id            String               @id @default(cuid())
+  id            String                @id @default(cuid())
   sellerId      String
-  seller        Seller               @relation(fields: [sellerId], references: [id])
+  seller        Seller                @relation(fields: [sellerId], references: [id])
   orderId       String?
-  order         Order?               @relation(fields: [orderId], references: [id])
+  order         Order?                @relation(fields: [orderId], references: [id])
   invoiceId     String?
-  invoice       Invoice?             @relation(fields: [invoiceId], references: [id])
+  invoice       Invoice?              @relation(fields: [invoiceId], references: [id])
   provider      GatewayProvider
   amount        Int // tomans; what we asked for, checked again on verify
-  authority     String?              @unique
-  status        PaymentAttemptStatus @default(PENDING)
+  authority     String? // the gateway's payment id, unique per gateway
+  status        PaymentAttemptStatus  @default(PENDING)
+  failureReason PaymentFailureReason?
+  failureDetail String? // the gateway's code or message, for support. Never card data.
   refId         String?
   cardPanMasked String?
-  createdAt     DateTime             @default(now())
+  createdAt     DateTime              @default(now())
   verifiedAt    DateTime?
 
+  @@unique([provider, authority])
   @@index([orderId])
   @@index([invoiceId])
   @@index([sellerId, createdAt])
@@ -402,6 +414,7 @@ enum SmsKind {
 }
 
 enum SmsStatus {
+  PENDING // claimed, being sent (see SmsMessage)
   SENT
   FAILED
   DEV // development: printed to the console, not sent
@@ -418,9 +431,17 @@ model SmsMessage {
   order      Order?    @relation(fields: [orderId], references: [id])
   status     SmsStatus
   providerId String?
+  attempts   Int       @default(0) // send attempts, for a retry limit
   createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
 
   // Each order event is texted at most once, even if an action is retried.
+  // Claim first, then send: insert a PENDING row with createMany({ skipDuplicates:
+  // true }) (INSERT ... ON CONFLICT DO NOTHING, as in account.ts) and send only
+  // if that insert won; then mark it SENT or FAILED. A FAILED row may be moved
+  // back to PENDING with a conditional updateMany to retry. updatedAt tells a
+  // claim left behind by a crash apart from one in progress. Use Prisma, not raw
+  // SQL, for these writes: it sets the timestamps in UTC.
   // (Rows without an order have orderId NULL, which Postgres never treats as equal.)
   @@unique([orderId, kind])
   @@index([sellerId, createdAt])

@@ -99,10 +99,10 @@
 | `Seller` | `smsOnOrderPlaced`، `smsOnPaid`، `smsOnShipped` (Boolean، پیش‌فرض true) | B7 |
 | `SellerGateway` | جدید: `sellerId` یکتا، `provider` (`ZARINPAL`/`IDPAY`)، `credentialsEncrypted`، `isActive` | B6 |
 | `PaymentMethod` | مقدار جدید `ONLINE` | B6 |
-| `PaymentAttempt` | جدید: `sellerId`، `orderId?`، `invoiceId?`، `provider`، `amount` (تومان)، `authority` یکتا، `status` (`PENDING`/`VERIFIED`/`FAILED`/`CANCELED`)، `refId`، `cardPanMasked`، `verifiedAt` | B6، A9 |
+| `PaymentAttempt` | جدید: `sellerId`، `orderId?`، `invoiceId?`، `provider`، `amount` (تومان)، `authority` (یکتا برای هر درگاه: `(provider, authority)`)، `status` (`PENDING`/`VERIFIED`/`FAILED`/`CANCELED`)، `failureReason` (`CANCELED_BY_USER`/`AMOUNT_MISMATCH`/`GATEWAY_ERROR`/`EXPIRED`)، `failureDetail`، `refId`، `cardPanMasked`، `verifiedAt` | B6، A9 |
 | `Subscription` | جدید: `sellerId` یکتا، `plan` (`TRIAL`/`BASIC`/`GROWTH`/`PRO`)، `status` (`TRIALING`/`ACTIVE`/`PAST_DUE`/`CANCELED`)، `currentPeriodEnd` | A9 |
 | `Invoice` | جدید: `sellerId`، `plan`، `amount`، `periodStart`، `periodEnd`، `status` (`OPEN`/`PAID`/`VOID`)، `paidAt` | A9 |
-| `SmsMessage` | جدید: `sellerId?`، `to`، `kind`، `orderId?`، `status` (`SENT`/`FAILED`/`DEV`)، `providerId`، `createdAt`. یکتا روی `(orderId, kind)` تا پیامک هر رویداد سفارش فقط یک بار ارسال شود | A8، B7 |
+| `SmsMessage` | جدید: `sellerId?`، `to`، `kind`، `orderId?`، `status` (`PENDING`/`SENT`/`FAILED`/`DEV`)، `providerId`، `attempts`، `createdAt`، `updatedAt`. یکتا روی `(orderId, kind)` تا پیامک هر رویداد سفارش فقط یک بار ارسال شود: اول ردیف `PENDING` گرفته می‌شود و بعد پیامک می‌رود | A8، B7 |
 | `User`، `Membership` | جدید: `User(mobile یکتا)`، `Membership(userId, sellerId, role: OWNER/OPERATOR)`. برای هر فروشندهٔ فعلی یک `User` و عضویت `OWNER` ساخته می‌شود | A10 |
 | `LinkDailyView` | جدید: `purchaseLinkId`، `day`، `views`، یکتا روی `(purchaseLinkId, day)`. فقط شمارش، بدون IP | B8 |
 
