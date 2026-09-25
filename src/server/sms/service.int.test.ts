@@ -142,16 +142,19 @@ describe.skipIf(!hasTestDatabase)("sendSms service (database)", () => {
     expect(log).toHaveBeenCalled();
   });
 
-  it("counts this Jalali month's delivered messages per store", async () => {
+  it("counts this Jalali month's delivered ORDER messages per store (the plan quota, A9)", async () => {
     // Everything above for this store: 1 + 1 + 1 SENT order messages.
     const before = await countSmsThisMonth(sellerId);
     await prisma.smsMessage.createMany({
       data: [
-        { sellerId, to: "09350000002", kind: "MEMBER_INVITE", status: "DEV" },
-        { sellerId, to: "09350000002", kind: "MEMBER_INVITE", status: "FAILED" },
-        { sellerId, to: "09350000002", kind: "MEMBER_INVITE", status: "PENDING" },
+        { sellerId, to: "09350000002", kind: "ORDER_SHIPPED", status: "DEV" },
+        { sellerId, to: "09350000002", kind: "ORDER_SHIPPED", status: "FAILED" },
+        { sellerId, to: "09350000002", kind: "ORDER_SHIPPED", status: "PENDING" },
+        // Platform messages never use the store's quota.
+        { sellerId, to: "09350000002", kind: "MEMBER_INVITE", status: "SENT" },
+        { sellerId, to: "09350000002", kind: "SUBSCRIPTION_REMINDER", status: "SENT" },
         // Last month (well before the 1st of this Jalali month): not counted.
-        { sellerId, to: "09350000002", kind: "MEMBER_INVITE", status: "SENT", createdAt: new Date(Date.now() - 40 * 86_400_000) },
+        { sellerId, to: "09350000002", kind: "ORDER_PAID", status: "SENT", createdAt: new Date(Date.now() - 40 * 86_400_000) },
       ],
     });
     expect(before).toBe(3);

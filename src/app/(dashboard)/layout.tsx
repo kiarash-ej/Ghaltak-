@@ -1,14 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SubscriptionBanner } from "@/components/billing/subscription-banner";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/app/login/actions";
 import { requireSeller } from "@/server/auth";
+import { subscriptionBanner } from "@/server/billing/banner";
+import { scheduleSubscriptionReminder } from "@/server/billing/reminder";
+import { getEffectivePlan } from "@/server/billing/usage";
 
 export default async function DashboardLayout({
   children,
 }: LayoutProps<"/">) {
   const seller = await requireSeller();
+  const now = new Date();
+  const { stored, effective } = await getEffectivePlan(seller.id, now);
+  const banner = subscriptionBanner(stored.plan, effective, now);
+  scheduleSubscriptionReminder(seller.id);
 
   return (
     <div className="flex flex-1 flex-col md:flex-row print:block">
@@ -27,7 +35,10 @@ export default async function DashboardLayout({
           </Button>
         </form>
       </aside>
-      <main className="flex-1 p-4 md:p-8 print:p-0">{children}</main>
+      <main className="flex-1 p-4 md:p-8 print:p-0">
+        {banner && <SubscriptionBanner banner={banner} />}
+        {children}
+      </main>
     </div>
   );
 }

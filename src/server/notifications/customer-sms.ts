@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { canUse as realCanUse } from "@/server/billing/can-use.stub";
+import { canUse as realCanUse } from "@/server/billing/usage";
 import type { CanUse } from "@/server/billing/types";
 import { UNPAID_ORDER_TTL_HOURS } from "@/server/orders/purchase-limits";
 import { orderCode } from "@/server/orders/queries";

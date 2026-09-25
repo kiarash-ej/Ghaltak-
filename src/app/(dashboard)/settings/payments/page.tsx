@@ -5,7 +5,7 @@ import { SmsSettingsForm } from "@/components/payments/sms-settings-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { requireSeller } from "@/server/auth";
-import { canUse } from "@/server/billing/can-use.stub";
+import { canUse } from "@/server/billing/usage";
 import { saveSmsSettingsAction } from "@/server/notifications/settings-actions";
 import { saveCardDetailsAction } from "@/server/payments/card-actions";
 import { getCardDetailsForSettings } from "@/server/payments/card-store";

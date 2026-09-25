@@ -294,6 +294,7 @@ model Membership {
 
 enum PlanId {
   TRIAL
+  FREE
   BASIC
   GROWTH
   PRO
@@ -306,7 +307,9 @@ enum SubscriptionStatus {
   CANCELED
 }
 
-// One per seller. New sellers start on a 30-day TRIAL (Phase 2, A9).
+// One per seller. New sellers start on a 14-day TRIAL, once per mobile
+// (TrialGrant). What a seller may do is computed from these dates by
+// src/server/billing/state.ts, never by a job (docs/phase2/specs/A9-billing.md).
 model Subscription {
   id               String             @id @default(cuid())
   sellerId         String             @unique
@@ -314,8 +317,20 @@ model Subscription {
   plan             PlanId             @default(TRIAL)
   status           SubscriptionStatus @default(TRIALING)
   currentPeriodEnd DateTime
+  // A paid plan change waiting for the current paid period to end.
+  nextPlan         PlanId?
+  nextPlanFrom     DateTime?
+  // The currentPeriodEnd the SUBSCRIPTION_REMINDER SMS was sent for: one per period.
+  reminderSentFor  DateTime?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+}
+
+// Mobiles that have had their free trial. Not tied to Seller, so deleting a
+// store doesn't give the same mobile a second trial.
+model TrialGrant {
+  mobile    String   @id // normalized "09xxxxxxxxx"
+  grantedAt DateTime @default(now())
 }
 
 enum InvoiceStatus {

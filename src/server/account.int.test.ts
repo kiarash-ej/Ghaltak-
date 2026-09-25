@@ -16,10 +16,11 @@ describe.skipIf(!hasTestDatabase)("ensureSellerAccount (database)", () => {
   afterAll(async () => {
     await prisma.seller.deleteMany({ where: { mobile: { in: mobiles } } }); // cascades membership + subscription
     await prisma.user.deleteMany({ where: { mobile: { in: mobiles } } });
+    await prisma.trialGrant.deleteMany({ where: { mobile: { in: mobiles } } });
     await prisma.$disconnect();
   });
 
-  it("creates seller, user, owner membership and a 30-day trial on first login", async () => {
+  it("creates seller, user, owner membership and a 14-day trial on first login", async () => {
     const m = mobile();
     const { sellerId } = await ensureSellerAccount(m);
 
@@ -34,8 +35,21 @@ describe.skipIf(!hasTestDatabase)("ensureSellerAccount (database)", () => {
     expect(seller.subscription?.plan).toBe("TRIAL");
     expect(seller.subscription?.status).toBe("TRIALING");
     const daysLeft = (seller.subscription!.currentPeriodEnd.getTime() - Date.now()) / 86_400_000;
-    expect(daysLeft).toBeGreaterThan(29.9);
-    expect(daysLeft).toBeLessThanOrEqual(30);
+    expect(daysLeft).toBeGreaterThan(13.9);
+    expect(daysLeft).toBeLessThanOrEqual(14);
+    expect(await prisma.trialGrant.count({ where: { mobile: m } })).toBe(1);
+  });
+
+  it("gives a mobile its trial only once: a store deleted and signed up again starts on FREE", async () => {
+    const m = mobile();
+    const first = await ensureSellerAccount(m);
+    await prisma.membership.deleteMany({ where: { sellerId: first.sellerId } });
+    await prisma.seller.delete({ where: { id: first.sellerId } }); // cascades the subscription
+
+    const again = await ensureSellerAccount(m);
+    expect(again.sellerId).not.toBe(first.sellerId);
+    const sub = await prisma.subscription.findUniqueOrThrow({ where: { sellerId: again.sellerId } });
+    expect(sub.plan).toBe("FREE");
   });
 
   it("returns the same account on later logins and changes nothing", async () => {
