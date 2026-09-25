@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { ReceiptUpload } from "@/components/orders/receipt-upload";
 import { CopyTextButton } from "@/components/payments/copy-text-button";
+import { StoreHeader } from "@/components/store/store-header";
 import { getCardDetailsForCustomer } from "@/server/payments/card-store";
+import { getPublicStoreProfile } from "@/server/store/profile";
 import { uploadReceiptAction } from "@/server/orders/payment-actions";
 import { SHIPPING_STATUS_LABELS } from "@/server/orders/shipping";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
@@ -25,10 +27,14 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
   const order = await getPublicOrder(token);
   if (!order) notFound();
   // Payment instructions only while there is something to pay.
-  const card = order.payment === "UNPAID" ? await getCardDetailsForCustomer(order.sellerId) : null;
+  const [store, card] = await Promise.all([
+    getPublicStoreProfile(order.sellerId),
+    order.payment === "UNPAID" ? getCardDetailsForCustomer(order.sellerId) : null,
+  ]);
 
   return (
     <main className="mx-auto flex w-full max-w-lg flex-col gap-6 p-4 pb-10">
+      {store && <StoreHeader profile={store} />}
       <div className="flex flex-col gap-2 rounded-xl border border-green-200 bg-green-50 p-4 text-green-900">
         <h1 className="text-xl font-bold">سفارش شما ثبت شد</h1>
         <p>

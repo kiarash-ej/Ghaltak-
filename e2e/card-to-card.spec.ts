@@ -56,6 +56,8 @@ test("card-to-card: settings keep it masked, the customer's order page shows it"
 
   await test.step("the customer's order page shows the card while payment is due", async () => {
     await customer.goto(orderPage);
+    // The store header (A6's StoreHeader) now sits on the order page too.
+    await expect(customer.locator("header").getByText("فروشگاه من")).toBeVisible();
     await expect(customer.getByText(CARD_SPACED)).toBeVisible();
     await expect(customer.getByText("به نام: سارا احمدی")).toBeVisible();
     await expect(customer.getByText("IR82 0540 1026 8002 0817 9090 02")).toBeVisible();
