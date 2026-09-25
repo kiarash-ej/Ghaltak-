@@ -51,40 +51,42 @@ export default async function PurchaseLinksPage() {
           هنوز لینکی نساخته‌اید.
         </p>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {links.map((link) => (
-            <li key={link.id} className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">{link.title ?? "بدون عنوان"}</span>
-                {link.isActive ? (
-                  <Badge variant="success">فعال</Badge>
-                ) : (
-                  <Badge>غیرفعال</Badge>
-                )}
-                <span className="text-xs text-neutral-500">
-                  ساخته‌شده در {formatDate(link.createdAt)} · {formatNumber(link._count.orders)} سفارش
-                </span>
-              </div>
-              <p className="text-sm text-neutral-600">{link.products.map((p) => p.name).join("، ")}</p>
-              <div className="flex flex-col gap-1">
-                <p className="text-xs text-neutral-500">از ابتدای این ماه (از {formatDate(funnel.since)})</p>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-neutral-500">
+            آمار هر لینک از ابتدای این ماه ({formatDate(funnel.since)}) است.
+          </p>
+          <ul className="flex flex-col gap-3">
+            {links.map((link) => (
+              <li key={link.id} className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{link.title ?? "بدون عنوان"}</span>
+                  {link.isActive ? (
+                    <Badge variant="success">فعال</Badge>
+                  ) : (
+                    <Badge>غیرفعال</Badge>
+                  )}
+                  <span className="text-xs text-neutral-500">
+                    ساخته‌شده در {formatDate(link.createdAt)} · {formatNumber(link._count.orders)} سفارش
+                  </span>
+                </div>
+                <p className="text-sm text-neutral-600">{link.products.map((p) => p.name).join("، ")}</p>
                 <LinkFunnelStats counts={funnelByLink.get(link.id) ?? noActivity} />
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <code dir="ltr" className="rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
-                  /buy/{link.token}
-                </code>
-                <CopyLinkButton path={`/buy/${link.token}`} />
-                <form action={setPurchaseLinkActiveAction.bind(null, link.id)}>
-                  <input type="hidden" name="active" value={link.isActive ? "false" : "true"} />
-                  <Button type="submit" variant="ghost" size="sm">
-                    {link.isActive ? "غیرفعال کردن" : "فعال کردن"}
-                  </Button>
-                </form>
-              </div>
-            </li>
-          ))}
-        </ul>
+                <div className="flex flex-wrap items-center gap-2">
+                  <code dir="ltr" className="rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
+                    /buy/{link.token}
+                  </code>
+                  <CopyLinkButton path={`/buy/${link.token}`} />
+                  <form action={setPurchaseLinkActiveAction.bind(null, link.id)}>
+                    <input type="hidden" name="active" value={link.isActive ? "false" : "true"} />
+                    <Button type="submit" variant="ghost" size="sm">
+                      {link.isActive ? "غیرفعال کردن" : "فعال کردن"}
+                    </Button>
+                  </form>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {links.length > 0 && <p className="text-xs text-neutral-500">{FUNNEL_NOTE}</p>}

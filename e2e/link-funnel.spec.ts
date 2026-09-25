@@ -2,7 +2,7 @@ import { devices, expect, test, type Page } from "@playwright/test";
 import { createProduct, faDigits, logIn, uniqueMobile } from "./helpers";
 
 // B8, the purchase-link funnel. A customer opens the link twice and orders
-// once; a Telegram link preview opens it too but isn't a person. The link's
+// once; the seller and a Telegram link preview open it too, but aren't customers. The link's
 // card in /orders/links and the table in /reports show views → orders → paid.
 
 /** Views are counted after the response (after()), so reload until they show. */
@@ -35,7 +35,9 @@ test("link funnel: views, orders and paid orders per link", async ({ page: selle
     await expectLinkStats(seller, title, [0, 0, 0, "—"]);
   });
 
-  await test.step("a Telegram link preview is not a view", async () => {
+  await test.step("neither the seller checking their own link nor a Telegram preview is a view", async () => {
+    await seller.goto(linkPath);
+    await expect(seller.getByText(productName)).toBeVisible();
     const preview = await request.get(linkPath, { headers: { "user-agent": "TelegramBot (like TwitterBot)" } });
     expect(preview.ok()).toBe(true);
   });
@@ -52,7 +54,7 @@ test("link funnel: views, orders and paid orders per link", async ({ page: selle
     await customer.getByLabel("آدرس کامل").fill("اصفهان، خیابان چهارباغ، پلاک ۳");
     await customer.getByRole("button", { name: "ثبت سفارش" }).click();
     await expect(customer.getByRole("heading", { name: "سفارش شما ثبت شد" })).toBeVisible();
-    // Two views (the preview and the order form's post don't count), one unpaid order.
+    // Two views (the seller, the preview and the order form's post don't count), one unpaid order.
     await expectLinkStats(seller, title, [2, 1, 0, `${faDigits(0)}٪`]);
   });
   await customerContext.close();

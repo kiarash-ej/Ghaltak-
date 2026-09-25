@@ -8,10 +8,12 @@ import { submitPurchaseAction } from "@/server/orders/buy-actions";
 import { isCountableView } from "@/server/orders/link-view-filter";
 import { recordLinkView } from "@/server/orders/link-views";
 import { getPublicLink } from "@/server/orders/purchase-links";
+import { readSession } from "@/server/session";
 import { getPublicStoreProfile } from "@/server/store/profile";
 
 // Public page, no login. Shows only the products attached to this link.
-// Each opening by a person counts as a view in the link funnel (B8).
+// Each opening by a customer counts as a view in the link funnel (B8); the
+// seller checking their own link doesn't.
 
 export const metadata: Metadata = {
   title: "ثبت سفارش",
@@ -22,7 +24,8 @@ export default async function BuyPage(props: PageProps<"/buy/[token]">) {
   const { token } = await props.params;
   const link = await getPublicLink(token);
   if (!link || link.products.length === 0) notFound();
-  if (isCountableView(await headers())) {
+  const ownSeller = (await readSession())?.sellerId === link.sellerId;
+  if (!ownSeller && isCountableView(await headers())) {
     // After the response: counting never slows down or breaks the page.
     after(() => recordLinkView(link.linkId));
   }
