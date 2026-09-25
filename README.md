@@ -123,5 +123,13 @@ We'll order them by what the pilot sellers ask for.
 
 ## Team
 
-Two people, each with a coding agent: Track A (catalog) and Track B (sales). The folders each track owns, and the
-review rules, are in [`docs/phase1/README.md`](docs/phase1/README.md#ownership-rules).
+Phase 1 was built by two people, each with a coding agent: Track A (catalog) and Track B (sales). Phase 2 adds a
+third person:
+
+- **Track A:** platform and seller account (storage, store settings, SMS service, plans, team members)
+- **Track B:** online payment and the customer side (gateway, customer SMS, link funnel, print sheet)
+- **Track C:** infrastructure, quality and pilot sellers (production, backups, CI, pilot programme, seller help,
+  data export)
+
+The Phase 2 plan and each track's tasks are in [`docs/phase2/`](docs/phase2/README.md) (in Persian). The folders each
+track owns, and the review rules, are in [`docs/phase1/README.md`](docs/phase1/README.md#ownership-rules).
