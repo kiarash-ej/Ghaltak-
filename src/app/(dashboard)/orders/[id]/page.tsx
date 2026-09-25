@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { OrderStatusActions } from "@/components/orders/order-status-actions";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { PaymentPanel } from "@/components/orders/payment-panel";
+import { OnlinePaymentsList } from "@/components/payments/online-payments-list";
 import { ShippingPanel } from "@/components/orders/shipping-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
@@ -60,6 +61,17 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
           />
         </CardContent>
       </Card>
+
+      {order.paymentAttempts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>پرداخت‌های آنلاین</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <OnlinePaymentsList attempts={order.paymentAttempts} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

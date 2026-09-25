@@ -14,6 +14,11 @@ export const MAX_LINK_ORDERS_PER_HOUR = 50;
  * Orders with a receipt waiting for review are never expired automatically.
  */
 export const UNPAID_ORDER_TTL_HOURS = 48;
+/**
+ * An order whose online payment was started this recently is not expired: the
+ * customer may be on the gateway's page right now (Phase 2, B6).
+ */
+export const ONLINE_PAYMENT_GRACE_MINUTES = 30;
 
 export function purchaseQuotaProblem(counts: {
   openOrdersForPhone: number;

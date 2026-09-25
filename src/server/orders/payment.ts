@@ -2,10 +2,10 @@ import type { OrderStatus, PaymentMethod } from "@/generated/prisma/enums";
 
 // Payment rules. Pure, no database.
 //
-// Phase 1 has no payment gateway: the seller confirms every payment by hand.
-// A gateway (Zarinpal/IDPay, Phase 2) plugs in by implementing PaymentGateway
-// and, after verifying its callback, calling the same confirmPaymentInTx()
-// the manual flow uses (src/server/orders/payment-store.ts).
+// A payment is confirmed by hand by the seller, or online through the seller's
+// own gateway (Phase 2, B6: src/server/payments/). Both end in the same
+// confirmPaymentInTx() (src/server/orders/payment-store.ts), online only after
+// the gateway's verify succeeded for the amount we recorded.
 
 // Methods a seller can pick when confirming a payment by hand. ONLINE is not
 // here on purpose: only a verified gateway callback may record it (B6).
@@ -26,17 +26,6 @@ export function isPaymentMethod(value: unknown): value is PaymentMethod {
 export function amountDue(order: { totalPrice: number; shippingCost: number | null }): number {
   return order.totalPrice + (order.shippingCost ?? 0);
 }
-
-/** The contract a future online gateway implements. Not used in Phase 1. */
-export type PaymentGateway = {
-  id: string;
-  /** Starts a payment and returns the gateway page to send the customer to. */
-  start(input: { orderId: string; amount: number; callbackUrl: string }): Promise<{ redirectUrl: string }>;
-  /** Verifies the gateway's callback. Only a verified result may confirm an order. */
-  verify(callback: URLSearchParams): Promise<
-    { ok: true; orderId: string; reference: string } | { ok: false }
-  >;
-};
 
 /**
  * Where an order stands on payment, for badges and the customer page.

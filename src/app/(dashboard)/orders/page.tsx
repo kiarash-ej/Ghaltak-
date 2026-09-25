@@ -138,6 +138,7 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
                       <div className="flex flex-wrap gap-1">
                         <OrderStatusBadge status={o.status} />
                         {o.receiptPending && <Badge variant="warning">رسید دریافت شد</Badge>}
+                        {o.onlinePaymentNeedsReview && <Badge variant="danger">پرداخت آنلاین: بررسی لازم</Badge>}
                       </div>
                     </td>
                     <td className="p-3 text-end">

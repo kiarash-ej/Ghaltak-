@@ -23,6 +23,8 @@ export type OrderListItem = {
   itemCount: number;
   /** A customer receipt is waiting for the seller to review. */
   receiptPending: boolean;
+  /** An online payment arrived that could not be applied to the order (B6): seller must check. */
+  onlinePaymentNeedsReview: boolean;
   createdAt: Date;
 };
 
@@ -72,7 +74,12 @@ export async function listOrders(
       receiptImageUrl: true,
       createdAt: true,
       customer: { select: { name: true, phone: true } },
-      _count: { select: { items: true } },
+      _count: {
+        select: {
+          items: true,
+          paymentAttempts: { where: { status: "VERIFIED", failureDetail: { not: null } } },
+        },
+      },
     },
   });
 
@@ -87,6 +94,7 @@ export async function listOrders(
       totalPrice: o.totalPrice,
       itemCount: o._count.items,
       receiptPending: o.status === "PENDING_PAYMENT" && o.receiptImageUrl !== null,
+      onlinePaymentNeedsReview: o._count.paymentAttempts > 0,
       createdAt: o.createdAt,
     })),
     total,
@@ -105,6 +113,21 @@ export async function getOrder(sellerId: string, orderId: string) {
         include: {
           product: { select: { name: true } },
           productVariant: { select: { color: true, size: true, sku: true } },
+        },
+      },
+      // Online payment attempts (B6), newest first. Never the gateway credentials.
+      paymentAttempts: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          amount: true,
+          status: true,
+          failureReason: true,
+          failureDetail: true,
+          refId: true,
+          cardPanMasked: true,
+          createdAt: true,
+          verifiedAt: true,
         },
       },
     },
