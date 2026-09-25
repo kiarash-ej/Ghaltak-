@@ -11,7 +11,11 @@ export type SendSmsInput = {
   kind: SmsKind;
   /** Values for the SMS template, in order. */
   tokens: string[];
-  /** Order messages are sent at most once per (orderId, kind). */
+  /**
+   * Order messages are sent at most once per (orderId, kind): the real
+   * sendSms claims a PENDING SmsMessage row first and sends only if it won
+   * (see the SmsMessage model). A second call returns status "DUPLICATE".
+   */
   orderId?: string | null;
 };
 
