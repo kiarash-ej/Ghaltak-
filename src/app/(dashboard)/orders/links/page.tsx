@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CopyLinkButton } from "@/components/orders/copy-link-button";
+import { FUNNEL_NOTE, LinkFunnelStats } from "@/components/orders/link-funnel";
 import { PurchaseLinkForm } from "@/components/orders/purchase-link-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,15 +10,19 @@ import { formatDate, formatNumber } from "@/lib/format";
 import { requireSeller } from "@/server/auth";
 import { setPurchaseLinkActiveAction } from "@/server/orders/link-actions";
 import { listLinkableProducts, listPurchaseLinks } from "@/server/orders/purchase-links";
+import { getLinkFunnel } from "@/server/reports/link-funnel";
 
 export const metadata: Metadata = { title: "لینک‌های خرید | غلتک" };
 
 export default async function PurchaseLinksPage() {
   const seller = await requireSeller();
-  const [links, products] = await Promise.all([
+  const [links, products, funnel] = await Promise.all([
     listPurchaseLinks(seller.id),
     listLinkableProducts(seller.id),
+    getLinkFunnel(seller.id),
   ]);
+  const funnelByLink = new Map(funnel.links.map((l) => [l.linkId, l]));
+  const noActivity = { views: 0, orders: 0, paid: 0, conversion: null };
 
   return (
     <div className="flex flex-col gap-6">
@@ -61,6 +66,10 @@ export default async function PurchaseLinksPage() {
                 </span>
               </div>
               <p className="text-sm text-neutral-600">{link.products.map((p) => p.name).join("، ")}</p>
+              <div className="flex flex-col gap-1">
+                <p className="text-xs text-neutral-500">از ابتدای این ماه (از {formatDate(funnel.since)})</p>
+                <LinkFunnelStats counts={funnelByLink.get(link.id) ?? noActivity} />
+              </div>
               <div className="flex flex-wrap items-center gap-2">
                 <code dir="ltr" className="rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
                   /buy/{link.token}
@@ -77,6 +86,8 @@ export default async function PurchaseLinksPage() {
           ))}
         </ul>
       )}
+
+      {links.length > 0 && <p className="text-xs text-neutral-500">{FUNNEL_NOTE}</p>}
     </div>
   );
 }
