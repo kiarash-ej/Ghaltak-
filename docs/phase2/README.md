@@ -79,28 +79,30 @@
 ## مرحلهٔ صفر فاز ۲ (هفتهٔ ۰)
 مالک: Person A، بازبین: Person B. کارهای هفتهٔ ۱ بعد از مرج این مرحله شروع می‌شوند. جزئیات در بخش «مرحلهٔ صفر» [TRACK-A.md](./TRACK-A.md) است. در همین هفته Person B فروشنده‌های آزمایشی را آماده می‌کند و مسیرهای باقی‌ماندهٔ آزمایش سرتاسری (#23) را اضافه می‌کند.
 
-- [ ] اسکیمای کامل فاز ۲ در **یک** مایگریشن (جدول زیر)
-- [ ] محیط پروداکشن: سرور داخلی، Postgres مدیریت‌شده، HTTPS، پراکسی معکوس با `TRUSTED_PROXY_HOPS` درست، اجرای `prisma migrate deploy` هنگام انتشار
-- [ ] پشتیبان‌گیری روزانهٔ دیتابیس **و یک بار بازیابی آزمایشی**
-- [ ] ماژول ذخیره‌ساز S3 با دو بخش: عمومی برای عکس محصول و خصوصی برای رسید
-- [ ] قالب‌های پیامک کاوه‌نگار ثبت و ارسال برای تأیید شوند (تأییدشان زمان می‌برد، پس از همین هفته): کد ورود، ثبت سفارش، تأیید پرداخت، ارسال
-- [ ] `src/lib/crypto.ts` برای رمزکردن اطلاعات حساس (مثل اطلاعات درگاه فروشنده) با `SECRETS_KEY`
-- [ ] مسیر عمومی `/pay` در `src/proxy.ts`، برای بازگشت از درگاه
-- [ ] `.env.example` به‌روز، و CI بدون تغییر رفتار
-- [ ] **انتشار نسخهٔ فاز ۱ روی پروداکشن** در پایان هفته، تا فروشنده‌های آزمایشی از هفتهٔ ۱ شروع کنند
+- [x] اسکیمای کامل فاز ۲ در **یک** مایگریشن (جدول زیر)
+- [ ] محیط پروداکشن: سرور داخلی، Postgres مدیریت‌شده، HTTPS، پراکسی معکوس با `TRUSTED_PROXY_HOPS` درست، اجرای `prisma migrate deploy` هنگام انتشار (**منتظر گرفتن هاست**؛ `/api/health` آماده است)
+- [ ] پشتیبان‌گیری روزانهٔ دیتابیس **و یک بار بازیابی آزمایشی** (**منتظر هاست**)
+- [x] ماژول ذخیره‌ساز S3 با دو بخش: عمومی برای عکس محصول و خصوصی برای رسید
+- [ ] قالب‌های پیامک کاوه‌نگار ثبت و ارسال برای تأیید شوند (تأییدشان زمان می‌برد، پس از همین هفته): کد ورود، ثبت سفارش، تأیید پرداخت، ارسال (**منتظر حساب کاوه‌نگار**)
+- [x] `src/lib/crypto.ts` برای رمزکردن اطلاعات حساس (مثل اطلاعات درگاه فروشنده) با `SECRETS_KEY`
+- [x] مسیر عمومی `/pay` در `src/proxy.ts`، برای بازگشت از درگاه
+- [x] `.env.example` به‌روز، و CI بدون تغییر رفتار
+- [ ] **انتشار نسخهٔ فاز ۱ روی پروداکشن** در پایان هفته، تا فروشنده‌های آزمایشی از هفتهٔ ۱ شروع کنند (**منتظر هاست**)
+
+**وضعیت:** بخش کدنویسی مرحلهٔ صفر انجام شده است. هنوز هاست نگرفته‌ایم، پس کارهای سرور، پشتیبان‌گیری، قالب‌های پیامک و انتشار فاز ۱ باز مانده‌اند. تسک‌های هفتهٔ ۱ با درایور `local` و پیامک چاپی شروع می‌شوند، و «انجام‌شده روی پروداکشن» هر تسک بعد از گرفتن هاست بررسی می‌شود.
 
 ### افزوده‌های اسکیما (همه در مرحلهٔ صفر)
 | مدل | فیلد یا تغییر | برای |
 |---|---|---|
 | `Seller` | `logoUrl`، `contactPhone`، `instagram`، `telegram` | A6، نمایش روی صفحه‌های عمومی |
-| `Seller` | `cardNumber`، `cardHolder`، `sheba` | B6، راهنمای کارت‌به‌کارت (کمبود ثبت‌شده در B3) |
+| `Seller` | `cardNumberEncrypted`، `cardHolder`، `shebaEncrypted` (شماره کارت و شبا فقط رمزشده با `src/lib/crypto.ts`) | B6، راهنمای کارت‌به‌کارت (کمبود ثبت‌شده در B3) |
 | `Seller` | `smsOnOrderPlaced`، `smsOnPaid`، `smsOnShipped` (Boolean، پیش‌فرض true) | B7 |
 | `SellerGateway` | جدید: `sellerId` یکتا، `provider` (`ZARINPAL`/`IDPAY`)، `credentialsEncrypted`، `isActive` | B6 |
 | `PaymentMethod` | مقدار جدید `ONLINE` | B6 |
-| `PaymentAttempt` | جدید: `sellerId`، `orderId?`، `invoiceId?`، `provider`، `amount` (تومان)، `authority` یکتا، `status` (`PENDING`/`VERIFIED`/`FAILED`/`CANCELED`)، `refId`، `cardPanMasked`، `verifiedAt` | B6، A9 |
+| `PaymentAttempt` | جدید: `sellerId`، `orderId?`، `invoiceId?`، `provider`، `amount` (تومان)، `authority` (یکتا برای هر درگاه: `(provider, authority)`)، `status` (`PENDING`/`VERIFIED`/`FAILED`/`CANCELED`)، `failureReason` (`CANCELED_BY_USER`/`AMOUNT_MISMATCH`/`GATEWAY_ERROR`/`EXPIRED`)، `failureDetail`، `refId`، `cardPanMasked`، `verifiedAt` | B6، A9 |
 | `Subscription` | جدید: `sellerId` یکتا، `plan` (`TRIAL`/`BASIC`/`GROWTH`/`PRO`)، `status` (`TRIALING`/`ACTIVE`/`PAST_DUE`/`CANCELED`)، `currentPeriodEnd` | A9 |
 | `Invoice` | جدید: `sellerId`، `plan`، `amount`، `periodStart`، `periodEnd`، `status` (`OPEN`/`PAID`/`VOID`)، `paidAt` | A9 |
-| `SmsMessage` | جدید: `sellerId?`، `to`، `kind`، `orderId?`، `status` (`SENT`/`FAILED`/`DEV`)، `providerId`، `createdAt`. یکتا روی `(orderId, kind)` تا پیامک هر رویداد سفارش فقط یک بار ارسال شود | A8، B7 |
+| `SmsMessage` | جدید: `sellerId?`، `to`، `kind`، `orderId?`، `status` (`PENDING`/`SENT`/`FAILED`/`DEV`)، `providerId`، `attempts`، `createdAt`، `updatedAt`. یکتا روی `(orderId, kind)` تا پیامک هر رویداد سفارش فقط یک بار ارسال شود: اول ردیف `PENDING` گرفته می‌شود و بعد پیامک می‌رود | A8، B7 |
 | `User`، `Membership` | جدید: `User(mobile یکتا)`، `Membership(userId, sellerId, role: OWNER/OPERATOR)`. برای هر فروشندهٔ فعلی یک `User` و عضویت `OWNER` ساخته می‌شود | A10 |
 | `LinkDailyView` | جدید: `purchaseLinkId`، `day`، `views`، یکتا روی `(purchaseLinkId, day)`. فقط شمارش، بدون IP | B8 |
 
@@ -113,7 +115,7 @@
 
 | قرارداد | سازنده | مصرف‌کننده | استفاده |
 |---|---|---|---|
-| `getPublicStoreProfile(sellerId)` در `src/server/store/` | A (A6) | B | نام، لوگو و راه‌های تماس فروشگاه روی `/buy` و `/buy/order` |
+| `getPublicStoreProfile(sellerId)` در `src/server/store/profile.ts` | A (از مرحلهٔ صفر واقعی است؛ فرم تنظیمات در A6) | B | نام، لوگو و راه‌های تماس فروشگاه روی `/buy` و `/buy/order` |
 | `storage.put / get / delete` با بخش `public` و `private` در `src/server/storage/` | A (مرحلهٔ صفر) | B | انتقال رسیدها از دیسک به ذخیره‌ساز خصوصی |
 | `sendSms({ sellerId, to, kind, tokens, orderId })` در `src/server/sms/` | A (A8) | B | پیامک‌های مشتری. ثبت در `SmsMessage` و شمارش برای پلن |
 | `getPlanUsage(sellerId)` و `canUse(sellerId, feature)` در `src/server/billing/` | A (A9) | B | مثلاً پیامک اضافه بعد از سهمیه. **هیچ‌وقت برای رد سفارش مشتری نیست** (تصمیم ۳) |

@@ -21,15 +21,39 @@ datasource db {
 // Every other table is scoped by sellerId.
 model Seller {
   id        String   @id @default(cuid())
-  name      String
+  name      String // the store's name, shown to customers
   mobile    String   @unique // normalized "09xxxxxxxxx", used to log in
   createdAt DateTime @default(now())
 
-  products      Product[]
-  variants      ProductVariant[]
-  customers     Customer[]
-  orders        Order[]
-  purchaseLinks PurchaseLink[]
+  // Store profile, shown on public pages (Phase 2, A6). Never the login mobile
+  // unless the seller enters it as contactPhone.
+  logoUrl      String?
+  contactPhone String?
+  instagram    String? // handle without "@"
+  telegram     String? // handle without "@"
+
+  // Card-to-card details for the customer's payment instructions (Phase 2, B6).
+  // Stored ENCRYPTED with src/lib/crypto.ts, never in plain text.
+  cardNumberEncrypted String?
+  cardHolder          String?
+  shebaEncrypted      String?
+
+  // Which customer SMS messages this seller sends (Phase 2, B7).
+  smsOnOrderPlaced Boolean @default(true)
+  smsOnPaid        Boolean @default(true)
+  smsOnShipped     Boolean @default(true)
+
+  products        Product[]
+  variants        ProductVariant[]
+  customers       Customer[]
+  orders          Order[]
+  purchaseLinks   PurchaseLink[]
+  memberships     Membership[]
+  subscription    Subscription?
+  invoices        Invoice[]
+  gateway         SellerGateway?
+  paymentAttempts PaymentAttempt[]
+  smsMessages     SmsMessage[]
 }
 
 // One-time SMS login codes. The code itself is never stored, only its hash.
@@ -157,6 +181,7 @@ enum PaymentMethod {
   CARD_TO_CARD
   CASH
   OTHER
+  ONLINE // through the seller's own gateway (Phase 2, B6)
 }
 
 enum ShippingStatus {
@@ -197,7 +222,9 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  items OrderItem[]
+  items           OrderItem[]
+  paymentAttempts PaymentAttempt[]
+  smsMessages     SmsMessage[]
 
   @@index([sellerId, status])
   @@index([sellerId, createdAt])
@@ -225,8 +252,207 @@ model PurchaseLink {
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
 
-  products Product[]
-  orders   Order[]
+  products   Product[]
+  orders     Order[]
+  dailyViews LinkDailyView[]
 
   @@index([sellerId])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2 (docs/phase2/README.md): team members, subscriptions, online
+// payments, SMS log, purchase-link views. All created in Phase 2 Step 0.
+// ---------------------------------------------------------------------------
+
+// A person who can log in. In Phase 1 the Seller itself was the login; each
+// existing Seller got a User with the same mobile and an OWNER membership.
+model User {
+  id        String   @id @default(cuid())
+  mobile    String   @unique // normalized "09xxxxxxxxx"
+  createdAt DateTime @default(now())
+
+  memberships Membership[]
+}
+
+enum MemberRole {
+  OWNER
+  OPERATOR
+}
+
+model Membership {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sellerId  String
+  seller    Seller     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  role      MemberRole
+  createdAt DateTime   @default(now())
+
+  @@unique([userId, sellerId])
+  @@index([sellerId])
+}
+
+enum PlanId {
+  TRIAL
+  BASIC
+  GROWTH
+  PRO
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+// One per seller. New sellers start on a 30-day TRIAL (Phase 2, A9).
+model Subscription {
+  id               String             @id @default(cuid())
+  sellerId         String             @unique
+  seller           Seller             @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  plan             PlanId             @default(TRIAL)
+  status           SubscriptionStatus @default(TRIALING)
+  currentPeriodEnd DateTime
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+enum InvoiceStatus {
+  OPEN
+  PAID
+  VOID
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  sellerId    String
+  seller      Seller        @relation(fields: [sellerId], references: [id])
+  plan        PlanId
+  amount      Int // tomans
+  periodStart DateTime
+  periodEnd   DateTime
+  status      InvoiceStatus @default(OPEN)
+  paidAt      DateTime?
+  createdAt   DateTime      @default(now())
+
+  paymentAttempts PaymentAttempt[]
+
+  @@index([sellerId, createdAt])
+}
+
+enum GatewayProvider {
+  ZARINPAL
+  IDPAY
+}
+
+// The seller's OWN payment gateway (decision 1 in docs/phase2/README.md):
+// customers' money goes straight to the seller, never through the platform.
+model SellerGateway {
+  id                   String          @id @default(cuid())
+  sellerId             String          @unique
+  seller               Seller          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  provider             GatewayProvider
+  credentialsEncrypted String // src/lib/crypto.ts; never logged or shown in full
+  isActive             Boolean         @default(false)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+}
+
+enum PaymentAttemptStatus {
+  PENDING
+  VERIFIED
+  FAILED
+  CANCELED
+}
+
+// Why an attempt did not end VERIFIED (B6). Kept so the seller can be shown,
+// for example, a payment the gateway verified for the wrong amount.
+enum PaymentFailureReason {
+  CANCELED_BY_USER // the customer canceled on the gateway page
+  AMOUNT_MISMATCH // verified for a different amount: the order is never confirmed
+  GATEWAY_ERROR // the gateway refused the request or the verification
+  EXPIRED // the customer never came back from the gateway
+}
+
+// One trip to a gateway: for an order (seller's gateway) or a subscription
+// invoice (the platform's gateway). Created before redirecting, so the
+// callback URL can carry its id; `authority` is set once the gateway answers.
+model PaymentAttempt {
+  id            String                @id @default(cuid())
+  sellerId      String
+  seller        Seller                @relation(fields: [sellerId], references: [id])
+  orderId       String?
+  order         Order?                @relation(fields: [orderId], references: [id])
+  invoiceId     String?
+  invoice       Invoice?              @relation(fields: [invoiceId], references: [id])
+  provider      GatewayProvider
+  amount        Int // tomans; what we asked for, checked again on verify
+  authority     String? // the gateway's payment id, unique per gateway
+  status        PaymentAttemptStatus  @default(PENDING)
+  failureReason PaymentFailureReason?
+  failureDetail String? // the gateway's code or message, for support. Never card data.
+  refId         String?
+  cardPanMasked String?
+  createdAt     DateTime              @default(now())
+  verifiedAt    DateTime?
+
+  @@unique([provider, authority])
+  @@index([orderId])
+  @@index([invoiceId])
+  @@index([sellerId, createdAt])
+}
+
+enum SmsKind {
+  LOGIN_OTP
+  ORDER_PLACED
+  ORDER_PAID
+  ORDER_SHIPPED
+  PAYMENT_REMINDER
+  MEMBER_INVITE
+  SUBSCRIPTION_REMINDER
+}
+
+enum SmsStatus {
+  PENDING // claimed, being sent (see SmsMessage)
+  SENT
+  FAILED
+  DEV // development: printed to the console, not sent
+}
+
+// Every SMS the platform sends (Phase 2, A8). Also the count for plan quotas.
+model SmsMessage {
+  id         String    @id @default(cuid())
+  sellerId   String?
+  seller     Seller?   @relation(fields: [sellerId], references: [id])
+  to         String
+  kind       SmsKind
+  orderId    String?
+  order      Order?    @relation(fields: [orderId], references: [id])
+  status     SmsStatus
+  providerId String?
+  attempts   Int       @default(0) // send attempts, for a retry limit
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
+
+  // Each order event is texted at most once, even if an action is retried.
+  // Claim first, then send: insert a PENDING row with createMany({ skipDuplicates:
+  // true }) (INSERT ... ON CONFLICT DO NOTHING, as in account.ts) and send only
+  // if that insert won; then mark it SENT or FAILED. A FAILED row may be moved
+  // back to PENDING with a conditional updateMany to retry. updatedAt tells a
+  // claim left behind by a crash apart from one in progress. Use Prisma, not raw
+  // SQL, for these writes: it sets the timestamps in UTC.
+  // (Rows without an order have orderId NULL, which Postgres never treats as equal.)
+  @@unique([orderId, kind])
+  @@index([sellerId, createdAt])
+}
+
+// Purchase-link page views per day (Phase 2, B8). Counts only: no IP, no id.
+model LinkDailyView {
+  purchaseLinkId String
+  purchaseLink   PurchaseLink @relation(fields: [purchaseLinkId], references: [id], onDelete: Cascade)
+  day            DateTime     @db.Date // Tehran calendar day
+  views          Int          @default(0)
+
+  @@id([purchaseLinkId, day])
 }

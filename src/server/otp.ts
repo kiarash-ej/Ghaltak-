@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/prisma";
+import { ensureSellerAccount } from "./account";
 import { sendLoginCode } from "./sms";
 
 const CODE_TTL_MS = 2 * 60 * 1000; // a code is valid for 2 minutes
@@ -93,11 +94,6 @@ export async function verifyOtp(
   });
   if (claimed.count === 0) return { ok: false, error: "INVALID" };
 
-  const seller = await prisma.seller.upsert({
-    where: { mobile },
-    update: {},
-    create: { mobile, name: "فروشگاه من" },
-    select: { id: true },
-  });
-  return { ok: true, sellerId: seller.id };
+  const { sellerId } = await ensureSellerAccount(mobile);
+  return { ok: true, sellerId };
 }

@@ -12,4 +12,6 @@ export const NAV_ITEMS: NavItem[] = [
   // Track B — sales
   { href: "/orders", label: "سفارش‌ها" },
   { href: "/reports", label: "گزارش فروش" },
+  // Shared (Phase 2): store profile, payments, subscription, team
+  { href: "/settings", label: "تنظیمات" },
 ];

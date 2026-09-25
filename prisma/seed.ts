@@ -49,6 +49,12 @@ async function main() {
   const existing = await prisma.seller.findUnique({ where: { mobile: DEMO_MOBILE } });
   if (existing) {
     const sellerId = existing.id;
+    // Payment attempts and invoices block deleting a seller (ON DELETE
+    // RESTRICT: payment records are never removed by accident), so they go first.
+    await prisma.paymentAttempt.deleteMany({ where: { sellerId } });
+    await prisma.invoice.deleteMany({ where: { sellerId } });
+    // SMS rows would survive with sellerId NULL (ON DELETE SET NULL); drop them.
+    await prisma.smsMessage.deleteMany({ where: { sellerId } });
     await prisma.orderItem.deleteMany({ where: { order: { sellerId } } });
     await prisma.order.deleteMany({ where: { sellerId } });
     await prisma.purchaseLink.deleteMany({ where: { sellerId } });
@@ -58,7 +64,22 @@ async function main() {
   }
 
   const seller = await prisma.seller.create({
-    data: { mobile: DEMO_MOBILE, name: "فروشگاه نمونه" },
+    data: { mobile: DEMO_MOBILE, name: "فروشگاه نمونه", instagram: "nemoone.shop" },
+  });
+  // The same account shape as a real first login (src/server/account.ts).
+  const user = await prisma.user.upsert({
+    where: { mobile: DEMO_MOBILE },
+    update: {},
+    create: { mobile: DEMO_MOBILE },
+  });
+  await prisma.membership.create({ data: { userId: user.id, sellerId: seller.id, role: "OWNER" } });
+  await prisma.subscription.create({
+    data: {
+      sellerId: seller.id,
+      plan: "TRIAL",
+      status: "TRIALING",
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    },
   });
 
   const products: ProductWithVariants[] = [];

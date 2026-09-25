@@ -16,6 +16,7 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1140.0",
     "@fontsource-variable/vazirmatn": "^5.3.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
@@ -42,6 +43,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
     "prisma": "^7.10.0",
+    "s3rver": "^3.7.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",
