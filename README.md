@@ -86,8 +86,10 @@ them, plus lint, type-check and build, on every pull request. Setup is in
 | `src/app/buy/` | Public purchase-link and customer order pages (no login) |
 | `src/app/help/`, `public/help/` | Public seller guide with screenshots, and its FAQ (Track C) |
 | `src/app/login/`, `src/app/logout/` | Login with SMS code, logout |
+| `src/app/privacy/` | Public privacy page (Track C) |
 | `src/server/catalog/` | Products, images, inventory and `adjustStock` (Track A) |
 | `src/server/customers/` | Customer list, profile and stats (Track A) |
+| `src/server/exports/` | CSV export of products, customers and orders, streamed, owner only (Track C) |
 | `src/server/orders/` | Orders, status rules, purchase links, payment, shipping, stock calls, limits (Track B) |
 | `src/server/reports/` | Sales report queries and Iran-time periods (Track B) |
 | `src/server/home/` | Dashboard home: the «شروع کار» checklist and today's summary (Track C) |
