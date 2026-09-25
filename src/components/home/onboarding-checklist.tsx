@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { OnboardingStep } from "@/server/home/onboarding";
@@ -27,7 +27,8 @@ export function OnboardingChecklist({ steps }: { steps: OnboardingStep[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>شروع کار</CardTitle>
+        {/* An h2 (CardTitle is an h3): it sits right under the page's h1 (C7, heading order). */}
+        <h2 className="text-lg font-semibold leading-none">شروع کار</h2>
         <CardDescription>
           {formatNumber(doneCount)} از {formatNumber(steps.length)} مرحله انجام شده. با انجام همه، این فهرست
           پنهان می‌شود.
