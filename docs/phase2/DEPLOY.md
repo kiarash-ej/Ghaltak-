@@ -393,7 +393,9 @@ week_orders AS (
     AND (o."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tehran') <  w.end_at
 ),
 online AS (
-  SELECT DISTINCT a."orderId", a."sellerId", a."verifiedAt"
+  -- One row per order: a second payment for an already-paid order is also
+  -- VERIFIED (B6 keeps it for the seller to refund) and must not count twice.
+  SELECT DISTINCT a."orderId", a."sellerId"
   FROM "PaymentAttempt" a
   JOIN pilot p ON p.id = a."sellerId"
   WHERE a.status = 'VERIFIED' AND a."orderId" IS NOT NULL
