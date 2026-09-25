@@ -2,7 +2,7 @@ import "server-only";
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { ensureSellerAccount } from "./account";
-import { sendLoginCode } from "./sms";
+import { sendSms } from "./sms/send";
 
 const CODE_TTL_MS = 2 * 60 * 1000; // a code is valid for 2 minutes
 const RESEND_COOLDOWN_MS = 60 * 1000; // at most one SMS per minute per number
@@ -43,10 +43,9 @@ export async function requestOtp(mobile: string): Promise<RequestOtpResult> {
     },
   });
 
-  try {
-    await sendLoginCode(mobile, code);
-  } catch (err) {
-    console.error("Failed to send login code", err);
+  // sendSms never throws; it records the message (never the code) and logs failures.
+  const sent = await sendSms({ sellerId: null, to: mobile, kind: "LOGIN_OTP", tokens: [code] });
+  if (!sent.ok) {
     await prisma.otpCode.delete({ where: { id: record.id } });
     return { ok: false, error: "SMS_FAILED" };
   }
