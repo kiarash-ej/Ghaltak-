@@ -10,7 +10,8 @@ import { notifyCustomer, remindUnpaidOrders } from "./customer-sms";
 const ORIGIN = "https://ghaltak.test";
 
 describe.skipIf(!hasTestDatabase)("customer SMS (database)", () => {
-  const runId = String(Date.now()).slice(-7);
+  // Random, not the clock: DB test files start in parallel and share mobiles.
+  const runId = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
   let sellerId = "";
   let customerId = "";
   let productId = "";
@@ -33,7 +34,7 @@ describe.skipIf(!hasTestDatabase)("customer SMS (database)", () => {
   const rowsFor = (orderId: string) => prisma.smsMessage.findMany({ where: { orderId } });
 
   beforeAll(async () => {
-    sellerId = (await prisma.seller.create({ data: { name: "sms", mobile: `0994${runId}` } })).id;
+    sellerId = (await prisma.seller.create({ data: { name: "sms", mobile: `0989${runId}` } })).id;
     customerId = (await prisma.customer.create({ data: { sellerId, phone: `0917${runId}` } })).id;
     productId = (await prisma.product.create({ data: { sellerId, name: "p", price: 50_000 } })).id;
   });
