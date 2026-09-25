@@ -1,7 +1,7 @@
 import "server-only";
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/prisma";
-import { ensureSellerAccount } from "./account";
+import { accountForLogin, type LoginAccount } from "./account";
 import { sendSms } from "./sms/send";
 
 const CODE_TTL_MS = 2 * 60 * 1000; // a code is valid for 2 minutes
@@ -53,7 +53,7 @@ export async function requestOtp(mobile: string): Promise<RequestOtpResult> {
 }
 
 export type VerifyOtpResult =
-  | { ok: true; sellerId: string }
+  | { ok: true; account: LoginAccount }
   | { ok: false; error: "INVALID" | "EXPIRED" };
 
 /** Verifies the code and returns the seller, creating the account on first login. */
@@ -93,6 +93,5 @@ export async function verifyOtp(
   });
   if (claimed.count === 0) return { ok: false, error: "INVALID" };
 
-  const { sellerId } = await ensureSellerAccount(mobile);
-  return { ok: true, sellerId };
+  return { ok: true, account: await accountForLogin(mobile) };
 }

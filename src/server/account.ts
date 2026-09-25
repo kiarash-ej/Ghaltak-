@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import type { MemberRole } from "@/generated/prisma/enums";
 import { TRIAL_DAYS } from "@/server/billing/trial";
 
 export const DEFAULT_STORE_NAME = "فروشگاه من";
@@ -48,4 +49,43 @@ export async function ensureSellerAccount(mobile: string): Promise<{ sellerId: s
 
     return { sellerId: seller.id };
   });
+}
+
+export type StoreChoice = { sellerId: string; name: string; role: MemberRole; lastUsedAt: Date | null };
+export type LoginAccount = { userId: string; stores: StoreChoice[] };
+
+/**
+ * Who is signing in with this mobile, and into which stores (A10). A mobile
+ * that is already a member somewhere (e.g. invited as an operator) gets NO new
+ * store, and so doesn't spend its trial; only a mobile with no membership at
+ * all gets its own store, as before.
+ *
+ * Stores come most recently used first: the first one is signed into, and
+ * with more than one the member can switch at /select-store.
+ */
+export async function accountForLogin(mobile: string): Promise<LoginAccount> {
+  const existing = await prisma.user.findUnique({
+    where: { mobile },
+    select: { _count: { select: { memberships: true } } },
+  });
+  if (!existing || existing._count.memberships === 0) await ensureSellerAccount(mobile);
+
+  const user = await prisma.user.findUniqueOrThrow({ where: { mobile }, select: { id: true } });
+  return { userId: user.id, stores: await storesOf(user.id) };
+}
+
+/** The stores a user belongs to, most recently used first. */
+export async function storesOf(userId: string): Promise<StoreChoice[]> {
+  const [memberships, lastUsed] = await Promise.all([
+    prisma.membership.findMany({
+      where: { userId },
+      orderBy: { createdAt: "asc" },
+      select: { sellerId: true, role: true, seller: { select: { name: true } } },
+    }),
+    prisma.session.groupBy({ by: ["sellerId"], where: { userId }, _max: { lastSeenAt: true } }),
+  ]);
+  const lastBySeller = new Map(lastUsed.map((r) => [r.sellerId, r._max.lastSeenAt]));
+  return memberships
+    .map((m) => ({ sellerId: m.sellerId, name: m.seller.name, role: m.role, lastUsedAt: lastBySeller.get(m.sellerId) ?? null }))
+    .sort((a, b) => (b.lastUsedAt?.getTime() ?? 0) - (a.lastUsedAt?.getTime() ?? 0));
 }

@@ -6,7 +6,12 @@ import { SignJWT, jwtVerify } from "jose";
 export const SESSION_COOKIE = "session";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
-export type SessionPayload = { sellerId: string };
+/**
+ * `sid` is the Session row (A10); the proxy only checks the signature, and
+ * requireSeller() checks the row. A cookie from before A10 has only sellerId
+ * and reads as no session, so that person simply signs in again.
+ */
+export type SessionPayload = { sid: string; userId: string; sellerId: string };
 
 function getKey() {
   const secret = process.env.SESSION_SECRET;
@@ -32,8 +37,9 @@ export async function decryptSession(
     const { payload } = await jwtVerify(token, getKey(), {
       algorithms: ["HS256"],
     });
-    return typeof payload.sellerId === "string"
-      ? { sellerId: payload.sellerId }
+    const { sid, userId, sellerId } = payload;
+    return typeof sid === "string" && typeof userId === "string" && typeof sellerId === "string"
+      ? { sid, userId, sellerId }
       : null;
   } catch {
     return null;
