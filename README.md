@@ -84,11 +84,13 @@ them, plus lint, type-check and build, on every pull request. Setup is in
 |---|---|
 | `src/app/(dashboard)/` | Seller pages: products, inventory, customers, orders, reports |
 | `src/app/buy/` | Public purchase-link and customer order pages (no login) |
+| `src/app/help/`, `public/help/` | Public seller guide with screenshots, and its FAQ (Track C) |
 | `src/app/login/`, `src/app/logout/` | Login with SMS code, logout |
 | `src/server/catalog/` | Products, images, inventory and `adjustStock` (Track A) |
 | `src/server/customers/` | Customer list, profile and stats (Track A) |
 | `src/server/orders/` | Orders, status rules, purchase links, payment, shipping, stock calls, limits (Track B) |
 | `src/server/reports/` | Sales report queries and Iran-time periods (Track B) |
+| `src/server/home/` | Dashboard home: the «شروع کار» checklist and today's summary (Track C) |
 | `src/components/ui/` | Shared UI: button, input, label, card, badge |
 | `src/lib/format.ts` | Persian digits, tomans, Jalali dates in Tehran time, mobile number parsing |
 | `prisma/` | Schema, migrations and seed |

@@ -1,6 +1,7 @@
 # End-to-end tests
 
-Two tests, each run against a real browser, app server and database.
+Each test runs against a real browser, app server and database. The main ones are below; the others
+(`card-to-card`, `customer-sms`, `online-payment`) describe themselves at the top of the file.
 
 ## `order-lifecycle.spec.ts`
 
@@ -21,6 +22,26 @@ It drives the whole Phase 1 buy flow in a real browser, against a real app serve
 5. **Seller**: stock went down by the ordered quantity, and the sales report counts the sale.
 
 Each run creates its own seller and customer, so every number checked is exact and nothing needs to be wiped.
+
+## `onboarding.spec.ts`
+
+The dashboard's «شروع کار» checklist (C5). A brand-new seller sees five undone steps. The test does each one (store
+details, product, card number, purchase link, order) and checks it ticks. A store name alone doesn't complete step 1;
+a contact does. After the fifth step the checklist is gone and «خلاصهٔ امروز» counts the order and the item that now
+needs restocking. Then a phone with no session opens `/help` and a guide: every screenshot loads and nothing scrolls
+sideways.
+
+## `help-screenshots.spec.ts` (not a test)
+
+Re-takes the screenshots of the seller guide into `public/help/` from the real app, on a phone-sized screen with a
+made-up shop. It is skipped unless you ask for it:
+
+```bash
+HELP_SCREENSHOTS=1 npx playwright test help-screenshots
+```
+
+Run it after changing a screen that the guide shows, and commit the new images. Every image has a fixed size, so
+`src/app/help/guides.ts` keeps the same dimensions.
 
 ## Run it
 
