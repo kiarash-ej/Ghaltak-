@@ -51,6 +51,9 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
           <Link href="/orders/links" className={cn(buttonVariants({ variant: "outline" }))}>
             لینک‌های خرید
           </Link>
+          <Link href="/orders/print?ready=1" className={cn(buttonVariants({ variant: "outline" }))}>
+            چاپ سفارش‌های آمادهٔ ارسال
+          </Link>
           <Link href="/orders/new" className={cn(buttonVariants())}>
             سفارش جدید
           </Link>
@@ -103,11 +106,22 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
         </div>
       ) : (
         <>
-          <p className="text-sm text-neutral-500">{formatNumber(total)} سفارش</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-neutral-500">{formatNumber(total)} سفارش</p>
+            {/* The checkboxes in the table belong to this form (form="print-orders"). */}
+            <form id="print-orders" action="/orders/print" method="GET">
+              <Button type="submit" variant="outline" size="sm">
+                چاپ برگهٔ ارسال انتخاب‌شده‌ها
+              </Button>
+            </form>
+          </div>
           <div className="overflow-x-auto rounded-xl border border-neutral-200">
-            <table className="w-full min-w-[44rem] text-sm">
+            <table className="w-full min-w-[46rem] text-sm">
               <thead className="bg-neutral-50 text-neutral-600">
                 <tr>
+                  <th className="w-10 p-3">
+                    <span className="sr-only">انتخاب برای چاپ</span>
+                  </th>
                   <th className="p-3 text-start font-medium">کد</th>
                   <th className="p-3 text-start font-medium">مشتری</th>
                   <th className="p-3 text-start font-medium">تاریخ</th>
@@ -119,6 +133,16 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
               <tbody>
                 {items.map((o) => (
                   <tr key={o.id} className="border-t border-neutral-200">
+                    <td className="p-3">
+                      <input
+                        type="checkbox"
+                        name="id"
+                        value={o.id}
+                        form="print-orders"
+                        aria-label={`انتخاب سفارش ${o.code} برای چاپ`}
+                        className="size-4 accent-neutral-900"
+                      />
+                    </td>
                     <td className="p-3 font-mono" dir="ltr">
                       {o.code}
                     </td>

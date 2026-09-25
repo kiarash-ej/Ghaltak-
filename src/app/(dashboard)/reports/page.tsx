@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FUNNEL_NOTE, LinkFunnelTable } from "@/components/orders/link-funnel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { APP_TIME_ZONE, formatDate, formatNumber, formatToman } from "@/lib/format";
 import { requireSeller } from "@/server/auth";
 import { STATUS_LABELS } from "@/server/orders/status";
+import { getLinkFunnel } from "@/server/reports/link-funnel";
 import { CHART_DAYS, getSalesReport, type SalesSummary } from "@/server/reports/queries";
 import { SalesChart } from "./sales-chart";
 
@@ -32,7 +34,8 @@ function StatTile({ label, summary }: { label: string; summary: SalesSummary }) 
 
 export default async function ReportsPage() {
   const seller = await requireSeller();
-  const report = await getSalesReport(seller.id);
+  const [report, funnel] = await Promise.all([getSalesReport(seller.id), getLinkFunnel(seller.id)]);
+  const activeLinks = funnel.links.filter((l) => l.views > 0 || l.orders > 0);
   const buyers = report.customers.newCustomers + report.customers.returningCustomers;
   const days = report.daily.map((d) => ({
     key: d.key,
@@ -182,10 +185,27 @@ export default async function ReportsPage() {
         </Card>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>قیف لینک‌های خرید این ماه</CardTitle>
+          <CardDescription>بازدید، سفارش و پرداخت برای هر لینک خرید</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {activeLinks.length === 0 ? (
+            <p className="text-sm text-neutral-500">این ماه هنوز کسی لینک‌های خرید شما را باز نکرده است.</p>
+          ) : (
+            <LinkFunnelTable links={activeLinks} total={funnel.total} />
+          )}
+          <Link href="/orders/links" className="text-sm text-neutral-600 hover:underline">
+            مدیریت لینک‌های خرید ←
+          </Link>
+        </CardContent>
+      </Card>
+
       <p className="text-xs text-neutral-500">
         فروش یعنی سفارش‌های پرداخت‌شده (پرداخت‌شده، در حال آماده‌سازی، ارسال‌شده و تحویل‌شده) بر اساس روز ثبت
         سفارش به وقت ایران. سفارش‌های لغوشده، مرجوعی و در انتظار پرداخت حساب نمی‌شوند. مبالغ بدون هزینهٔ ارسال
-        است.
+        است. {FUNNEL_NOTE}
       </p>
     </div>
   );

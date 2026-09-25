@@ -8,7 +8,7 @@ export function SubscriptionBanner({ banner }: { banner: Banner }) {
     <div
       role="status"
       className={cn(
-        "mb-4 flex flex-col gap-2 rounded-lg border p-3 text-sm sm:flex-row sm:items-center sm:justify-between",
+        "mb-4 flex flex-col print:hidden gap-2 rounded-lg border p-3 text-sm sm:flex-row sm:items-center sm:justify-between",
         banner.tone === "danger" ? "border-red-200 bg-red-50 text-red-900" : "border-amber-200 bg-amber-50 text-amber-900",
       )}
     >

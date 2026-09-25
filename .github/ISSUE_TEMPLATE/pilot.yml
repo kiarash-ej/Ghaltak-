@@ -1,0 +1,69 @@
+# A problem reported by a pilot seller (Phase 2, C4). See docs/phase2/PILOT.md,
+# section 6. Only the seller's number (P01...) goes here: never a name, mobile,
+# Instagram/Telegram handle, store name or any customer's data.
+name: مشکل فروشندهٔ آزمایشی
+description: مشکلی که یک فروشندهٔ آزمایشی گزارش کرده یا در مصاحبه دیده شده (C4)
+labels: ["pilot"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **فقط شمارهٔ فروشنده** (`P01`، `P02`، …). نام، موبایل، آیدی، نام فروشگاه و اطلاعات مشتری‌ها هرگز اینجا نیاید؛ اسکرین‌شات را پیش از گذاشتن ببرید یا تار کنید.
+        اگر همین مشکل Issue دارد، این را نسازید؛ در همان Issue بنویسید «P07 هم».
+  - type: input
+    id: seller
+    attributes:
+      label: شمارهٔ فروشنده
+      description: یک یا چند شماره، مثلاً P03 یا P03، P08
+      placeholder: P03
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: اولویت (پیشنهادی)
+      description: در جلسهٔ سه‌نفره نهایی و با برچسب P0/P1/P2 زده می‌شود.
+      options:
+        - "P0: فروش متوقف می‌شود، پول یا داده اشتباه ثبت می‌شود، یا اطلاعات کسی به دیگری نشان داده می‌شود"
+        - "P1: هر روز وقت فروشنده را می‌گیرد"
+        - "P2: خوب است باشد"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: بخش برنامه
+      description: مالک بر اساس پوشه تعیین می‌شود (PILOT.md، بخش ۶).
+      options:
+        - محصولات و موجودی (A)
+        - مشتریان (A)
+        - تنظیمات فروشگاه، ورود و پیامک ورود (A)
+        - اشتراک و اعضا (A)
+        - سفارش‌ها (B)
+        - لینک خرید و صفحهٔ مشتری (B)
+        - پرداخت، کارت‌به‌کارت و درگاه (B)
+        - ارسال (B)
+        - گزارش فروش (B)
+        - پیامک مشتری (B)
+        - داشبورد، «شروع کار» و راهنما (C)
+        - خروجی داده و حریم خصوصی (C)
+        - کندی، قطعی یا سرور (C)
+        - نمی‌دانم
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: چه شد؟
+      description: به زبان فروشنده، و چیزی که انتظار داشت.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: راه تکرار
+      description: قدم‌ها، اگر معلوم است. دستگاه و مرورگر (مثلاً اندروید، کروم) هم بنویسید.
+  - type: textarea
+    id: workaround
+    attributes:
+      label: فروشنده فعلاً چطور کارش را پیش می‌برد؟
