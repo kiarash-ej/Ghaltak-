@@ -206,16 +206,17 @@ liara deploy            # liara.json را می‌خواند: پلتفرم Docker
 | نوع (`SmsKind`) | متغیر محیطی | فرستنده | توکن‌ها | وضعیت |
 |---|---|---|---|---|
 | `LOGIN_OTP` | `KAVENEGAR_TEMPLATE` | A (`otp.ts`، فعال) | `%token`: کد ۶ رقمی | ثبت نشده |
-| `ORDER_PLACED` | `KAVENEGAR_TEMPLATE_ORDER_PLACED` | B (B7) | `%token`: کد سفارش، `%token2`: نام فروشگاه، `%token3`: توکن صفحهٔ سفارش | ثبت نشده |
+| `ORDER_PLACED` | `KAVENEGAR_TEMPLATE_ORDER_PLACED` | B (B7) | `%token`: کد سفارش، `%token2`: لینک صفحهٔ سفارش | ثبت نشده |
 | `ORDER_PAID` | `KAVENEGAR_TEMPLATE_ORDER_PAID` | B (B7) | مثل `ORDER_PLACED` | ثبت نشده |
-| `ORDER_SHIPPED` | `KAVENEGAR_TEMPLATE_ORDER_SHIPPED` | B (B7) | `%token`: کد سفارش، `%token2`: روش ارسال، `%token3`: کد رهگیری | ثبت نشده |
+| `ORDER_SHIPPED` | `KAVENEGAR_TEMPLATE_ORDER_SHIPPED` | B (B7) | `%token`: کد سفارش، `%token2`: کد رهگیری، `%token3`: لینک صفحهٔ سفارش | ثبت نشده |
 | `PAYMENT_REMINDER` | `KAVENEGAR_TEMPLATE_PAYMENT_REMINDER` | B (B7، P1) | مثل `ORDER_PLACED` | ثبت نشده |
 | `MEMBER_INVITE` | `KAVENEGAR_TEMPLATE_MEMBER_INVITE` | A (A10) | `%token`: نام فروشگاه | ثبت نشده |
 | `SUBSCRIPTION_REMINDER` | `KAVENEGAR_TEMPLATE_SUBSCRIPTION_REMINDER` | A (A9) | `%token`: تاریخ پایان دوره به شمسی، `%token2`: نام فروشگاه | ثبت نشده |
 
-- **کد سفارش** همان `orderCode()` است (۶ نویسه، مثل صفحهٔ سفارش). **توکن صفحهٔ سفارش** همان `Order.publicToken` است (۲۲ نویسه) و لینک `/buy/order/<توکن>` را می‌سازد.
-- **روش ارسال** برچسب فارسی `shipping.ts` است («پست»، «پیک»، «تحویل حضوری»).
-- **کد رهگیری** اختیاری است ولی توکن نمی‌تواند خالی باشد: وقتی کد رهگیری نیست، B7 به‌جایش `-` بفرستد.
+- ترتیب توکن‌های پیامک مشتری همان کد B7 است: `customerSmsTokens()` در `src/server/notifications/customer-sms-tokens.ts` (#36). اگر یکی عوض شود، دیگری هم باید عوض شود.
+- **کد سفارش** همان `orderCode()` است (۶ نویسه، مثل صفحهٔ سفارش).
+- **لینک صفحهٔ سفارش** آدرس کامل `https://<دامنه>/buy/order/<توکن>` است و به‌عنوان توکن فرستاده می‌شود (کمتر از ۱۰۰ نویسه، بدون فاصله). از کاوه‌نگار بپرسید آدرس اینترنتی در **مقدار توکن** مجاز است؛ اگر نه، B7 باید فقط توکن ۲۲ نویسه‌ای را بفرستد و دامنه در متن الگو بیاید.
+- **کد رهگیری** اختیاری است ولی توکن نمی‌تواند خالی باشد: وقتی کد رهگیری نیست، B7 کلمهٔ «ندارد» را می‌فرستد.
 - **تاریخ** با ارقام فارسی و بدون فاصله، مثل `۱۴۰۵/۰۸/۰۳`.
 
 متن الگوها (هر خط یک سطر پیامک):
@@ -231,30 +232,31 @@ liara deploy            # liara.json را می‌خواند: پلتفرم Docker
 
 **`ORDER_PLACED`**
 ```
-سفارش %token در فروشگاه %token2 ثبت شد.
+سفارش %token ثبت شد.
 پرداخت و پیگیری:
-https://<دامنه>/buy/order/%token3
+%token2
 ```
 
 **`ORDER_PAID`**
 ```
-پرداخت سفارش %token در فروشگاه %token2 تأیید شد.
+پرداخت سفارش %token تأیید شد.
 پیگیری:
-https://<دامنه>/buy/order/%token3
+%token2
 ```
 
 **`ORDER_SHIPPED`**
 ```
 سفارش %token ارسال شد.
-روش ارسال: %token2
-کد رهگیری: %token3
+کد رهگیری: %token2
+جزئیات:
+%token3
 ```
 
 **`PAYMENT_REMINDER`**
 ```
-سفارش %token در فروشگاه %token2 هنوز پرداخت نشده و تا ۲۴ ساعت دیگر لغو می‌شود.
+سفارش %token هنوز پرداخت نشده و تا ۲۴ ساعت دیگر لغو می‌شود.
 پرداخت:
-https://<دامنه>/buy/order/%token3
+%token2
 ```
 
 **`MEMBER_INVITE`**
