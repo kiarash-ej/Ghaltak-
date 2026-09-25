@@ -35,8 +35,10 @@ test("buy flow: purchase link → receipt → payment → shipping → report", 
   });
 
   await test.step("new seller is asked to complete the store profile, and does", async () => {
-    const banner = seller.getByRole("link", { name: /تکمیل اطلاعات فروشگاه/ });
-    await banner.click();
+    // Step 1 of the dashboard's «شروع کار» checklist (C5; it replaced A6's notice).
+    const storeStep = seller.getByRole("listitem").filter({ hasText: "اطلاعات فروشگاه را کامل کنید" });
+    await expect(storeStep).toContainText("انجام نشده");
+    await storeStep.getByRole("link").click();
     await expect(seller).toHaveURL(/\/settings$/);
 
     await seller.getByLabel("نام فروشگاه").fill(storeName);
@@ -54,7 +56,7 @@ test("buy flow: purchase link → receipt → payment → shipping → report", 
 
     await seller.goto("/");
     await expect(seller.getByRole("heading", { name: `خوش آمدید، ${storeName}` })).toBeVisible();
-    await expect(banner).toHaveCount(0);
+    await expect(storeStep).toContainText("انجام شد");
   });
 
   await test.step("seller creates a product with one variant", async () => {
