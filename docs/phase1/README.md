@@ -107,9 +107,9 @@ After pulling new migrations, run `db:deploy` against the test database again.
 
 ## Ownership rules
 
-1. **Folder ownership.** Edit only the folders your track owns. If you must change anything else, open a small separate PR and get the other person to review it.
-2. **Schema and migrations.** After Step 0, only ONE schema PR is open at a time. Say so in the team chat, merge it quickly, and the other person rebases. Never edit or delete an existing migration; add a new one.
-3. **Branches.** `main` is protected. Use `track-a/<task>` or `track-b/<task>`. One PR = at most about a day of work.
+1. **Folder ownership.** Edit only the folders your track owns. If you must change anything else, open a small separate PR and get that folder's owner to review it.
+2. **Schema and migrations.** After Step 0, only ONE schema PR is open at a time. Say so in the team chat, merge it quickly, and everyone else rebases. Never edit or delete an existing migration; add a new one.
+3. **Branches.** `main` is protected. Use `track-a/<task>`, `track-b/<task>` or, from Phase 2, `track-c/<task>`. One PR = at most about a day of work.
 4. **Shared UI.** New shared components go in `src/components/ui/`. Do not change an existing shared component without asking.
 5. **Tenant safety.** Every query and mutation must be scoped by `sellerId` from `requireSeller()`. Never trust a `sellerId` sent from the client. A seller must never see another seller's data.
 6. **Money.** Integer tomans everywhere. Format only at the display edge.
