@@ -4,7 +4,7 @@ import { GatewaySettingsForm } from "@/components/payments/gateway-settings-form
 import { SmsSettingsForm } from "@/components/payments/sms-settings-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
-import { requireSeller } from "@/server/auth";
+import { requireOwner } from "@/server/auth";
 import { canUse } from "@/server/billing/usage";
 import { saveSmsSettingsAction } from "@/server/notifications/settings-actions";
 import { saveCardDetailsAction } from "@/server/payments/card-actions";
@@ -19,7 +19,7 @@ import { getGatewayForSettings } from "@/server/payments/gateway-store";
 export const metadata: Metadata = { title: "پرداخت | غلتک" };
 
 export default async function PaymentSettingsPage() {
-  const seller = await requireSeller();
+  const seller = await requireOwner();
   const [card, gateway, smsSwitches, smsAllowed] = await Promise.all([
     getCardDetailsForSettings(seller.id),
     getGatewayForSettings(seller.id),

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { OnboardingChecklist } from "@/components/home/onboarding-checklist";
 import { TodaySummary } from "@/components/home/today-summary";
-import { requireSeller } from "@/server/auth";
+import { requireMember } from "@/server/auth";
 import { isOnboardingComplete, onboardingSteps } from "@/server/home/onboarding";
 import { getOnboardingFacts, getTodaySummary } from "@/server/home/queries";
 
 export default async function DashboardHome() {
-  const seller = await requireSeller();
+  const seller = await requireMember();
+  const isOwner = seller.role === "OWNER";
   const [facts, summary] = await Promise.all([getOnboardingFacts(seller.id), getTodaySummary(seller.id)]);
   const steps = onboardingSteps(facts);
 
@@ -20,9 +21,10 @@ export default async function DashboardHome() {
       </div>
 
       {/* Replaces A6's "complete your store" notice: that is now step 1. */}
-      {!isOnboardingComplete(steps) && <OnboardingChecklist steps={steps} />}
+      {/* Setting the store up is the owner's job; operators never see money totals (A10). */}
+      {isOwner && !isOnboardingComplete(steps) && <OnboardingChecklist steps={steps} />}
 
-      <TodaySummary summary={summary} />
+      <TodaySummary summary={summary} showMoney={isOwner} />
 
       <p className="text-sm text-neutral-600">
         سؤالی دارید؟{" "}

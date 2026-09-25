@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { SETTINGS_TABS } from "./settings-tabs";
+import type { SettingsTab } from "./settings-tabs";
 
-export function SettingsNav() {
+export function SettingsNav({ tabs }: { tabs: SettingsTab[] }) {
   const pathname = usePathname();
   return (
     <nav className="flex gap-1 overflow-x-auto border-b border-neutral-200" aria-label="بخش‌های تنظیمات">
-      {SETTINGS_TABS.map((tab) => {
+      {tabs.map((tab) => {
         const active = tab.href === "/settings" ? pathname === "/settings" : pathname.startsWith(tab.href);
         return (
           <Link

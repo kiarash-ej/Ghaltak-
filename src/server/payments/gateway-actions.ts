@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireSeller } from "@/server/auth";
+import { requireOwner } from "@/server/auth";
 import { fakeGatewayAllowed } from "./fake-gateway";
 import { parseGatewayForm } from "./gateway-form";
 import { gatewayForSeller, getGatewayForSettings, hasSavedMerchant, saveGateway, type GatewayForSettings } from "./gateway-store";
@@ -26,8 +26,7 @@ export async function saveGatewayAction(
   _prev: GatewayFormState,
   formData: FormData,
 ): Promise<GatewayFormState> {
-  // TODO(A10): requireMember("OWNER"); today every seller is its owner.
-  const seller = await requireSeller();
+  const seller = await requireOwner();
   const parsed = parseGatewayForm(formData, {
     hasSavedMerchant: await hasSavedMerchant(seller.id),
     fakeAllowed: fakeGatewayAllowed(),
@@ -54,7 +53,7 @@ export async function testGatewayAction(
   _formData: FormData,
 ): Promise<GatewayFormState> {
   void _formData;
-  const seller = await requireSeller();
+  const seller = await requireOwner();
   if (!testLimiter.hit(seller.id)) {
     return { test: { ok: false, text: "چند بار پشت سر هم آزمایش کردید. ده دقیقه دیگر دوباره امتحان کنید." } };
   }

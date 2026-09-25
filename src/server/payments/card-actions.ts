@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireSeller } from "@/server/auth";
+import { requireOwner } from "@/server/auth";
 import { parseCardDetailsForm } from "./card-details";
 import {
   getCardDetailsForSettings,
@@ -19,8 +19,7 @@ export async function saveCardDetailsAction(
   _prev: CardDetailsFormState,
   formData: FormData,
 ): Promise<CardDetailsFormState> {
-  // TODO(A10): requireMember("OWNER") once team members exist; today every seller is its owner.
-  const seller = await requireSeller();
+  const seller = await requireOwner();
 
   const parsed = parseCardDetailsForm(formData, { hasCard: await hasSavedCard(seller.id) });
   if (!parsed.success) return { errors: parsed.errors };

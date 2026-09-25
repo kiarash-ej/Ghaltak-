@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FUNNEL_NOTE, LinkFunnelTable } from "@/components/orders/link-funnel";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { APP_TIME_ZONE, formatDate, formatNumber, formatToman } from "@/lib/format";
-import { requireSeller } from "@/server/auth";
+import { requireMember } from "@/server/auth";
 import { STATUS_LABELS } from "@/server/orders/status";
 import { getLinkFunnel } from "@/server/reports/link-funnel";
 import { CHART_DAYS, getSalesReport, type SalesSummary } from "@/server/reports/queries";
@@ -17,7 +17,18 @@ const dayLabel = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
   month: "long",
 });
 
-function StatTile({ label, summary }: { label: string; summary: SalesSummary }) {
+/** `showMoney` false (an operator, A10): the order count only, no tomans. */
+function StatTile({ label, summary, showMoney }: { label: string; summary: SalesSummary; showMoney: boolean }) {
+  if (!showMoney) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col gap-1 pt-6">
+          <div className="text-sm text-neutral-500">{label}</div>
+          <div className="text-2xl font-semibold">{formatNumber(summary.count)} سفارش</div>
+        </CardContent>
+      </Card>
+    );
+  }
   return (
     <Card>
       <CardContent className="flex flex-col gap-1 pt-6">
@@ -33,7 +44,9 @@ function StatTile({ label, summary }: { label: string; summary: SalesSummary }) 
 }
 
 export default async function ReportsPage() {
-  const seller = await requireSeller();
+  const seller = await requireMember();
+  // Operators see sales as counts, never tomans (A10): money figures are the owner's.
+  const showMoney = seller.role === "OWNER";
   const [report, funnel] = await Promise.all([getSalesReport(seller.id), getLinkFunnel(seller.id)]);
   const activeLinks = funnel.links.filter((l) => l.views > 0 || l.orders > 0);
   const buyers = report.customers.newCustomers + report.customers.returningCustomers;
@@ -53,20 +66,22 @@ export default async function ReportsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatTile label="فروش امروز" summary={report.today} />
-        <StatTile label="فروش این هفته" summary={report.week} />
-        <StatTile label="فروش این ماه" summary={report.month} />
+        <StatTile label="فروش امروز" summary={report.today} showMoney={showMoney} />
+        <StatTile label="فروش این هفته" summary={report.week} showMoney={showMoney} />
+        <StatTile label="فروش این ماه" summary={report.month} showMoney={showMoney} />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>فروش روزانه</CardTitle>
-          <CardDescription>{formatNumber(CHART_DAYS)} روز گذشته، به تومان</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SalesChart days={days} />
-        </CardContent>
-      </Card>
+      {showMoney && (
+        <Card>
+          <CardHeader>
+            <CardTitle>فروش روزانه</CardTitle>
+            <CardDescription>{formatNumber(CHART_DAYS)} روز گذشته، به تومان</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SalesChart days={days} />
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
@@ -82,7 +97,7 @@ export default async function ReportsPage() {
                   <tr>
                     <th className="py-1 text-start font-medium">محصول</th>
                     <th className="py-1 text-start font-medium">تعداد</th>
-                    <th className="py-1 text-start font-medium">فروش</th>
+                    {showMoney && <th className="py-1 text-start font-medium">فروش</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -90,7 +105,7 @@ export default async function ReportsPage() {
                     <tr key={p.productId} className="border-t border-neutral-100">
                       <td className="py-2">{p.name}</td>
                       <td className="py-2">{formatNumber(p.quantity)}</td>
-                      <td className="py-2 whitespace-nowrap">{formatToman(p.revenue)}</td>
+                      {showMoney && <td className="py-2 whitespace-nowrap">{formatToman(p.revenue)}</td>}
                     </tr>
                   ))}
                 </tbody>
