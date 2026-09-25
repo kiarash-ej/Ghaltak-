@@ -1,3 +1,5 @@
+import Image from "next/image";
+import Link from "next/link";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/app/login/actions";
@@ -11,10 +13,13 @@ export default async function DashboardLayout({
   return (
     <div className="flex flex-1 flex-col md:flex-row">
       <aside className="flex flex-col gap-4 border-b border-neutral-200 p-4 md:w-60 md:border-b-0 md:border-e">
-        <div>
-          <div className="text-lg font-bold">غلتک</div>
-          <div className="text-sm text-neutral-500">{seller.name}</div>
-        </div>
+        <Link href="/" className="flex items-center gap-3">
+          <Image src="/brand/logo-symbol.png" alt="" width={40} height={40} priority />
+          <div>
+            <div className="text-lg font-bold">غلتک</div>
+            <div className="text-sm text-neutral-500">{seller.name}</div>
+          </div>
+        </Link>
         <SidebarNav />
         <form action={logoutAction} className="md:mt-auto">
           <Button type="submit" variant="ghost" size="sm" className="w-full">
