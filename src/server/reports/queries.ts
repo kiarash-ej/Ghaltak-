@@ -27,7 +27,8 @@ const tehranDay = Prisma.sql`(o."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${AP
 
 export type SalesSummary = { total: number; count: number; average: number };
 
-async function salesSince(sellerId: string, since: Date): Promise<SalesSummary> {
+/** Sales (the definition above) placed since `since`. Also used by the dashboard home (Track C, C5). */
+export async function salesSince(sellerId: string, since: Date): Promise<SalesSummary> {
   const agg = await prisma.order.aggregate({
     where: { sellerId, status: { in: [...SALE_STATUSES] }, createdAt: { gte: since } },
     _sum: { totalPrice: true },

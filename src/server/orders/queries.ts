@@ -35,6 +35,22 @@ export type OrderListResult = {
   pageCount: number;
 };
 
+/**
+ * A customer uploaded a card-to-card receipt and the order still awaits
+ * payment, so the seller should review it. The list's «رسید دریافت شد» badge
+ * and the dashboard's count (Track C, C5) both use this rule.
+ */
+export function isReceiptPending(o: { status: OrderStatus; receiptImageUrl: string | null }): boolean {
+  return o.status === "PENDING_PAYMENT" && o.receiptImageUrl !== null;
+}
+
+/** How many of the seller's orders have a receipt waiting for review (same rule as isReceiptPending). */
+export async function countPendingReceipts(sellerId: string): Promise<number> {
+  return prisma.order.count({
+    where: { sellerId, status: "PENDING_PAYMENT", receiptImageUrl: { not: null } },
+  });
+}
+
 export async function listOrders(
   sellerId: string,
   opts: { status?: OrderStatus; q?: string; page?: number },
@@ -93,7 +109,7 @@ export async function listOrders(
       source: o.source,
       totalPrice: o.totalPrice,
       itemCount: o._count.items,
-      receiptPending: o.status === "PENDING_PAYMENT" && o.receiptImageUrl !== null,
+      receiptPending: isReceiptPending(o),
       onlinePaymentNeedsReview: o._count.paymentAttempts > 0,
       createdAt: o.createdAt,
     })),
