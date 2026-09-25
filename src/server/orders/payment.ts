@@ -7,12 +7,15 @@ import type { OrderStatus, PaymentMethod } from "@/generated/prisma/enums";
 // and, after verifying its callback, calling the same confirmPaymentInTx()
 // the manual flow uses (src/server/orders/payment-store.ts).
 
+// Methods a seller can pick when confirming a payment by hand. ONLINE is not
+// here on purpose: only a verified gateway callback may record it (B6).
 export const PAYMENT_METHODS: readonly PaymentMethod[] = ["CARD_TO_CARD", "CASH", "OTHER"];
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   CARD_TO_CARD: "کارت به کارت",
   CASH: "نقدی",
   OTHER: "سایر",
+  ONLINE: "پرداخت آنلاین",
 };
 
 export function isPaymentMethod(value: unknown): value is PaymentMethod {

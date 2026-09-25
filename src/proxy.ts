@@ -6,7 +6,11 @@ import { SESSION_COOKIE, decryptSession } from "@/server/session-token";
 // happens in requireSeller() next to the data access.
 
 // /uploads serves product images, which also appear on the public /buy pages.
-const PUBLIC_PREFIXES = ["/login", "/buy", "/uploads"];
+// /pay is where a payment gateway sends the customer back (Phase 2, B6); it
+// resolves everything from the payment attempt, never from a session.
+// /privacy is the public privacy page (Phase 2, A11).
+// /api/health is the host's uptime check.
+const PUBLIC_PREFIXES = ["/login", "/buy", "/uploads", "/pay", "/privacy", "/api/health"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
