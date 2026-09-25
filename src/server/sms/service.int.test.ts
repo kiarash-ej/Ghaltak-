@@ -23,7 +23,7 @@ function fakeProvider(mode: "LIVE" | "DEV" = "LIVE") {
 }
 
 describe.skipIf(!hasTestDatabase)("sendSms service (database)", () => {
-  const mobile = `0992${String(Date.now()).slice(-7)}`;
+  const mobile = `0992${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
   let sellerId = "";
   let customerId = "";
   const log = vi.fn();

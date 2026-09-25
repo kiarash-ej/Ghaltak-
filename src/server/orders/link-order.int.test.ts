@@ -7,7 +7,7 @@ import { MAX_OPEN_ORDERS_PER_PHONE } from "./purchase-limits";
 // Purchase-link orders against a real Postgres (TEST_DATABASE_URL).
 
 describe.skipIf(!hasTestDatabase)("purchase-link orders (database)", () => {
-  const runId = String(Date.now()).slice(-7);
+  const runId = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
   let sellerId = "";
   let linkId = "";
   let variantId = "";

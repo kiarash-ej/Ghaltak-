@@ -5,7 +5,7 @@ import { getPublicStoreProfile } from "./profile";
 
 // Runs against a real Postgres (TEST_DATABASE_URL). See docs/phase1/README.md.
 describe.skipIf(!hasTestDatabase)("getPublicStoreProfile (database)", () => {
-  const mobile = `0995${String(Date.now()).slice(-7)}`;
+  const mobile = `0995${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
 
   afterAll(async () => {
     await prisma.seller.deleteMany({ where: { mobile } });
