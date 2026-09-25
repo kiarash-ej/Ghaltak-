@@ -9,15 +9,22 @@ const BATCH = 50;
  * Cancels this seller's purchase-link orders that stayed unpaid past the TTL
  * and gives their stock back. Runs lazily (before the seller's order list and
  * before new purchase-link orders) instead of on a schedule, so no cron job is
- * needed. Kept: manual orders, orders with a receipt awaiting review, and
- * orders whose online payment started in the last ONLINE_PAYMENT_GRACE_MINUTES.
+ * needed. Kept: manual orders, orders with a receipt awaiting review, orders
+ * whose online payment started in the last ONLINE_PAYMENT_GRACE_MINUTES, and
+ * orders with a verified online payment not yet applied to them (B6).
  */
 export async function expireUnpaidLinkOrders(sellerId: string, now = new Date()): Promise<number> {
   const paymentInProgress = {
     paymentAttempts: {
       some: {
-        status: "PENDING" as const,
-        createdAt: { gt: new Date(now.getTime() - ONLINE_PAYMENT_GRACE_MINUTES * 60 * 1000) },
+        OR: [
+          {
+            status: "PENDING" as const,
+            createdAt: { gt: new Date(now.getTime() - ONLINE_PAYMENT_GRACE_MINUTES * 60 * 1000) },
+          },
+          // The money arrived; only applying it is pending (online-payment.ts).
+          { status: "VERIFIED" as const, failureDetail: "NOT_APPLIED" },
+        ],
       },
     },
   };

@@ -35,6 +35,7 @@ export function createFakeGateway(): PaymentGateway {
   if (!fakeGatewayAllowed()) throw new Error("The fake payment gateway is not available here.");
   return {
     provider: "ZARINPAL",
+    payUrl: (authority) => `/pay/fake/${authority}`,
 
     async request(input) {
       const authority = `FAKE-${randomUUID()}`;
@@ -44,8 +45,10 @@ export function createFakeGateway(): PaymentGateway {
 
     async verify({ authority, amount }) {
       const payment = pending.get(authority);
-      if (!payment) return { ok: false, amountMismatch: false, detail: "unknown authority" };
-      if (payment.amount !== amount) return { ok: false, amountMismatch: true, detail: "amount differs" };
+      if (!payment) return { ok: false, amountMismatch: false, transient: false, detail: "unknown authority" };
+      if (payment.amount !== amount) {
+        return { ok: false, amountMismatch: true, transient: false, detail: "amount differs" };
+      }
       store.refCounter += 1;
       return { ok: true, refId: `FAKE-${store.refCounter}`, cardPanMasked: "6037-99**-****-1234", alreadyVerified: false };
     },

@@ -102,12 +102,25 @@ describe("zarinpal verify", () => {
 
   it("flags an amount mismatch", async () => {
     const { p } = verify({ status: 400, body: { data: [], errors: { code: -50, message: "amounts not same" } } });
-    expect(await p).toEqual({ ok: false, amountMismatch: true, detail: "code -50" });
+    expect(await p).toEqual({ ok: false, amountMismatch: true, transient: false, detail: "code -50" });
   });
 
   it("reports other failures without success", async () => {
     const { p } = verify({ status: 400, body: { data: [], errors: { code: -51, message: "failed" } } });
-    expect(await p).toEqual({ ok: false, amountMismatch: false, detail: "code -51" });
+    expect(await p).toEqual({ ok: false, amountMismatch: false, transient: false, detail: "code -51" });
+  });
+
+  it("marks a timeout, a network error or a reply without a code as transient", async () => {
+    const timeout = Object.assign(new Error("t"), { name: "TimeoutError" });
+    expect(await verify(timeout).p).toEqual({ ok: false, amountMismatch: false, transient: true, detail: "TIMEOUT" });
+    expect(await verify(new TypeError("fetch failed")).p).toMatchObject({ transient: true, detail: "NETWORK" });
+    expect(await verify({ status: 502, body: "<html>bad gateway</html>" }).p).toMatchObject({ transient: true });
+  });
+
+  it("builds the payment page URL for an authority", () => {
+    expect(createZarinpalClient({ merchantId: MERCHANT, sandbox: true }).payUrl("S123")).toBe(
+      "https://sandbox.zarinpal.com/pg/StartPay/S123",
+    );
   });
 
   it("does not count code 100 without a ref id as success", async () => {

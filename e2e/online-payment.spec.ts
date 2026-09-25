@@ -52,6 +52,12 @@ test("online payment: cancel at the gateway, then pay; the order becomes paid on
     await expect(payButton).toBeVisible(); // still unpaid, can try again
   });
 
+  await test.step("a hand-made ?payment=paid link doesn't make the unpaid order look paid", async () => {
+    await customer.goto(`${orderPage}?payment=paid`);
+    await expect(payButton).toBeVisible();
+    await expect(customer.getByText("پرداخت آنلاین شما انجام شد.")).toHaveCount(0);
+  });
+
   await test.step("the customer pays and the order is paid", async () => {
     await payButton.click();
     await customer.getByRole("link", { name: "پرداخت موفق" }).click();

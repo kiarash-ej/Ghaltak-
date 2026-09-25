@@ -31,11 +31,23 @@ export type GatewayVerifyResult =
       /** The gateway had already verified it (a repeated callback). */
       alreadyVerified: boolean;
     }
-  | { ok: false; amountMismatch: boolean; detail: string };
+  | {
+      ok: false;
+      amountMismatch: boolean;
+      /**
+       * The gateway could not be asked (timeout, network, no answer code): the
+       * payment may well have succeeded, so it must be verified again later,
+       * never marked failed. A verify of an already-verified payment is safe.
+       */
+      transient: boolean;
+      detail: string;
+    };
 
 export interface PaymentGateway {
   readonly provider: GatewayProvider;
   request(input: GatewayRequestInput): Promise<GatewayRequestResult>;
+  /** The payment page for an authority from request(), to send the customer back to it. */
+  payUrl(authority: string): string;
   /** `amount` must be the one WE recorded for the attempt, never a callback value. */
   verify(input: { authority: string; amount: number }): Promise<GatewayVerifyResult>;
 }

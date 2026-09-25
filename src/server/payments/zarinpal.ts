@@ -55,15 +55,23 @@ export function createZarinpalClient(opts: {
         signal: AbortSignal.timeout(TIMEOUT_MS),
       });
       // Zarinpal answers errors with 4xx and a JSON body; read it either way.
-      return (await res.json().catch(() => ({ errors: { message: `HTTP ${res.status}` } }))) as ZarinpalResponse;
+      // Anything that isn't a JSON object (an HTML error page, a bare string or
+      // null from a proxy) is treated as a reply without an answer code.
+      const parsed: unknown = await res.json().catch(() => null);
+      return parsed !== null && typeof parsed === "object"
+        ? (parsed as ZarinpalResponse)
+        : { errors: { message: `HTTP ${res.status}` } };
     } catch (err) {
       // Never the merchant id or the body: only what kind of failure it was.
       return { failed: (err as Error)?.name === "TimeoutError" ? "TIMEOUT" : "NETWORK" };
     }
   }
 
+  const payUrl = (authority: string) => `${base}/pg/StartPay/${encodeURIComponent(authority)}`;
+
   return {
     provider: "ZARINPAL",
+    payUrl,
 
     async request(input) {
       const body = await post("/pg/v4/payment/request.json", {
@@ -77,7 +85,7 @@ export function createZarinpalClient(opts: {
       const code = codeOf(body);
       const authority = !Array.isArray(body.data) ? body.data?.authority : undefined;
       if (code === 100 && authority) {
-        return { ok: true, authority, redirectUrl: `${base}/pg/StartPay/${encodeURIComponent(authority)}` };
+        return { ok: true, authority, redirectUrl: payUrl(authority) };
       }
       return { ok: false, detail: `code ${code ?? "?"}` };
     },
@@ -88,7 +96,7 @@ export function createZarinpalClient(opts: {
         amount: tomanToRial(amount),
         authority,
       });
-      if ("failed" in body) return { ok: false, amountMismatch: false, detail: body.failed };
+      if ("failed" in body) return { ok: false, amountMismatch: false, transient: true, detail: body.failed };
       const code = codeOf(body);
       const data = !Array.isArray(body.data) ? body.data : undefined;
       if ((code === 100 || code === 101) && data?.ref_id !== undefined) {
@@ -102,6 +110,8 @@ export function createZarinpalClient(opts: {
       return {
         ok: false,
         amountMismatch: code !== undefined && AMOUNT_MISMATCH_CODES.has(code),
+        // No answer code (e.g. an HTML error page from a proxy): we don't know.
+        transient: code === undefined,
         detail: `code ${code ?? "?"}`,
       };
     },

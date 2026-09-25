@@ -5,7 +5,11 @@ import { requireSeller } from "@/server/auth";
 import { fakeGatewayAllowed } from "./fake-gateway";
 import { parseGatewayForm } from "./gateway-form";
 import { gatewayForSeller, getGatewayForSettings, hasSavedMerchant, saveGateway, type GatewayForSettings } from "./gateway-store";
+import { createRateLimiter } from "@/server/orders/rate-limit";
 import { requestOrigin } from "./request-origin";
+
+// Each test is a real request to the seller's Zarinpal account; a few are plenty.
+const testLimiter = createRateLimiter({ limit: 5, windowMs: 10 * 60 * 1000 });
 
 export type GatewayFormState =
   | {
@@ -51,12 +55,15 @@ export async function testGatewayAction(
 ): Promise<GatewayFormState> {
   void _formData;
   const seller = await requireSeller();
+  if (!testLimiter.hit(seller.id)) {
+    return { test: { ok: false, text: "چند بار پشت سر هم آزمایش کردید. ده دقیقه دیگر دوباره امتحان کنید." } };
+  }
   const gateway = await gatewayForSeller(seller.id, { activeOnly: false });
   if (!gateway) return { test: { ok: false, text: "ابتدا مرچنت کد را ذخیره کنید." } };
 
   const result = await gateway.request({
     amount: 1_000,
-    callbackUrl: `${await requestOrigin()}/pay/callback/connection-test`,
+    callbackUrl: `${await requestOrigin().catch(() => "https://example.invalid")}/pay/callback/connection-test`,
     description: "آزمایش اتصال غلتک",
   });
   return result.ok
