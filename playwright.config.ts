@@ -30,8 +30,9 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    // Dev mode on its own port: production mode needs real SMS credentials to
-    // log in, and a second dev server can run next to your usual one.
+    // Dev mode on its own port and build folder: production mode needs real
+    // SMS credentials to log in, and Next.js allows one dev server per build
+    // folder, so this one uses .next-e2e and runs next to your usual one.
     command: `node node_modules/next/dist/bin/next dev -p ${E2E_PORT}`,
     url: `http://localhost:${E2E_PORT}/login`,
     reuseExistingServer: false,
@@ -41,6 +42,7 @@ export default defineConfig({
       SESSION_SECRET: E2E_SESSION_SECRET,
       UPLOAD_DIR: path.resolve(".e2e-uploads"),
       TRUSTED_PROXY_HOPS: "1",
+      APP_DIST_DIR: ".next-e2e",
     },
   },
 });
