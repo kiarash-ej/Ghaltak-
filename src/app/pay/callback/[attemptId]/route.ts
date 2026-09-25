@@ -17,8 +17,15 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/pay/callback/[at
       status: q.get("Status"),
     });
   } catch (err) {
-    // Left PENDING: a refresh verifies again (the gateway answers "already verified").
-    console.error("payment return failed:", (err as Error)?.name);
+    // Only reached if the attempt itself couldn't be read (e.g. the database is
+    // down); after that, handleGatewayReturn catches and logs everything itself.
+    const e = err as { name?: string; message?: string; code?: string };
+    console.error("[payment return] failed before reading the attempt", {
+      attemptId,
+      name: e?.name,
+      code: e?.code,
+      message: e?.message,
+    });
     result = { outcome: "failed", publicToken: null, orderId: null };
   }
 

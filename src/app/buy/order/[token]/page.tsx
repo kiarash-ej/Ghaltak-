@@ -28,6 +28,10 @@ export const metadata: Metadata = {
 /** What the customer is told after coming back from the payment gateway (B6). */
 const RETURN_MESSAGES: Record<string, { text: string; tone: "good" | "info" | "bad" }> = {
   paid: { text: "پرداخت آنلاین شما انجام شد.", tone: "good" },
+  pending: {
+    text: "پرداخت شما در حال بررسی است. چند دقیقه دیگر همین صفحه را تازه کنید. اگر مبلغی از حسابتان کم شده، یا سفارش پرداخت‌شده می‌شود یا مبلغ خودکار برمی‌گردد.",
+    tone: "info",
+  },
   canceled: {
     text: "پرداخت لغو شد. می‌توانید دوباره آنلاین پرداخت کنید یا کارت‌به‌کارت واریز کنید.",
     tone: "info",
@@ -63,7 +67,11 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
     unpaid ? getCardDetailsForCustomer(order.sellerId) : null,
     unpaid ? gatewayForSeller(order.sellerId) : null,
   ]);
-  const returnMessage = typeof returned === "string" ? RETURN_MESSAGES[returned] : undefined;
+  // The URL alone must never make an unpaid order look paid (e.g. a link with
+  // ?payment=paid as a fake "I paid" screenshot): "paid" needs a paid order.
+  const returnKey = typeof returned === "string" && Object.hasOwn(RETURN_MESSAGES, returned) ? returned : undefined;
+  const returnMessage =
+    returnKey === undefined || (returnKey === "paid" && order.payment !== "PAID") ? undefined : RETURN_MESSAGES[returnKey];
 
   return (
     <main className="mx-auto flex w-full max-w-lg flex-col gap-6 p-4 pb-10">

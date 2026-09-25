@@ -23,10 +23,18 @@ const STATUS: Record<OnlineAttemptView["status"], { text: string; variant: "succ
   CANCELED: { text: "لغو توسط مشتری", variant: "neutral" },
 };
 
+/** A verified payment that needs the seller, by its failureDetail (online-payment.ts). */
 function reviewNote(a: OnlineAttemptView): string | null {
   if (a.status !== "VERIFIED" || !a.failureDetail) return null;
-  if (a.failureReason === "AMOUNT_MISMATCH") {
+  if (a.failureDetail === "NOT_APPLIED") {
+    return "درگاه این پرداخت را تأیید کرده، اما هنوز روی سفارش ثبت نشده است (مثلاً سفارش هم‌زمان تغییر کرد). اگر مشتری صفحه‌اش را تازه کند خودکار ثبت می‌شود؛ وگرنه پرداخت را دستی تأیید کنید.";
+  }
+  if (a.failureDetail === "ORDER_AMOUNT_CHANGED") {
     return "مبلغ به حساب شما آمد، اما مبلغ سفارش در این فاصله تغییر کرده بود. سفارش خودکار پرداخت‌شده نشد: مبلغ را بررسی و در صورت نیاز پرداخت را دستی تأیید یا مابه‌التفاوت را برگردانید.";
+  }
+  if (a.failureDetail.startsWith("ORDER_WAS_") && a.failureDetail !== "ORDER_WAS_CANCELED") {
+    // PAID, PREPARING, SHIPPED, DELIVERED, RETURNED: the order had already been paid.
+    return "این سفارش پیش از این پرداخت شده بود؛ این پرداخت اضافه است و باید به مشتری برگردانده شود.";
   }
   return "مبلغ به حساب شما آمد، اما سفارش دیگر منتظر پرداخت نبود (مثلاً لغو شده بود). سفارش خودکار باز نشد: پول را برگردانید یا سفارش را دستی دوباره ثبت کنید.";
 }

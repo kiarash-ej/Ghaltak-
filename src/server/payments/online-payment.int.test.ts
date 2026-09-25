@@ -2,16 +2,19 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { hasTestDatabase } from "@/test/setup";
 import { prisma } from "@/lib/prisma";
 import { expireUnpaidLinkOrders } from "@/server/orders/expire-orders";
+import { listOrders } from "@/server/orders/queries";
 import { OnlinePaymentError, handleGatewayReturn, startOnlinePayment } from "./online-payment";
 import type { PaymentGateway } from "./types";
 
 // Online payment edge cases against a real Postgres (docs/phase2/TRACK-B.md,
-// B6): double return, wrong amount, expiry during payment, late payment.
+// B6): double return, wrong amount, expiry during payment, late payment,
+// gateway outage, a verified payment that fails to apply, double click.
 
 type VerifyResult = Awaited<ReturnType<PaymentGateway["verify"]>>;
 type Scripted = {
   verifyResult: VerifyResult;
   verifyCalls: { authority: string; amount: number }[];
+  requestCount: () => number;
   client: PaymentGateway;
 };
 
@@ -22,12 +25,15 @@ function scriptedGateway(): Scripted {
   const gw: Scripted = {
     verifyResult: { ok: true, refId: "REF-1", cardPanMasked: "6037-99**-****-1234", alreadyVerified: false },
     verifyCalls,
+    requestCount: () => n,
     client: {
       provider: "ZARINPAL" as const,
       async request() {
         n += 1;
-        return { ok: true as const, authority: `TEST-AUTH-${Date.now()}-${n}`, redirectUrl: "https://gateway.test/pay" };
+        const authority = `TEST-AUTH-${Date.now()}-${n}`;
+        return { ok: true as const, authority, redirectUrl: `https://gateway.test/pay/${authority}` };
       },
+      payUrl: (authority: string) => `https://gateway.test/pay/${authority}`,
       async verify(input: { authority: string; amount: number }) {
         verifyCalls.push(input);
         return gw.verifyResult;
@@ -143,7 +149,7 @@ describe.skipIf(!hasTestDatabase)("online payment (database)", () => {
   it("does not pay the order when the gateway reports a different amount", async () => {
     const order = await newOrder();
     const { attemptId, authority } = await startAndGetAuthority(order.publicToken!);
-    gw.verifyResult = { ok: false, amountMismatch: true, detail: "code -50" };
+    gw.verifyResult = { ok: false, amountMismatch: true, transient: false, detail: "code -50" };
     expect((await handleGatewayReturn({ attemptId, authority, status: "OK" }, { gatewayFor })).outcome).toBe("mismatch");
     expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("PENDING_PAYMENT");
     expect(await prisma.paymentAttempt.findUniqueOrThrow({ where: { id: attemptId } })).toMatchObject({
@@ -159,9 +165,11 @@ describe.skipIf(!hasTestDatabase)("online payment (database)", () => {
     await prisma.order.update({ where: { id: order.id }, data: { shippingCost: 40_000 } });
     expect((await handleGatewayReturn({ attemptId, authority, status: "OK" }, { gatewayFor })).outcome).toBe("mismatch");
     expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("PENDING_PAYMENT");
-    const a = await prisma.paymentAttempt.findUniqueOrThrow({ where: { id: attemptId } });
-    expect(a).toMatchObject({ status: "VERIFIED", failureReason: "AMOUNT_MISMATCH" });
-    expect(a.failureDetail).not.toBeNull();
+    expect(await prisma.paymentAttempt.findUniqueOrThrow({ where: { id: attemptId } })).toMatchObject({
+      status: "VERIFIED",
+      failureReason: "AMOUNT_MISMATCH",
+      failureDetail: "ORDER_AMOUNT_CHANGED",
+    });
   });
 
   it("does not reopen an order canceled before the payment arrived (late payment)", async () => {
@@ -170,10 +178,109 @@ describe.skipIf(!hasTestDatabase)("online payment (database)", () => {
     await prisma.order.update({ where: { id: order.id }, data: { status: "CANCELED" } });
     expect((await handleGatewayReturn({ attemptId, authority, status: "OK" }, { gatewayFor })).outcome).toBe("late");
     expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("CANCELED");
+    // Say what happened, not a guess: this order was canceled, not expired.
     expect(await prisma.paymentAttempt.findUniqueOrThrow({ where: { id: attemptId } })).toMatchObject({
       status: "VERIFIED",
-      failureReason: "EXPIRED",
+      failureReason: null,
+      failureDetail: "ORDER_WAS_CANCELED",
     });
+  });
+
+  it("flags a payment for an order that was already paid (double payment, to refund)", async () => {
+    const order = await newOrder();
+    const { attemptId, authority } = await startAndGetAuthority(order.publicToken!);
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { status: "PAID", paymentMethod: "CARD_TO_CARD", paidAt: new Date() },
+    });
+    expect((await handleGatewayReturn({ attemptId, authority, status: "OK" }, { gatewayFor })).outcome).toBe("late");
+    expect(await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).toMatchObject({
+      status: "PAID",
+      paymentMethod: "CARD_TO_CARD",
+    });
+    expect(await prisma.paymentAttempt.findUniqueOrThrow({ where: { id: attemptId } })).toMatchObject({
+      status: "VERIFIED",
+      failureDetail: "ORDER_WAS_PAID",
+    });
+  });
+
+  it("keeps the attempt open when the gateway can't be reached, and pays on the next return", async () => {
+    const order = await newOrder();
+    const { attemptId, authority } = await startAndGetAuthority(order.publicToken!);
+    gw.verifyResult = { ok: false, amountMismatch: false, transient: true, detail: "TimeoutError" };
+    expect((await handleGatewayReturn({ attemptId, authority, status: "OK" }, { gatewayFor })).outcome).toBe("pending");
+    expect((await prisma.paymentAttempt.findUniqueOrThrow({ where: { id: attemptId } })).status).toBe("PENDING");
+
+    gw.verifyResult = { ok: true, refId: "REF-2", cardPanMasked: null, alreadyVerified: true };
+    expect((await handleGatewayReturn({ attemptId, authority, status: "OK" }, { gatewayFor })).outcome).toBe("paid");
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("PAID");
+  });
+
+  it("keeps a verified payment on record when applying it fails, and finishes it later", async () => {
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    const order = await newOrder({ source: "PURCHASE_LINK", createdAt: threeDaysAgo });
+    const { attemptId, authority } = await startAndGetAuthority(order.publicToken!);
+
+    // The first now() stamps verifiedAt; the second (paidAt, inside the apply
+    // transaction) fails, like the database dropping out at that moment.
+    let calls = 0;
+    const flakyNow = () => {
+      calls += 1;
+      if (calls === 2) throw new Error("connection lost");
+      return new Date();
+    };
+    const logged: object[] = [];
+    const r = await handleGatewayReturn(
+      { attemptId, authority, status: "OK" },
+      { gatewayFor, now: flakyNow, log: (_msg, data) => logged.push(data) },
+    );
+    expect(r).toMatchObject({ outcome: "pending", publicToken: order.publicToken, orderId: order.id });
+    expect(logged).toEqual([expect.objectContaining({ attemptId, message: "connection lost" })]);
+
+    const a = await prisma.paymentAttempt.findUniqueOrThrow({ where: { id: attemptId } });
+    expect(a).toMatchObject({ status: "VERIFIED", refId: "REF-1", failureDetail: "NOT_APPLIED" });
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("PENDING_PAYMENT");
+
+    // The seller sees it, and it is not expired even long after the grace period.
+    const { items } = await listOrders(sellerId, {});
+    expect(items.find((o) => o.id === order.id)?.onlinePaymentNeedsReview).toBe(true);
+    await expireUnpaidLinkOrders(sellerId, new Date(Date.now() + 24 * 60 * 60 * 1000));
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("PENDING_PAYMENT");
+
+    // A refresh (another return) applies it, without asking the gateway again.
+    expect((await handleGatewayReturn({ attemptId, authority, status: "OK" }, { gatewayFor })).outcome).toBe("paid");
+    expect(gw.verifyCalls).toHaveLength(1);
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("PAID");
+    expect((await prisma.paymentAttempt.findUniqueOrThrow({ where: { id: attemptId } })).failureDetail).toBeNull();
+  });
+
+  it("reopens the same payment page on a second click instead of creating another", async () => {
+    const order = await newOrder();
+    const first = await startOnlinePayment(order.publicToken!, { origin: "https://ghaltak.test", gatewayFor });
+    const second = await startOnlinePayment(order.publicToken!, { origin: "https://ghaltak.test", gatewayFor });
+    expect(second).toEqual(first);
+    expect(gw.requestCount()).toBe(1);
+    expect(await prisma.paymentAttempt.count({ where: { orderId: order.id } })).toBe(1);
+
+    // A different amount is a different payment: a new attempt.
+    await prisma.order.update({ where: { id: order.id }, data: { shippingCost: 30_000 } });
+    const third = await startOnlinePayment(order.publicToken!, { origin: "https://ghaltak.test", gatewayFor });
+    expect(third.attemptId).not.toBe(first.attemptId);
+    expect((await prisma.paymentAttempt.findUniqueOrThrow({ where: { id: third.attemptId } })).amount).toBe(130_000);
+  });
+
+  it("creates one payment page when two clicks arrive together", async () => {
+    const order = await newOrder();
+    const results = await Promise.allSettled([
+      startOnlinePayment(order.publicToken!, { origin: "https://ghaltak.test", gatewayFor }),
+      startOnlinePayment(order.publicToken!, { origin: "https://ghaltak.test", gatewayFor }),
+    ]);
+    expect(results.some((r) => r.status === "fulfilled")).toBe(true);
+    for (const r of results) {
+      if (r.status === "rejected") expect(r.reason).toBeInstanceOf(OnlinePaymentError);
+    }
+    expect(await prisma.paymentAttempt.count({ where: { orderId: order.id } })).toBe(1);
+    expect(gw.requestCount()).toBe(1);
   });
 
   it("does not expire an order while its online payment is in progress", async () => {
