@@ -1,5 +1,5 @@
-// s3rver ships no types. Only what src/server/storage/storage.test.ts uses:
-// an in-process S3-compatible server for testing the s3 storage driver.
+// s3rver ships no types. Only what src/test/s3.ts uses: an in-process
+// S3-compatible server for testing the s3 storage driver.
 declare module "s3rver" {
   type S3rverOptions = {
     port?: number;

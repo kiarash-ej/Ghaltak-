@@ -2,8 +2,8 @@ import { randomUUID } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import S3rver from "s3rver";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { startTestS3 } from "@/test/s3";
 import { localDriver, s3Driver, type StorageDriver } from "./drivers";
 import { isValidKey } from "./keys";
 
@@ -68,57 +68,21 @@ contract("local driver", async () => {
 });
 
 contract("s3 driver (in-process S3-compatible server)", async () => {
-  const dir = await mkdtemp(path.join(tmpdir(), "ghaltak-s3-"));
-  const server = new S3rver({
-    port: 0,
-    address: "127.0.0.1",
-    silent: true,
-    directory: dir,
-    configureBuckets: [{ name: "ghaltak-public" }, { name: "ghaltak-private" }],
-  });
-  const { port } = (await server.run()) as { port: number };
-  const driver = s3Driver({
-    endpoint: `http://127.0.0.1:${port}`,
-    region: "us-east-1",
-    accessKeyId: "S3RVER",
-    secretAccessKey: "S3RVER",
-    buckets: { public: "ghaltak-public", private: "ghaltak-private" },
-  });
-  return {
-    driver,
-    cleanup: async () => {
-      await server.close();
-      await rm(dir, { recursive: true, force: true });
-    },
-  };
+  const s3 = await startTestS3();
+  return { driver: s3Driver(s3.config), cleanup: s3.close };
 });
 
 describe("s3 buckets are separate", () => {
   it("an object in the private bucket is not readable from the public one", async () => {
-    const dir = await mkdtemp(path.join(tmpdir(), "ghaltak-s3-"));
-    const server = new S3rver({
-      port: 0,
-      address: "127.0.0.1",
-      silent: true,
-      directory: dir,
-      configureBuckets: [{ name: "pub" }, { name: "priv" }],
-    });
-    const { port } = (await server.run()) as { port: number };
+    const s3 = await startTestS3({ public: "pub", private: "priv" });
     try {
-      const driver = s3Driver({
-        endpoint: `http://127.0.0.1:${port}`,
-        region: "us-east-1",
-        accessKeyId: "S3RVER",
-        secretAccessKey: "S3RVER",
-        buckets: { public: "pub", private: "priv" },
-      });
+      const driver = s3Driver(s3.config);
       const k = key("receipts");
       await driver.put("private", k, PNG, "image/png");
       expect(await driver.get("public", k)).toBeNull();
       expect(await driver.get("private", k)).not.toBeNull();
     } finally {
-      await server.close();
-      await rm(dir, { recursive: true, force: true });
+      await s3.close();
     }
   });
 });

@@ -1,18 +1,22 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { CONTENT_TYPES, sniffImageType, type ImageExtension } from "./image-type";
+import { isValidKey, storage, type StoredObject } from "@/server/storage";
+import { CONTENT_TYPES, sniffImageType } from "./image-type";
 
-// Product image storage. Local disk for now (UPLOAD_DIR, default ./uploads).
-// To move to S3-compatible storage (Arvan/Liara), replace the bodies of the
-// four exported functions; nothing else in the app touches the disk.
+// Product images, in the "public" bucket of the file storage (src/server/storage):
+// local disk in development, S3 in production (STORAGE_DRIVER).
+//
+// URLs stay "/uploads/products/<uuid>.<ext>" as in Phase 1. The route of that
+// name reads from storage, so switching drivers changes no database row.
 
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? path.join(process.cwd(), "uploads");
-const PRODUCT_DIR = path.join(UPLOAD_DIR, "products");
 const URL_PREFIX = "/uploads/products/";
-const FILE_PATTERN = /^[0-9a-f-]{36}\.(jpg|png|webp)$/;
+
+/** "<uuid>.<ext>" → its storage key, or null for any other name. */
+function keyOf(name: string): string | null {
+  const key = `products/${name}`;
+  return isValidKey(key) ? key : null;
+}
 
 export type SaveImageResult =
   | { ok: true; url: string }
@@ -29,34 +33,34 @@ export async function saveProductImage(file: File): Promise<SaveImageResult> {
   }
 
   const name = `${randomUUID()}.${ext}`;
-  await mkdir(PRODUCT_DIR, { recursive: true });
-  await writeFile(path.join(PRODUCT_DIR, name), bytes);
+  try {
+    await storage().put("public", `products/${name}`, bytes, CONTENT_TYPES[ext]);
+  } catch (err) {
+    console.error("[image-storage] saving a product image failed", err);
+    return { ok: false, error: "ذخیرهٔ تصویر انجام نشد. لطفاً دوباره تلاش کنید." };
+  }
   return { ok: true, url: `${URL_PREFIX}${name}` };
 }
 
-/** Deletes an image previously returned by saveProductImage. Ignores anything else. */
+/**
+ * Deletes an image previously returned by saveProductImage. Ignores anything
+ * else. Cleanup only: it runs after the database has changed, so a failure is
+ * logged (the file stays as an orphan) and never fails the seller's request.
+ */
 export async function deleteProductImage(url: string | null | undefined) {
   if (!url?.startsWith(URL_PREFIX)) return;
-  const name = url.slice(URL_PREFIX.length);
-  if (!FILE_PATTERN.test(name)) return;
+  const key = keyOf(url.slice(URL_PREFIX.length));
+  if (!key) return;
   try {
-    await unlink(path.join(PRODUCT_DIR, name));
+    await storage().delete("public", key);
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+    console.error(`[image-storage] deleting ${key} failed`, err);
   }
 }
 
 /** Reads an image for serving. The name is validated, so path traversal is impossible. */
-export async function readProductImage(
-  name: string,
-): Promise<{ body: Buffer; contentType: string } | null> {
-  if (!FILE_PATTERN.test(name)) return null;
-  const ext = name.split(".").pop() as ImageExtension;
-  try {
-    const body = await readFile(path.join(PRODUCT_DIR, name));
-    return { body, contentType: CONTENT_TYPES[ext] };
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
-    throw err;
-  }
+export async function readProductImage(name: string): Promise<StoredObject | null> {
+  const key = keyOf(name);
+  if (!key) return null;
+  return storage().get("public", key);
 }
