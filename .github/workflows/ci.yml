@@ -7,11 +7,11 @@ name: CI
 
 on:
   pull_request:
-    # A PR that only changes Markdown can't break the app.
-    paths-ignore: ["**/*.md", "docs/**"]
+    # A PR that only changes Markdown or deploy/ (separate images) can't break the app.
+    paths-ignore: ["**/*.md", "docs/**", "deploy/**"]
   push:
     branches: [main]
-    paths-ignore: ["**/*.md", "docs/**"]
+    paths-ignore: ["**/*.md", "docs/**", "deploy/**"]
   # Manual run, e.g. on main after an outage (docs/phase2/DEPLOY.md, 7.5).
   workflow_dispatch:
 

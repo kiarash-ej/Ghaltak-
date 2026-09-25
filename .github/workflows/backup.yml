@@ -1,0 +1,134 @@
+name: Backup
+
+# Round trip of the backup worker (deploy/backup, C2) on real PostgreSQL 16
+# and an S3-compatible server: seed a database, back it up, check that the
+# stored dump is encrypted, restore it into an empty database and compare
+# row counts. Also checks the restore guards and the status page. Only when
+# the worker's own files change, to save CI minutes.
+
+on:
+  pull_request:
+    paths: ["deploy/backup/**", ".github/workflows/backup.yml"]
+  push:
+    branches: ["track-c/**"]
+    paths: ["deploy/backup/**", ".github/workflows/backup.yml"]
+
+concurrency:
+  group: backup-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  round-trip:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ghaltak?schema=public
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start PostgreSQL
+        run: |
+          sudo systemctl start postgresql.service
+          sudo -u postgres psql -q -c "ALTER USER postgres PASSWORD 'postgres';"
+          sudo -u postgres createdb ghaltak
+          sudo -u postgres createdb ghaltak_restore
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Seed a database to back up
+        run: |
+          npm run db:generate
+          npm run db:deploy
+          npm run db:seed
+
+      # s3rver (a dev dependency) stands in for the host's S3 storage.
+      - name: Start an S3-compatible server
+        run: |
+          mkdir -p "$RUNNER_TEMP/s3"
+          node -e "
+            const S3rver = require('s3rver');
+            new S3rver({ port: 4569, address: '127.0.0.1', silent: true, directory: process.argv[1],
+              configureBuckets: [{ name: 'backups' }, { name: 'app-public' }, { name: 'app-private' }] })
+              .run().then(() => console.log('s3rver on 4569'));
+          " "$RUNNER_TEMP/s3" &
+          for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:4569 && exit 0; sleep 1; done
+          exit 1
+
+      - run: docker build -t ghaltak-backup:ci deploy/backup
+
+      - name: Write the worker's environment
+        run: |
+          keys=$(docker run --rm ghaltak-backup:ci age-keygen 2>/dev/null)
+          echo "::add-mask::$(echo "$keys" | grep AGE-SECRET-KEY)"
+          {
+            echo "DATABASE_URL=$DATABASE_URL"
+            echo "BACKUP_AGE_RECIPIENT=$(echo "$keys" | grep -o 'age1[0-9a-z]*')"
+            echo "BACKUP_S3_ENDPOINT=http://127.0.0.1:4569"
+            echo "BACKUP_S3_ACCESS_KEY_ID=S3RVER"
+            echo "BACKUP_S3_SECRET_ACCESS_KEY=S3RVER"
+            echo "BACKUP_S3_BUCKET=backups"
+            echo "S3_ENDPOINT=http://127.0.0.1:4569"
+            echo "S3_ACCESS_KEY_ID=S3RVER"
+            echo "S3_SECRET_ACCESS_KEY=S3RVER"
+            echo "S3_BUCKET_PUBLIC=app-public"
+            echo "S3_BUCKET_PRIVATE=app-private"
+          } > "$RUNNER_TEMP/backup.env"
+          echo "BACKUP_AGE_IDENTITY=$(echo "$keys" | grep AGE-SECRET-KEY)" > "$RUNNER_TEMP/identity.env"
+
+      - name: Back up
+        run: |
+          w() { docker run --rm --network host --env-file "$RUNNER_TEMP/backup.env" "$@"; }
+          # A product image and a receipt in the app's buckets.
+          w -e RCLONE_CONFIG_APP_TYPE=s3 -e RCLONE_CONFIG_APP_PROVIDER=Other \
+            -e RCLONE_CONFIG_APP_ENDPOINT=http://127.0.0.1:4569 -e RCLONE_CONFIG_APP_ACCESS_KEY_ID=S3RVER \
+            -e RCLONE_CONFIG_APP_SECRET_ACCESS_KEY=S3RVER -e RCLONE_CONFIG_APP_FORCE_PATH_STYLE=true \
+            ghaltak-backup:ci sh -c 'echo image > /tmp/a && echo receipt > /tmp/b &&
+              rclone copyto /tmp/a app:app-public/products/a.webp && rclone copyto /tmp/b app:app-private/receipts/b.png'
+          w ghaltak-backup:ci backup.sh run
+
+      - name: Check what was stored
+        run: |
+          files=$(find "$RUNNER_TEMP/s3/backups" -type f | sed "s|$RUNNER_TEMP/s3/backups/||")
+          echo "$files"
+          echo "$files" | grep -q 'files/public/products/a.webp'
+          echo "$files" | grep -q 'files/private/receipts/b.png'
+          dump=$(find "$RUNNER_TEMP/s3/backups" -path '*db/*' -name '*.dump.age*' -type f -size +1k | head -n 1)
+          test -n "$dump"
+          # Stored encrypted: an age file, not a pg_dump archive.
+          head -c 21 "$dump" | grep -q 'age-encryption.org/v1'
+
+      # (Not `! cmd`: bash's -e ignores a failure under `!`, so use explicit ifs.)
+      - name: Restore guards
+        run: |
+          r() { docker run --rm --network host --env-file "$RUNNER_TEMP/backup.env" --env-file "$RUNNER_TEMP/identity.env" -e TARGET_DATABASE_URL="$1" ghaltak-backup:ci restore.sh latest; }
+          if r "$DATABASE_URL"; then
+            echo "restoring into the production database was not refused"; exit 1
+          fi
+          # Same database under another address, so only the "not empty" check can stop it.
+          if r "postgresql://postgres:postgres@127.0.0.1:5432/ghaltak"; then
+            echo "restoring into a database that isn't empty was not refused"; exit 1
+          fi
+
+      - name: Restore and compare
+        run: |
+          docker run --rm --network host --env-file "$RUNNER_TEMP/backup.env" --env-file "$RUNNER_TEMP/identity.env" \
+            -e TARGET_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ghaltak_restore?schema=public" \
+            ghaltak-backup:ci restore.sh latest
+          q='SELECT (SELECT count(*) FROM "Seller"), (SELECT count(*) FROM "Product"), (SELECT count(*) FROM "Customer"), (SELECT count(*) FROM "Order"), (SELECT count(*) FROM "OrderItem"), (SELECT count(*) FROM "StockMovement")'
+          original=$(psql "postgresql://postgres:postgres@localhost:5432/ghaltak" -X -A -t -c "$q")
+          restored=$(psql "postgresql://postgres:postgres@localhost:5432/ghaltak_restore" -X -A -t -c "$q")
+          echo "original: $original"; echo "restored: $restored"
+          test "$original" = "$restored"
+          test "$original" != "0|0|0|0|0|0"
+
+      - name: Status page (daemon mode)
+        run: |
+          docker run -d --name worker --network host --env-file "$RUNNER_TEMP/backup.env" -e BACKUP_AT=12:00 ghaltak-backup:ci
+          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:8080/ && exit 0; sleep 1; done
+          docker logs worker; exit 1
