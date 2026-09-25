@@ -1,6 +1,18 @@
-# End-to-end test
+# End-to-end tests
 
-`buy-flow.spec.ts` drives the whole Phase 1 buy flow in a real browser, against a real app server and a real database:
+Two tests, each run against a real browser, app server and database.
+
+## `order-lifecycle.spec.ts`
+
+What happens after an order is placed. The seller enters a manual order and takes it through delivery, and the customer's page shows «تحویل داده شد». Then the seller returns it and cancels a second order. After each of those:
+
+- stock comes back exactly
+- the stock history shows «مرجوعی» or «لغو سفارش» with a link to the order
+- the sales report stops counting the order
+
+## `buy-flow.spec.ts`
+
+It drives the whole Phase 1 buy flow in a real browser, against a real app server and a real database:
 
 1. **Seller** (desktop) logs in through the SMS-code form, creates a product with one variant, and makes a purchase link.
 2. **Customer** (Pixel 7 size, no account) opens the link, picks color/size and quantity, orders, and uploads a card-to-card receipt.
@@ -29,7 +41,9 @@ E2E_DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/ghaltak_e2e
 npm run test:e2e
 ```
 
-The run applies migrations to the e2e database, starts its own dev server on port **3100** with that database, runs the test and stops the server. It doesn't touch your usual dev server on port 3000.
+The run applies migrations to the e2e database, then starts its own dev server on port **3100**. That server uses the e2e database and its own build folder, `.next-e2e`. It runs the tests and then stops the server.
+
+It runs **next to** your usual dev server on port 3000. Next.js allows only one dev server per build folder, which is why the e2e server gets its own (`APP_DIST_DIR` in `playwright.config.ts`).
 
 ## How it logs in
 
