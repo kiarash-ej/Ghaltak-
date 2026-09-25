@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSeller } from "@/server/auth";
+import { hasProductSlotInTx } from "@/server/billing/usage";
 import { deleteProductImage, saveProductImage } from "./image-storage";
 import { variantLabel } from "./labels";
 import {
@@ -18,6 +19,11 @@ export type ProductFormState =
 
 const GENERIC_ERROR = "خطای غیرمنتظره‌ای رخ داد. دوباره تلاش کنید.";
 const SKU_TAKEN = "این کد کالا قبلاً برای تنوع دیگری استفاده شده است.";
+const PRODUCT_LIMIT =
+  "به سقف کالاهای فعال پلن خود رسیده‌اید. کالا را غیرفعال ذخیره کنید، کالای دیگری را غیرفعال کنید یا پلن را از «تنظیمات › اشتراک» ارتقا دهید.";
+
+/** Thrown inside the save transaction when the plan has no room for another active product (A9). */
+class ProductLimitError extends Error {}
 
 /** SKUs must be unique per seller. Reports which submitted rows collide. */
 async function findSkuConflicts(
@@ -47,6 +53,7 @@ function uploadedFile(formData: FormData): File | null {
 }
 
 function dbErrorState(err: unknown): ProductFormState {
+  if (err instanceof ProductLimitError) return { message: PRODUCT_LIMIT };
   if ((err as { code?: string }).code === "P2002") {
     return { errors: { variants: [SKU_TAKEN] } };
   }
@@ -77,6 +84,9 @@ export async function createProductAction(
 
   try {
     await prisma.$transaction(async (tx) => {
+      // Plan limit on ACTIVE products (A9). Products are never limited for orders.
+      if (data.isActive && !(await hasProductSlotInTx(tx, seller.id))) throw new ProductLimitError();
+
       const product = await tx.product.create({
         data: {
           sellerId: seller.id,
@@ -178,6 +188,18 @@ export async function updateProductAction(
 
   try {
     await prisma.$transaction(async (tx) => {
+      // Turning an inactive product on takes a slot of the plan's limit (A9).
+      // Editing a product that is already active never does, even over the limit.
+      if (data.isActive) {
+        const current = await tx.product.findFirst({
+          where: { id: productId, sellerId: seller.id },
+          select: { isActive: true },
+        });
+        if (current && !current.isActive && !(await hasProductSlotInTx(tx, seller.id, { excludeProductId: productId }))) {
+          throw new ProductLimitError();
+        }
+      }
+
       const updated = await tx.product.updateMany({
         where: { id: productId, sellerId: seller.id },
         data: {

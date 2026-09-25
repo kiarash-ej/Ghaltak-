@@ -1,2 +1,2 @@
-// Every new seller starts on a free trial (docs/phase2/TRACK-A.md, A9).
-export const TRIAL_DAYS = 30;
+// Every new mobile starts on a free trial, once (docs/phase2/specs/A9-billing.md).
+export const TRIAL_DAYS = 14;
