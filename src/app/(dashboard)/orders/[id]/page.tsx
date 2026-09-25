@@ -7,8 +7,10 @@ import { PaymentPanel } from "@/components/orders/payment-panel";
 import { OnlinePaymentsList } from "@/components/payments/online-payments-list";
 import { OrderSmsList } from "@/components/orders/order-sms-list";
 import { ShippingPanel } from "@/components/orders/shipping-panel";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { requireSeller } from "@/server/auth";
 import { amountDue, paymentState } from "@/server/orders/payment";
 import { getOrder, orderCode } from "@/server/orders/queries";
@@ -32,6 +34,12 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
             سفارش <span dir="ltr" className="font-mono">{orderCode(order.id)}</span>
           </h1>
           <OrderStatusBadge status={order.status} />
+          <Link
+            href={`/orders/${order.id}/print`}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "ms-auto")}
+          >
+            چاپ برگهٔ ارسال
+          </Link>
         </div>
         <p className="text-sm text-neutral-500">
           ثبت در {formatDateTime(order.createdAt)}
