@@ -1,6 +1,6 @@
 # استقرار، انتشار، CI و پیامک (Track C)
 
-راهنمای C1 و C3 از [TRACK-C.md](./TRACK-C.md). هدف این است که یک نفر بتواند **فقط با همین فایل** برنامه را از صفر روی پروداکشن بیاورد، نسخهٔ جدید منتشر کند، و در صورت مشکل به نسخهٔ قبل برگردد. پشتیبان‌گیری و بازیابی (C2) در PR خودش به این فایل اضافه می‌شود.
+راهنمای C1 و C3 از [TRACK-C.md](./TRACK-C.md)، و کوئری شمارش هفتگی C4 (بخش ۹). هدف این است که یک نفر بتواند **فقط با همین فایل** برنامه را از صفر روی پروداکشن بیاورد، نسخهٔ جدید منتشر کند، و در صورت مشکل به نسخهٔ قبل برگردد. پشتیبان‌گیری و بازیابی (C2) در PR خودش به این فایل اضافه می‌شود.
 
 **قانون همیشگی:** هیچ رمز، کلید یا رشتهٔ اتصال دیتابیسی در مخزن، PR، Issue یا پیام ایجنت نیاید. متغیرهای پروداکشن فقط در پنل میزبان تنظیم می‌شوند. هر کار مستقیم روی پروداکشن (مایگریشن، تغییر متغیر، بازیابی) پیش از انجام در یک Issue نوشته می‌شود و نتیجه‌اش همان‌جا ثبت می‌شود (قانون ۳ README فاز ۲).
 
@@ -15,6 +15,7 @@
 | کم کردن دقیقه‌های CI | انجام شد (بخش ۷) |
 | پایش هفتگی دقیقه‌های CI | انجام شد: `ci-usage.yml` |
 | حساب کاوه‌نگار و ثبت قالب‌ها | **انجام نشده**؛ متن قالب‌ها آماده است (بخش ۶) |
+| کوئری شمارش هفتگی فروشنده‌های آزمایشی (C4) | آماده (بخش ۹)؛ برنامهٔ آزمایش در [PILOT.md](./PILOT.md) |
 
 ---
 
@@ -333,3 +334,108 @@ npm run build
 ```
 
 بعد از برگشتن CI، روی `main` یک اجرای دستی بگیرید: تب Actions، workflow «CI»، دکمهٔ «Run workflow» با برنچ `main`. هر مشکلی که پیدا شد، یک Issue برای PR مرج‌شده‌ای که آن را آورده.
+
+---
+
+## ۹. شمارش هفتگی فروشنده‌های آزمایشی (C4)
+عددهای گزارش هفتگی ([PILOT.md](./PILOT.md)، بخش ۸) از این کوئری می‌آیند. **فقط‌خواندنی** است (`BEGIN TRANSACTION READ ONLY` و در پایان `ROLLBACK`) و **فقط عدد** برمی‌گرداند: هیچ شناسه، نام یا موبایلی در خروجی نیست، پس خروجی‌اش را می‌شود در Issue گزارش گذاشت.
+
+### ۹.۱ اجرا
+از داخل پشتیبان‌گیر (بخش ۸.۳)، که `psql` دارد و در شبکهٔ خصوصی دیتابیس است؛ داده از لیارا بیرون نمی‌آید:
+
+```bash
+liara shell --app ghaltak-backup
+psql "$DATABASE_URL"
+```
+
+و متن کوئری ۹.۲ را paste کنید. خروجی یک ردیف است.
+
+بخش ۸ و پشتیبان‌گیر با PR جداگانهٔ C2 به این فایل اضافه می‌شوند. تا پشتیبان‌گیر راه نیفتاده، کوئری را با هر `psql` دیگری که به دیتابیس پروداکشن دسترسی دارد اجرا کنید، به شرط اینکه داده روی کامپیوتر کسی نیاید؛ خروجی خود کوئری فقط عدد است.
+
+- `weeks_ago`: برای گزارش جلسهٔ سه‌نفره `1` (هفتهٔ کامل قبل، شنبه تا جمعه به وقت تهران). `0` یعنی این هفته تا همین حالا.
+- `excluded`: `Seller.id` حساب‌های تیم و حساب‌های آزمایشی خودمان، تا در شمارش نیایند. شناسه‌ها را از پروندهٔ خصوصی بردارید؛ **موبایل ننویسید**.
+
+### ۹.۲ کوئری
+```sql
+-- Weekly pilot numbers (C4). Read-only, and returns only counts: no ids, names or mobiles.
+BEGIN TRANSACTION READ ONLY;
+SET LOCAL statement_timeout = '30s';
+
+WITH params AS (
+  -- 1 = last full week (Saturday to Friday), for the weekly report.
+  -- 0 = this week so far.
+  SELECT 1 AS weeks_ago
+),
+excluded (id) AS (
+  -- Team and demo accounts, by Seller.id (never a mobile), e.g.
+  -- VALUES ('cmf...'), ('cmg...'). With none, leave VALUES (NULL::text).
+  VALUES (NULL::text)
+),
+week AS (
+  SELECT start_at, start_at + interval '7 days' AS end_at
+  FROM (
+    SELECT date_trunc('week', (now() AT TIME ZONE 'Asia/Tehran') + interval '2 days') - interval '2 days'
+           - weeks_ago * interval '7 days' AS start_at
+    FROM params
+  ) s
+),
+pilot AS (
+  SELECT id, "createdAt" FROM "Seller"
+  WHERE id NOT IN (SELECT id FROM excluded WHERE id IS NOT NULL)
+),
+week_orders AS (
+  SELECT o.id, o."sellerId", o.status, o.source, o."totalPrice",
+         o.status IN ('PAID', 'PREPARING', 'SHIPPED', 'DELIVERED') AS is_sale
+  FROM "Order" o
+  JOIN pilot p ON p.id = o."sellerId"
+  CROSS JOIN week w
+  WHERE (o."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tehran') >= w.start_at
+    AND (o."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tehran') <  w.end_at
+),
+online AS (
+  -- One row per order: a second payment for an already-paid order is also
+  -- VERIFIED (B6 keeps it for the seller to refund) and must not count twice.
+  SELECT DISTINCT a."orderId", a."sellerId"
+  FROM "PaymentAttempt" a
+  JOIN pilot p ON p.id = a."sellerId"
+  WHERE a.status = 'VERIFIED' AND a."orderId" IS NOT NULL
+)
+SELECT
+  to_char(w.start_at, 'YYYY-MM-DD')                                             AS week_start_saturday,
+  (SELECT count(*) FROM pilot)                                                  AS sellers_total,
+  (SELECT count(*) FROM pilot p
+     WHERE (p."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tehran') >= w.start_at
+       AND (p."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tehran') <  w.end_at) AS sellers_new,
+  (SELECT count(DISTINCT "sellerId") FROM week_orders WHERE status <> 'CANCELED') AS stores_with_real_order,
+  (SELECT count(DISTINCT "sellerId") FROM week_orders WHERE is_sale)            AS stores_with_sale,
+  (SELECT count(*) FROM week_orders WHERE status <> 'CANCELED')                 AS orders_real,
+  (SELECT count(*) FROM week_orders WHERE status <> 'CANCELED' AND source = 'PURCHASE_LINK') AS orders_from_links,
+  (SELECT count(*) FROM week_orders WHERE status = 'CANCELED')                  AS orders_canceled,
+  (SELECT count(*) FROM week_orders WHERE is_sale)                              AS sales_count,
+  (SELECT coalesce(sum("totalPrice"), 0) FROM week_orders WHERE is_sale)        AS sales_toman,
+  (SELECT count(*) FROM week_orders o JOIN online x ON x."orderId" = o.id)      AS orders_paid_online,
+  (SELECT count(DISTINCT "sellerId") FROM online)                               AS stores_paid_online_ever,
+  (SELECT count(*) FROM "SmsMessage" m JOIN pilot p ON p.id = m."sellerId"
+     WHERE m.status = 'SENT'
+       AND (m."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tehran') >= w.start_at
+       AND (m."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Tehran') <  w.end_at) AS sms_sent
+FROM week w;
+
+ROLLBACK;
+```
+
+### ۹.۳ ستون‌ها
+
+| ستون | یعنی |
+|---|---|
+| `week_start_saturday` | شنبهٔ آن هفته (میلادی، به وقت تهران) |
+| `sellers_total`، `sellers_new` | همهٔ فروشنده‌ها، و آن‌هایی که این هفته اولین بار وارد شدند (بدون `excluded`) |
+| `stores_with_real_order` | **معیار اصلی فاز ۲** (دست‌کم ۱۰): فروشگاه‌هایی که این هفته دست‌کم یک سفارش لغونشده ثبت کردند |
+| `stores_with_sale` | فروشگاه‌هایی که این هفته دست‌کم یک فروش داشتند (تعریف فروش B5: پرداخت‌شده، در حال آماده‌سازی، ارسال‌شده، تحویل‌شده) |
+| `orders_real`، `orders_from_links`، `orders_canceled` | سفارش‌های لغونشده، چندتایشان از لینک خرید، و لغوشده‌ها (سفارش آزمایشی جلسهٔ راه‌اندازی و لینک‌های منقضی) |
+| `sales_count`، `sales_toman` | فروش‌های این هفته و جمعشان به تومان، بدون هزینهٔ ارسال (مثل گزارش فروش) |
+| `orders_paid_online` | سفارش‌های این هفته که پرداخت آنلاین تأییدشده دارند |
+| `stores_paid_online_ever` | فروشگاه‌هایی که تا حالا دست‌کم یک سفارش با پرداخت آنلاین گرفته‌اند (معیار: دست‌کم ۱) |
+| `sms_sent` | پیامک‌های ارسال‌شدهٔ فروشنده‌ها این هفته (برای سهمیهٔ پلن‌ها در سنجش قیمت) |
+
+هفته و روز، مثل گزارش فروش، به وقت تهران است. ستون‌های سفارش و فروش روی دیتابیس آزمایشی با یک شمارش مستقل در JavaScript مقایسه شدند و برابر بودند، و `weeks_ago` و `excluded` هم امتحان شدند.
