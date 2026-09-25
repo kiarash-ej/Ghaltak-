@@ -3,8 +3,8 @@ import { RECEIPT_PNG, faDigits, logIn, toman, uniqueMobile } from "./helpers";
 
 // The whole Phase 1 buy flow, as a seller and a customer would do it:
 //
-//   seller:   log in → create a product → make a purchase link
-//   customer: (phone, no account) order through the link → upload a receipt
+//   seller:   log in → name the store (Phase 2, A6) → create a product → make a purchase link
+//   customer: (phone, no account) sees the store, orders through the link → upload a receipt
 //   seller:   sees the receipt → confirms payment → prepares → ships
 //   customer: sees payment confirmed and the tracking code
 //   seller:   stock went down, and the sales report counts the sale
@@ -16,11 +16,13 @@ const QUANTITY = 2;
 const START_STOCK = 5;
 const SHIPPING = 60_000;
 const TRACKING = "1234567890123456789012";
+const CONTACT_PHONE = "09171234567"; // the store's public number, not the login mobile
 
 test("buy flow: purchase link → receipt → payment → shipping → report", async ({ page: seller, browser }) => {
   const sellerMobile = uniqueMobile("0912");
   const customerMobile = uniqueMobile("0935");
   const productName = `محصول آزمایشی ${sellerMobile.slice(-5)}`;
+  const storeName = `فروشگاه آزمایشی ${sellerMobile.slice(-5)}`;
 
   const stockOnInventory = async (p: Page) => {
     await p.goto(`/inventory?q=${encodeURIComponent(productName)}`);
@@ -30,6 +32,29 @@ test("buy flow: purchase link → receipt → payment → shipping → report", 
 
   await test.step("seller logs in", async () => {
     await logIn(seller, sellerMobile);
+  });
+
+  await test.step("new seller is asked to complete the store profile, and does", async () => {
+    const banner = seller.getByRole("link", { name: /تکمیل اطلاعات فروشگاه/ });
+    await banner.click();
+    await expect(seller).toHaveURL(/\/settings$/);
+
+    await seller.getByLabel("نام فروشگاه").fill(storeName);
+    await seller.getByLabel("انتخاب لوگوی فروشگاه").setInputFiles({
+      name: "logo.png",
+      mimeType: "image/png",
+      buffer: RECEIPT_PNG,
+    });
+    await expect(seller.getByRole("img", { name: "لوگوی فروشگاه" })).toBeVisible();
+    await seller.getByLabel("موبایل تماس").fill(CONTACT_PHONE);
+    await seller.getByLabel("آیدی اینستاگرام").fill("@test.shop");
+    await seller.getByRole("button", { name: "ذخیرهٔ تغییرات" }).click();
+    await expect(seller.getByText("تغییرات ذخیره شد.")).toBeVisible();
+    await expect(seller.getByLabel("آیدی اینستاگرام")).toHaveValue("test.shop");
+
+    await seller.goto("/");
+    await expect(seller.getByRole("heading", { name: `خوش آمدید، ${storeName}` })).toBeVisible();
+    await expect(banner).toHaveCount(0);
   });
 
   await test.step("seller creates a product with one variant", async () => {
@@ -67,6 +92,18 @@ test("buy flow: purchase link → receipt → payment → shipping → report", 
   await test.step("customer orders through the link on a phone", async () => {
     await customer.goto(linkPath);
     await expect(customer.getByText(productName)).toBeVisible();
+
+    // The store as the seller published it, and nothing else about the seller.
+    await expect(customer.getByText(storeName)).toBeVisible();
+    const logo = customer.getByRole("img", { name: `لوگوی ${storeName}` });
+    await expect.poll(() => logo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+    await expect(customer.getByRole("link", { name: "@test.shop" })).toHaveAttribute(
+      "href",
+      "https://instagram.com/test.shop",
+    );
+    await expect(customer.getByRole("link", { name: CONTACT_PHONE })).toHaveAttribute("href", `tel:${CONTACT_PHONE}`);
+    expect(await customer.content()).not.toContain(sellerMobile);
+
     await customer.getByLabel(`رنگ و سایز ${productName}`).selectOption({ label: "مشکی / M" });
     // One product on the link starts at 1; go to 2.
     await customer.getByRole("button", { name: "زیاد کردن" }).click();
