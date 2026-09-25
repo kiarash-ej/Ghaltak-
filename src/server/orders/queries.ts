@@ -115,6 +115,11 @@ export async function getOrder(sellerId: string, orderId: string) {
           productVariant: { select: { color: true, size: true, sku: true } },
         },
       },
+      // Customer SMS for this order (B7): what was sent and how it went. No texts are stored.
+      smsMessages: {
+        orderBy: { createdAt: "asc" },
+        select: { id: true, kind: true, status: true, attempts: true, createdAt: true },
+      },
       // Online payment attempts (B6), newest first. Never the gateway credentials.
       paymentAttempts: {
         orderBy: { createdAt: "desc" },

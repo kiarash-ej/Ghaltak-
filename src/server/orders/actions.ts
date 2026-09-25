@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSeller } from "@/server/auth";
+import { scheduleCustomerSms } from "@/server/notifications/schedule";
 import { OrderError, createOrderInTx } from "./create-order";
 import { parseOrderForm, type FieldErrors } from "./order-form";
 import { shippingStatusFor } from "./shipping";
@@ -49,6 +50,7 @@ export async function createOrderAction(
     return { message: GENERIC_ERROR };
   }
 
+  await scheduleCustomerSms("ORDER_PLACED", orderId);
   revalidatePath("/orders");
   redirect(`/orders/${orderId}`);
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { scheduleCustomerSms, scheduleUnpaidReminders } from "@/server/notifications/schedule";
 import { parseBuyForm } from "./buy-form";
 import { OrderError } from "./create-order";
 import { QuotaError, placeLinkOrder } from "./link-order";
@@ -37,8 +38,9 @@ export async function submitPurchaseAction(
   if (!link) return { message: "این لینک خرید دیگر فعال نیست." };
 
   let publicToken: string;
+  let orderId: string;
   try {
-    publicToken = (await placeLinkOrder(link, parsed.data)).publicToken;
+    ({ publicToken, id: orderId } = await placeLinkOrder(link, parsed.data));
   } catch (err) {
     if (err instanceof QuotaError) return { message: err.message };
     if (err instanceof OrderError) return { errors: { items: [err.message] } };
@@ -49,6 +51,8 @@ export async function submitPurchaseAction(
     return { message: GENERIC_ERROR };
   }
 
+  await scheduleCustomerSms("ORDER_PLACED", orderId);
+  await scheduleUnpaidReminders(link.sellerId);
   revalidatePath("/orders");
   redirect(`/buy/order/${publicToken}`);
 }

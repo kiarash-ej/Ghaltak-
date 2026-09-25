@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { formatDate, formatNumber, formatToman } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { requireSeller } from "@/server/auth";
+import { scheduleUnpaidReminders } from "@/server/notifications/schedule";
 import { expireUnpaidLinkOrders } from "@/server/orders/expire-orders";
 import { listOrders } from "@/server/orders/queries";
 import { ORDER_STATUSES, STATUS_LABELS, isOrderStatus } from "@/server/orders/status";
@@ -25,6 +26,7 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
 
   // Abandoned purchase-link orders are canceled lazily, so the list is current.
   await expireUnpaidLinkOrders(seller.id);
+  await scheduleUnpaidReminders(seller.id);
   const { items, total, page, pageCount } = await listOrders(seller.id, {
     q,
     status,
