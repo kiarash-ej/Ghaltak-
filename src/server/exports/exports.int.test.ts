@@ -2,7 +2,6 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { OrderStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { hasTestDatabase } from "@/test/setup";
-import { canExport, roleIn } from "./access";
 import { csvLine, type CsvValue } from "./csv";
 import { CUSTOMER_HEADER, customerRows } from "./customers";
 import { jalaliDayStart } from "./jalali";
@@ -129,11 +128,6 @@ describe.skipIf(!hasTestDatabase)("data export (database)", () => {
     });
     await order(sellerB, customerB.id, "PAID", "2026-09-23T10:00:00Z", 999);
 
-    // Logins: A's mobile owns A; B's mobile is only an OPERATOR of B.
-    const userA = await prisma.user.create({ data: { mobile: mobileA } });
-    await prisma.membership.create({ data: { userId: userA.id, sellerId: sellerA, role: "OWNER" } });
-    const userB = await prisma.user.create({ data: { mobile: mobileB } });
-    await prisma.membership.create({ data: { userId: userB.id, sellerId: sellerB, role: "OPERATOR" } });
   });
 
   afterAll(async () => {
@@ -143,7 +137,6 @@ describe.skipIf(!hasTestDatabase)("data export (database)", () => {
     await prisma.customer.deleteMany({ where: { sellerId: { in: ids } } });
     await prisma.productVariant.deleteMany({ where: { sellerId: { in: ids } } });
     await prisma.product.deleteMany({ where: { sellerId: { in: ids } } });
-    await prisma.user.deleteMany({ where: { mobile: { in: [mobileA, mobileB, `0982${runId}`] } } });
     await prisma.seller.deleteMany({ where: { id: { in: ids } } });
     await prisma.$disconnect();
   });
@@ -197,26 +190,5 @@ describe.skipIf(!hasTestDatabase)("data export (database)", () => {
     const paid = await csvOf(orderRows(sellerA, { status: "PAID" }, { batchSize: 2 }), ORDER_HEADER);
     expect(paid.rows).toBe(1);
     expect(paid.text).toContain(",پرداخت‌شده,بله,");
-  });
-
-  it("only an owner may export; an operator or a login without a membership may not", async () => {
-    // Before A10: the person signed in is the store's login mobile.
-    expect(await roleIn(sellerA, { mobile: mobileA })).toBe("OWNER");
-    expect(await roleIn(sellerB, { mobile: mobileB })).toBe("OPERATOR");
-    expect(await roleIn(sellerB, { mobile: mobileA })).toBeNull(); // A's login has no membership in B
-
-    // After A10: an operator of A signs in with their own mobile, and the
-    // session names them. The store's mobile is still the owner's, so the
-    // role must come from the user, never from the store.
-    const operator = await prisma.user.create({ data: { mobile: `0982${runId}` } });
-    await prisma.membership.create({ data: { userId: operator.id, sellerId: sellerA, role: "OPERATOR" } });
-    const owner = await prisma.user.findUniqueOrThrow({ where: { mobile: mobileA } });
-    expect(await roleIn(sellerA, { userId: operator.id })).toBe("OPERATOR");
-    expect(await roleIn(sellerA, { userId: owner.id })).toBe("OWNER");
-    expect(await roleIn(sellerB, { userId: operator.id })).toBeNull();
-
-    expect(canExport("OWNER")).toBe(true);
-    expect(canExport("OPERATOR")).toBe(false);
-    expect(canExport(null)).toBe(false);
   });
 });

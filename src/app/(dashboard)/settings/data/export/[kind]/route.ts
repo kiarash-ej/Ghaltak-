@@ -1,7 +1,6 @@
 import type { NextRequest } from "next/server";
 import { redirect } from "next/navigation";
-import { requireSeller } from "@/server/auth";
-import { canExport, currentRole } from "@/server/exports/access";
+import { requireOwner } from "@/server/auth";
 import { CUSTOMER_HEADER, customerRows } from "@/server/exports/customers";
 import { formatJalaliDate } from "@/server/exports/jalali";
 import { ORDER_HEADER, orderRows, parseOrderFilter } from "@/server/exports/orders";
@@ -9,12 +8,10 @@ import { PRODUCT_HEADER, productRows } from "@/server/exports/products";
 import { csvResponse } from "@/server/exports/stream";
 
 // The CSV downloads of «خروجی داده» (C6). Owner only, checked here on the
-// server; every row is scoped by the seller from requireSeller().
+// server (requireOwner: an operator gets a 404, A10); every row is scoped by
+// that owner's store.
 export async function GET(req: NextRequest, ctx: RouteContext<"/settings/data/export/[kind]">) {
-  const seller = await requireSeller();
-  if (!canExport(await currentRole(seller))) {
-    return new Response("Only the store owner can export data.", { status: 403 });
-  }
+  const seller = await requireOwner();
 
   const { kind } = await ctx.params;
   const stamp = formatJalaliDate(new Date()).replaceAll("/", "-");

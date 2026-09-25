@@ -5,7 +5,8 @@ import { createManualOrder, createProduct, logIn, uniqueMobile } from "./helpers
 // C6: the store owner downloads products, customers and orders as CSV from
 // «تنظیمات» ← «خروجی داده». Files start with a UTF-8 BOM (Persian in Excel),
 // a customer name that looks like a formula stays text, and the orders file
-// follows the Jalali date and status filter. Then /privacy opens on a phone.
+// follows the Jalali date and status filter. An operator gets a 404 instead.
+// Then /privacy opens on a phone.
 
 async function download(page: Page, trigger: Locator) {
   const [file] = await Promise.all([page.waitForEvent("download"), trigger.click()]);
@@ -81,6 +82,28 @@ test("data export: three CSV files for the owner, safe in Excel; the privacy pag
     await seller.getByLabel("از تاریخ").fill("1405/13/01");
     await seller.getByRole("button", { name: "دریافت فایل سفارش‌ها" }).click();
     await expect(seller.getByRole("alert")).toContainText("تاریخ «از» درست نیست");
+  });
+
+  await test.step("an operator (A10) can't export: 404 on the page and on a direct download", async () => {
+    const operatorMobile = `0917${String(Date.now() + 11).slice(-7)}`;
+    await seller.goto("/settings/team");
+    await seller.getByLabel("شمارهٔ موبایل عضو جدید").fill(operatorMobile);
+    await seller.getByRole("button", { name: "افزودن" }).click();
+    await expect(seller.getByText("عضو اضافه شد")).toBeVisible();
+
+    const context = await browser.newContext({ locale: "fa-IR", timezoneId: "Asia/Tehran" });
+    const operator = await context.newPage();
+    await logIn(operator, operatorMobile);
+    expect((await operator.goto("/settings/data"))?.status()).toBe(404);
+    // The downloads, fetched with the operator's own session cookie.
+    for (const kind of ["products", "customers", "orders"]) {
+      const res = await context.request.get(`/settings/data/export/${kind}`, { maxRedirects: 0 });
+      expect(res.status(), kind).toBe(404);
+      expect(await res.text(), kind).not.toContain("نام محصول");
+    }
+    await operator.goto("/settings/devices");
+    await expect(operator.getByRole("link", { name: "خروجی داده" })).toHaveCount(0);
+    await context.close();
   });
 
   await test.step("the privacy page is public and fits a phone", async () => {

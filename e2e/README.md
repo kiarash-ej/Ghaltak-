@@ -16,8 +16,8 @@ What happens after an order is placed. The seller enters a manual order and take
 C6. A new seller enters a product and an order for a customer named «=2+3 مشتری», then downloads the three files
 from «تنظیمات» ← «خروجی داده»: each starts with a UTF-8 BOM, the product row shows the stock the inventory page
 shows, the formula-looking name is written as text, and the orders file follows today's Jalali date and the status
-filter. A bad date is explained on the page. `/privacy` opens on a phone without logging in, and the export sends a
-visitor to the login page.
+filter. A bad date is explained on the page. An operator the owner invited (A10) gets a 404 on the page and on a
+direct download. `/privacy` opens on a phone without logging in, and the export sends a visitor to the login page.
 
 ## `buy-flow.spec.ts`
 

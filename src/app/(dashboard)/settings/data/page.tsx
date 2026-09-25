@@ -5,8 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { requireSeller } from "@/server/auth";
-import { canExport, currentRole } from "@/server/exports/access";
+import { requireOwner } from "@/server/auth";
 import type { OrderFilterError } from "@/server/exports/orders";
 import { ORDER_STATUSES, STATUS_LABELS } from "@/server/orders/status";
 
@@ -22,14 +21,7 @@ const ERRORS: Record<OrderFilterError, string> = {
 const isFilterError = (v: unknown): v is OrderFilterError => typeof v === "string" && v in ERRORS;
 
 export default async function DataExportPage(props: PageProps<"/settings/data">) {
-  const seller = await requireSeller();
-  if (!canExport(await currentRole(seller))) {
-    return (
-      <p className="rounded-xl border border-neutral-200 p-6 text-neutral-700">
-        فقط مالک فروشگاه می‌تواند از داده‌ها خروجی بگیرد.
-      </p>
-    );
-  }
+  await requireOwner(); // an operator gets a 404 (A10)
   const error = (await props.searchParams).error;
 
   return (
