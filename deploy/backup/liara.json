@@ -1,0 +1,5 @@
+{
+  "app": "ghaltak-backup",
+  "platform": "docker",
+  "port": 8080
+}
