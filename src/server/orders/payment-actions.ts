@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireSeller } from "@/server/auth";
+import { scheduleCustomerSms } from "@/server/notifications/schedule";
 import { isPaymentMethod } from "./payment";
 import { PaymentError, confirmPaymentInTx } from "./payment-store";
 import { isWellFormedToken } from "./purchase-links";
@@ -54,6 +55,7 @@ export async function confirmPaymentAction(
     return { message: GENERIC_ERROR };
   }
 
+  await scheduleCustomerSms("ORDER_PAID", orderId);
   revalidatePath("/orders");
   revalidatePath(`/orders/${orderId}`);
   return { ok: true };

@@ -5,6 +5,7 @@ import { OrderStatusActions } from "@/components/orders/order-status-actions";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { PaymentPanel } from "@/components/orders/payment-panel";
 import { OnlinePaymentsList } from "@/components/payments/online-payments-list";
+import { OrderSmsList } from "@/components/orders/order-sms-list";
 import { ShippingPanel } from "@/components/orders/shipping-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
@@ -59,6 +60,15 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
             paidAtText={order.paidAt ? formatDateTime(order.paidAt) : null}
             hasReceipt={order.receiptImageUrl !== null}
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>پیامک‌های مشتری</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <OrderSmsList messages={order.smsMessages} />
         </CardContent>
       </Card>
 

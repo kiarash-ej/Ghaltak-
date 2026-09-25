@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireSeller } from "@/server/auth";
+import { scheduleCustomerSms } from "@/server/notifications/schedule";
 import { parseShippingForm, shipBlocker, shippingStatusFor } from "./shipping";
 import { canTransition } from "./status";
 
@@ -62,6 +63,7 @@ export async function saveShippingAction(
   });
   if (count !== 1) return { message: "وضعیت سفارش همزمان تغییر کرد. صفحه را تازه کنید." };
 
+  if (ship) await scheduleCustomerSms("ORDER_SHIPPED", orderId);
   revalidatePath("/orders");
   revalidatePath(`/orders/${orderId}`);
   return { ok: true };
