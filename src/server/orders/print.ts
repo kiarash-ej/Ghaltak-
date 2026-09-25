@@ -24,6 +24,11 @@ export type PrintableOrder = {
   items: { id: string; name: string; detail: string; quantity: number }[];
 };
 
+/** How many orders «ready» would print if there were no cap (to warn when some are left out). */
+export async function countReadyToShip(sellerId: string): Promise<number> {
+  return prisma.order.count({ where: { sellerId, status: { in: [...READY_TO_SHIP] } } });
+}
+
 export async function getPrintableOrders(sellerId: string, selection: PrintSelection): Promise<PrintableOrder[]> {
   if (selection.kind === "ids" && selection.ids.length === 0) return [];
 

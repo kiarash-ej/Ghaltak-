@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { OrderStatus } from "@/generated/prisma/enums";
 import { hasTestDatabase } from "@/test/setup";
 import { prisma } from "@/lib/prisma";
-import { getPrintableOrders } from "./print";
+import { countReadyToShip, getPrintableOrders } from "./print";
 import { orderCode } from "./queries";
 
 // Shipping sheets (B9): only this seller's orders, oldest first, with what
@@ -85,6 +85,8 @@ describe.skipIf(!hasTestDatabase)("printable orders (database)", () => {
   it("«ready» is every paid or preparing order", async () => {
     const orders = await getPrintableOrders(sellerId, { kind: "ready" });
     expect(orders.map((o) => o.id)).toEqual([ids.o1, ids.o2]);
+    expect(await countReadyToShip(sellerId)).toBe(2);
+    expect(await countReadyToShip(otherSellerId)).toBe(1);
   });
 
   it("has what goes on the parcel", async () => {

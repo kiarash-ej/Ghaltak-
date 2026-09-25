@@ -11,7 +11,7 @@ export default async function DashboardLayout({
   const seller = await requireSeller();
 
   return (
-    <div className="flex flex-1 flex-col md:flex-row">
+    <div className="flex flex-1 flex-col md:flex-row print:block">
       <aside className="flex flex-col gap-4 border-b border-neutral-200 p-4 md:w-60 md:border-b-0 md:border-e print:hidden">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/brand/logo-symbol.png" alt="" width={40} height={40} priority />

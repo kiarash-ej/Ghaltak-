@@ -110,6 +110,7 @@ export function PrintView({
   backHref,
   sizeHref,
   empty,
+  notice,
 }: {
   orders: PrintableOrder[];
   store: PublicStoreProfile | null;
@@ -119,10 +120,13 @@ export function PrintView({
   sizeHref: (size: PaperSize) => string;
   /** Shown instead of sheets when there is nothing to print. */
   empty: string;
+  /** A warning above the sheets, never printed. */
+  notice?: string;
 }) {
   return (
-    <div className="flex flex-col gap-4">
-      <style>{`@page { size: ${PAPER[size].page}; margin: ${PAPER[size].margin}; }`}</style>
+    <div className="flex flex-col gap-4 print:block">
+      {/* Page breaks can be ignored inside flex containers (outside Chrome): block layout on paper. */}
+      <style>{`@page { size: ${PAPER[size].page}; margin: ${PAPER[size].margin}; } @media print { body { display: block; } }`}</style>
 
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div className="flex flex-col gap-1">
@@ -152,6 +156,12 @@ export function PrintView({
           </div>
         )}
       </div>
+
+      {notice && (
+        <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 print:hidden">
+          {notice}
+        </p>
+      )}
 
       {orders.length === 0 ? (
         <p className="rounded-xl border border-dashed border-neutral-300 p-10 text-center text-neutral-600">{empty}</p>

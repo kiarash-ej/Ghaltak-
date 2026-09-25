@@ -83,7 +83,7 @@ test("shipping sheets: one order, ticked orders, and everything ready to ship", 
     await expect(page.getByText("کارت به کارت", { exact: true })).toBeVisible();
 
     await page.goto("/orders");
-    await page.getByRole("link", { name: "چاپ برگهٔ ارسال", exact: true }).click();
+    await page.getByRole("link", { name: "چاپ سفارش‌های آمادهٔ ارسال" }).click();
     await expect(page).toHaveURL(/\/orders\/print\?ready=1$/);
     await expect(page.getByRole("article")).toHaveCount(1);
     await expect(page.getByRole("article")).toContainText("گیرندهٔ دوم");

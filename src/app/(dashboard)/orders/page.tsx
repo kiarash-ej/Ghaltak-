@@ -52,7 +52,7 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
             لینک‌های خرید
           </Link>
           <Link href="/orders/print?ready=1" className={cn(buttonVariants({ variant: "outline" }))}>
-            چاپ برگهٔ ارسال
+            چاپ سفارش‌های آمادهٔ ارسال
           </Link>
           <Link href="/orders/new" className={cn(buttonVariants())}>
             سفارش جدید

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { PrintView } from "@/components/orders/print-view";
 import { requireSeller } from "@/server/auth";
-import { getPrintableOrders } from "@/server/orders/print";
-import { paperSize, parsePrintRequest } from "@/server/orders/print-request";
+import { countReadyToShip, getPrintableOrders } from "@/server/orders/print";
+import { formatNumber } from "@/lib/format";
+import { MAX_PRINT_ORDERS, paperSize, parsePrintRequest } from "@/server/orders/print-request";
 import { getPublicStoreProfile } from "@/server/store/profile";
 
 // Several shipping sheets at once: the orders ticked in /orders (?id=…&id=…),
@@ -15,10 +16,16 @@ export default async function OrdersPrintPage(props: PageProps<"/orders/print">)
   const sp = await props.searchParams;
   const selection = parsePrintRequest(sp);
   const size = paperSize(sp.size);
-  const [orders, store] = await Promise.all([
+  const [orders, store, readyCount] = await Promise.all([
     getPrintableOrders(seller.id, selection),
     getPublicStoreProfile(seller.id),
+    selection.kind === "ready" ? countReadyToShip(seller.id) : 0,
   ]);
+  // «ready» prints the oldest MAX_PRINT_ORDERS; say so when more are waiting.
+  const notice =
+    readyCount > orders.length
+      ? `${formatNumber(readyCount)} سفارش آمادهٔ ارسال است و فقط ${formatNumber(MAX_PRINT_ORDERS)} سفارش قدیمی‌تر اینجاست. بعد از ارسال این‌ها، دوباره این صفحه را باز کنید یا بقیه را از فهرست سفارش‌ها انتخاب کنید.`
+      : undefined;
 
   const sizeHref = (s: string) => {
     const params = new URLSearchParams();
@@ -35,6 +42,7 @@ export default async function OrdersPrintPage(props: PageProps<"/orders/print">)
       size={size}
       backHref="/orders"
       sizeHref={sizeHref}
+      notice={notice}
       empty={
         selection.kind === "ready"
           ? "سفارشی در انتظار ارسال نیست. سفارش‌های پرداخت‌شده و در حال آماده‌سازی اینجا می‌آیند."
