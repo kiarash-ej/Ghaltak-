@@ -1,0 +1,68 @@
+name: Docker image
+
+# Builds the production image (Dockerfile, C1) and checks that it starts:
+# migrations are applied, /api/health answers 200 and the app doesn't run as
+# root. Only when a file that shapes the image changes, to save CI minutes.
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - package-lock.json
+      - next.config.ts
+      - prisma7.config.ts
+      - .github/workflows/docker.yml
+  workflow_dispatch:
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start PostgreSQL
+        run: |
+          sudo systemctl start postgresql.service
+          sudo -u postgres psql -q -c "ALTER USER postgres PASSWORD 'postgres';"
+          sudo -u postgres createdb ghaltak
+
+      - run: docker build -t ghaltak:ci .
+
+      - name: Start the container
+        run: |
+          docker run -d --name app --network host \
+            -e DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ghaltak?schema=public" \
+            -e SESSION_SECRET="ci-only-secret-not-used-anywhere-else" \
+            -e SECRETS_KEY="$(openssl rand -base64 32)" \
+            ghaltak:ci
+
+      - name: Wait for /api/health
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:3000/api/health; then echo; exit 0; fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Check migrations, pages and user
+        run: |
+          applied=$(sudo -u postgres psql -d ghaltak -tAc 'SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NOT NULL')
+          files=$(ls -d prisma/migrations/*/ | wc -l)
+          echo "migrations applied: $applied of $files"
+          test "$applied" -eq "$files"
+          curl -fsS -o /dev/null http://localhost:3000/login
+          test "$(docker exec app id -u)" != "0"
+          docker image ls ghaltak:ci --format 'image size: {{.Size}}'
+
+      - name: Container logs
+        if: always()
+        run: docker logs app

@@ -14,7 +14,7 @@ import { MAX_STOCK } from "./product-form";
 // Runs against a real Postgres (TEST_DATABASE_URL). See docs/phase1/README.md.
 
 describe.skipIf(!hasTestDatabase)("inventory (database)", () => {
-  const runId = String(Date.now()).slice(-7);
+  const runId = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
   let sellerId = "";
   let otherSellerId = "";
   let variantId = "";

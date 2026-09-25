@@ -10,7 +10,7 @@ import { getSalesReport } from "@/server/reports/queries";
 // Runs against a real Postgres (TEST_DATABASE_URL). See docs/phase1/README.md.
 
 describe.skipIf(!hasTestDatabase)("needs restock: inventory tab vs sales report (database)", () => {
-  const runId = String(Date.now()).slice(-7);
+  const runId = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
   let sellerId = "";
 
   beforeAll(async () => {
