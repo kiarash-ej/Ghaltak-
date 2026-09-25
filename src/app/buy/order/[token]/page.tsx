@@ -3,8 +3,11 @@ import { notFound } from "next/navigation";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { ReceiptUpload } from "@/components/orders/receipt-upload";
 import { CopyTextButton } from "@/components/payments/copy-text-button";
+import { OnlinePayButton } from "@/components/payments/online-pay-button";
 import { StoreHeader } from "@/components/store/store-header";
 import { getCardDetailsForCustomer } from "@/server/payments/card-store";
+import { gatewayForSeller } from "@/server/payments/gateway-store";
+import { startOnlinePaymentAction } from "@/server/payments/online-actions";
 import { getPublicStoreProfile } from "@/server/store/profile";
 import { uploadReceiptAction } from "@/server/orders/payment-actions";
 import { SHIPPING_STATUS_LABELS } from "@/server/orders/shipping";
@@ -22,15 +25,45 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** What the customer is told after coming back from the payment gateway (B6). */
+const RETURN_MESSAGES: Record<string, { text: string; tone: "good" | "info" | "bad" }> = {
+  paid: { text: "پرداخت آنلاین شما انجام شد.", tone: "good" },
+  canceled: {
+    text: "پرداخت لغو شد. می‌توانید دوباره آنلاین پرداخت کنید یا کارت‌به‌کارت واریز کنید.",
+    tone: "info",
+  },
+  failed: {
+    text: "پرداخت تأیید نشد. اگر مبلغی از حسابتان کم شده، درگاه آن را خودکار برمی‌گرداند.",
+    tone: "bad",
+  },
+  mismatch: {
+    text: "پرداخت شما دریافت شد، اما با مبلغ فعلی سفارش یکی نبود. فروشنده بررسی می‌کند و با شما تماس می‌گیرد.",
+    tone: "bad",
+  },
+  late: {
+    text: "پرداخت شما دریافت شد، اما سفارش پیش از آن لغو شده بود. فروشنده با شما تماس می‌گیرد.",
+    tone: "bad",
+  },
+};
+const TONE_CLASSES = {
+  good: "border-green-200 bg-green-50 text-green-900",
+  info: "border-neutral-200 bg-neutral-50 text-neutral-800",
+  bad: "border-red-200 bg-red-50 text-red-900",
+};
+
 export default async function PublicOrderPage(props: PageProps<"/buy/order/[token]">) {
   const { token } = await props.params;
+  const { payment: returned } = await props.searchParams;
   const order = await getPublicOrder(token);
   if (!order) notFound();
   // Payment instructions only while there is something to pay.
-  const [store, card] = await Promise.all([
+  const unpaid = order.payment === "UNPAID";
+  const [store, card, gateway] = await Promise.all([
     getPublicStoreProfile(order.sellerId),
-    order.payment === "UNPAID" ? getCardDetailsForCustomer(order.sellerId) : null,
+    unpaid ? getCardDetailsForCustomer(order.sellerId) : null,
+    unpaid ? gatewayForSeller(order.sellerId) : null,
   ]);
+  const returnMessage = typeof returned === "string" ? RETURN_MESSAGES[returned] : undefined;
 
   return (
     <main className="mx-auto flex w-full max-w-lg flex-col gap-6 p-4 pb-10">
@@ -51,6 +84,11 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
         )}
       </div>
 
+      {returnMessage && (
+        <p role="status" className={`rounded-xl border p-4 text-sm ${TONE_CLASSES[returnMessage.tone]}`}>
+          {returnMessage.text}
+        </p>
+      )}
       {order.payment === "PAID" && (
         <p className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900">
           پرداخت شما تأیید شد.
@@ -59,6 +97,15 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
       {(order.payment === "UNPAID" || order.payment === "RECEIPT_SUBMITTED") && (
         <section className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-4">
           <h2 className="font-semibold">پرداخت</h2>
+          {gateway && (
+            <>
+              <OnlinePayButton
+                action={startOnlinePaymentAction.bind(null, token)}
+                amountText={formatToman(order.amountDue)}
+              />
+              <p className="text-center text-xs text-neutral-500">یا کارت‌به‌کارت:</p>
+            </>
+          )}
           {order.payment === "RECEIPT_SUBMITTED" ? (
             <p className="text-sm text-amber-800">رسید شما دریافت شد و در انتظار تأیید فروشنده است.</p>
           ) : card ? (

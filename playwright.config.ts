@@ -43,6 +43,9 @@ export default defineConfig({
       DATABASE_URL: databaseUrl,
       SESSION_SECRET: E2E_SESSION_SECRET,
       SECRETS_KEY: E2E_SECRETS_KEY,
+      // The pretend payment gateway (src/server/payments/fake-gateway.ts).
+      // Also needs a non-production server, which `next dev` is.
+      E2E_FAKE_GATEWAY: "1",
       UPLOAD_DIR: path.resolve(".e2e-uploads"),
       TRUSTED_PROXY_HOPS: "1",
       APP_DIST_DIR: ".next-e2e",
