@@ -37,6 +37,14 @@ async function effectiveFor(db: Db, sellerId: string, now: Date): Promise<Effect
   return effectivePlan(sub, now, { billingEnabled: billingEnabled() });
 }
 
+/** What the store's subscription allows right now, and its stored plan. */
+export async function getEffectivePlan(sellerId: string, now: Date = new Date()) {
+  const sub =
+    (await prisma.subscription.findUnique({ where: { sellerId }, select: subscriptionSelect })) ??
+    missingSubscription(sellerId);
+  return { stored: sub, effective: effectivePlan(sub, now, { billingEnabled: billingEnabled() }) };
+}
+
 function countActiveProducts(db: Db, sellerId: string, excludeProductId?: string) {
   return db.product.count({
     where: { sellerId, isActive: true, ...(excludeProductId ? { id: { not: excludeProductId } } : {}) },

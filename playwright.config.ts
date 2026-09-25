@@ -6,12 +6,26 @@ import { defineConfig, devices } from "@playwright/test";
 // and a real, SEPARATE Postgres database (E2E_DATABASE_URL). See e2e/README.md.
 
 export const E2E_PORT = 3100;
+// A second server with subscription payments on (A9, e2e/billing.spec.ts). The
+// first one keeps BILLING_ENABLED off, as production is until week 6.
+export const E2E_BILLING_PORT = 3101;
 // Only used by the e2e server; the tests need it to set a known login code.
 export const E2E_SESSION_SECRET = "e2e-only-session-secret-never-used-elsewhere";
 // Encrypts card details in the e2e database only (32 bytes, base64). Never a real key.
 const E2E_SECRETS_KEY = Buffer.from("e2e-only-secrets-key-32-bytes!!!").toString("base64");
 
 const databaseUrl = process.env.E2E_DATABASE_URL ?? "";
+
+const serverEnv = {
+  DATABASE_URL: databaseUrl,
+  SESSION_SECRET: E2E_SESSION_SECRET,
+  SECRETS_KEY: E2E_SECRETS_KEY,
+  // The pretend payment gateway (src/server/payments/fake-gateway.ts).
+  // Also needs a non-production server, which `next dev` is.
+  E2E_FAKE_GATEWAY: "1",
+  UPLOAD_DIR: path.resolve(".e2e-uploads"),
+  TRUSTED_PROXY_HOPS: "1",
+};
 
 export default defineConfig({
   testDir: "e2e",
@@ -43,24 +57,29 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
-    // Dev mode on its own port and build folder: production mode needs real
-    // SMS credentials to log in, and Next.js allows one dev server per build
-    // folder, so this one uses .next-e2e and runs next to your usual one.
-    command: `node node_modules/next/dist/bin/next dev -p ${E2E_PORT}`,
-    url: `http://localhost:${E2E_PORT}/login`,
-    reuseExistingServer: false,
-    timeout: 180_000,
-    env: {
-      DATABASE_URL: databaseUrl,
-      SESSION_SECRET: E2E_SESSION_SECRET,
-      SECRETS_KEY: E2E_SECRETS_KEY,
-      // The pretend payment gateway (src/server/payments/fake-gateway.ts).
-      // Also needs a non-production server, which `next dev` is.
-      E2E_FAKE_GATEWAY: "1",
-      UPLOAD_DIR: path.resolve(".e2e-uploads"),
-      TRUSTED_PROXY_HOPS: "1",
-      APP_DIST_DIR: ".next-e2e",
+  webServer: [
+    {
+      // Dev mode on its own port and build folder: production mode needs real
+      // SMS credentials to log in, and Next.js allows one dev server per build
+      // folder, so this one uses .next-e2e and runs next to your usual one.
+      command: `node node_modules/next/dist/bin/next dev -p ${E2E_PORT}`,
+      url: `http://localhost:${E2E_PORT}/login`,
+      reuseExistingServer: false,
+      timeout: 180_000,
+      env: { ...serverEnv, APP_DIST_DIR: ".next-e2e" },
     },
-  },
+    {
+      command: `node node_modules/next/dist/bin/next dev -p ${E2E_BILLING_PORT}`,
+      url: `http://localhost:${E2E_BILLING_PORT}/login`,
+      reuseExistingServer: false,
+      timeout: 180_000,
+      env: {
+        ...serverEnv,
+        APP_DIST_DIR: ".next-e2e-billing",
+        BILLING_ENABLED: "true",
+        // Subscriptions paid through the pretend gateway too.
+        PLATFORM_GATEWAY_PROVIDER: "FAKE",
+      },
+    },
+  ],
 });

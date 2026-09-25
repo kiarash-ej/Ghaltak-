@@ -43,6 +43,8 @@ npm run test:e2e
 
 The run applies migrations to the e2e database, then starts its own dev server on port **3100**. That server uses the e2e database and its own build folder, `.next-e2e`. It runs the tests and then stops the server.
 
+A second dev server on port **3101** (build folder `.next-e2e-billing`) has subscription payments on (`BILLING_ENABLED=true`, the pretend gateway as the platform's gateway), for `billing.spec.ts`. The first one keeps billing off, as production does until the week-6 decision.
+
 It runs **next to** your usual dev server on port 3000. Next.js allows only one dev server per build folder, which is why the e2e server gets its own (`APP_DIST_DIR` in `playwright.config.ts`).
 
 ## How it logs in

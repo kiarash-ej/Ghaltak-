@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Build folder of the end-to-end test server (playwright.config.ts).
     ".next-e2e/**",
+    ".next-e2e-billing/**",
     // Playwright output.
     "test-results/**",
     "playwright-report/**",
