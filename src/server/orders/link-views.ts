@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { tehranDateKey } from "@/server/reports/periods";
+import { errorSummary } from "@/lib/error-summary";
 
 /**
  * One more view of a purchase link today (Tehran day), for the funnel (B8).
@@ -16,6 +17,6 @@ export async function recordLinkView(purchaseLinkId: string, now = new Date()): 
       VALUES (${purchaseLinkId}, ${tehranDateKey(now)}::date, 1)
       ON CONFLICT ("purchaseLinkId", "day") DO UPDATE SET "views" = "LinkDailyView"."views" + 1`;
   } catch (err) {
-    console.error("recording a purchase-link view failed", err);
+    console.error("recording a purchase-link view failed", errorSummary(err));
   }
 }

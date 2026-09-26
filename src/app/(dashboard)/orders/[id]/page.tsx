@@ -66,7 +66,7 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
             state={paymentState(order)}
             method={order.paymentMethod}
             paidAtText={order.paidAt ? formatDateTime(order.paidAt) : null}
-            hasReceipt={order.receiptImageUrl !== null}
+            receiptKey={order.receiptImageUrl}
           />
         </CardContent>
       </Card>

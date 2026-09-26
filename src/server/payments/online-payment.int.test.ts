@@ -142,8 +142,25 @@ describe.skipIf(!hasTestDatabase)("online payment (database)", () => {
     const { attemptId } = await startAndGetAuthority(order.publicToken!);
     const r = await handleGatewayReturn({ attemptId, authority: "SOMEONE-ELSES", status: "OK" }, { gatewayFor });
     expect(r.outcome).toBe("invalid");
+    expect(r.publicToken).toBeNull(); // the attempt id alone never leads to the order page (#49)
     expect(gw.verifyCalls).toEqual([]);
     expect((await prisma.paymentAttempt.findUniqueOrThrow({ where: { id: attemptId } })).status).toBe("PENDING");
+
+    const none = await handleGatewayReturn({ attemptId, authority: null, status: "OK" }, { gatewayFor });
+    expect(none).toEqual({ outcome: "invalid", publicToken: null, orderId: null });
+  });
+
+  it("a settled payment's return needs its Authority too, before showing the order (#49)", async () => {
+    const order = await newOrder();
+    const { attemptId, authority } = await startAndGetAuthority(order.publicToken!);
+    expect((await handleGatewayReturn({ attemptId, authority, status: "OK" }, { gatewayFor })).outcome).toBe("paid");
+
+    for (const wrong of [null, "SOMEONE-ELSES"]) {
+      const r = await handleGatewayReturn({ attemptId, authority: wrong, status: "OK" }, { gatewayFor });
+      expect(r).toEqual({ outcome: "invalid", publicToken: null, orderId: null });
+    }
+    const again = await handleGatewayReturn({ attemptId, authority, status: "OK" }, { gatewayFor });
+    expect(again).toMatchObject({ outcome: "paid", publicToken: order.publicToken });
   });
 
   it("does not pay the order when the gateway reports a different amount", async () => {
@@ -235,7 +252,8 @@ describe.skipIf(!hasTestDatabase)("online payment (database)", () => {
       { gatewayFor, now: flakyNow, log: (_msg, data) => logged.push(data) },
     );
     expect(r).toMatchObject({ outcome: "pending", publicToken: order.publicToken, orderId: order.id });
-    expect(logged).toEqual([expect.objectContaining({ attemptId, message: "connection lost" })]);
+    expect(logged).toEqual([expect.objectContaining({ attemptId, name: "Error" })]);
+    expect(logged[0]).not.toHaveProperty("message"); // the error's text is never logged (#50)
 
     const a = await prisma.paymentAttempt.findUniqueOrThrow({ where: { id: attemptId } });
     expect(a).toMatchObject({ status: "VERIFIED", refId: "REF-1", failureDetail: "NOT_APPLIED" });

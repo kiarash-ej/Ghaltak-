@@ -10,6 +10,7 @@ import { PaymentError, confirmPaymentInTx } from "./payment-store";
 import { isWellFormedToken } from "./purchase-links";
 import { clientIp, createRateLimiter } from "./rate-limit";
 import { deleteReceipt, saveReceipt } from "./receipt-storage";
+import { errorSummary } from "@/lib/error-summary";
 
 export type PaymentActionState = { message?: string; ok?: boolean } | undefined;
 
@@ -34,6 +35,11 @@ export async function confirmPaymentAction(
 
   const method = formData.get("method");
   if (!isPaymentMethod(method)) return { message: "روش پرداخت را انتخاب کنید." };
+  // The receipt shown when the seller decided ("" = none). Only compared with
+  // the order's own receipt: a new one from the customer stops the confirmation.
+  const seen = formData.get("seenReceipt");
+  if (typeof seen !== "string") return { message: "صفحه را تازه کنید و دوباره تلاش کنید." };
+  const expectedReceiptKey = seen === "" ? null : seen;
 
   let receiptKey: string | undefined;
   const file = uploadedFile(formData, "receipt");
@@ -45,13 +51,20 @@ export async function confirmPaymentAction(
 
   try {
     const { previousReceiptKey } = await prisma.$transaction((tx) =>
-      confirmPaymentInTx(tx, { sellerId: seller.id, orderId, method, paidAt: new Date(), receiptKey }),
+      confirmPaymentInTx(tx, {
+        sellerId: seller.id,
+        orderId,
+        method,
+        paidAt: new Date(),
+        receiptKey,
+        expectedReceiptKey,
+      }),
     );
     await deleteReceipt(previousReceiptKey);
   } catch (err) {
     await deleteReceipt(receiptKey);
     if (err instanceof PaymentError) return { message: err.message };
-    console.error("payment confirm failed", err);
+    console.error("payment confirm failed", errorSummary(err));
     return { message: GENERIC_ERROR };
   }
 
@@ -125,13 +138,21 @@ export async function uploadReceiptAction(
   const saved = await saveReceipt(file);
   if (!saved.ok) return { message: saved.error };
 
+  // Replaces only the receipt read above: with two uploads at once, one wins
+  // and the other's file is removed, so no receipt image is left behind.
   const { count } = await prisma.order.updateMany({
-    where: { id: order.id, status: "PENDING_PAYMENT" },
+    where: { id: order.id, status: "PENDING_PAYMENT", receiptImageUrl: order.receiptImageUrl },
     data: { receiptImageUrl: saved.key },
   });
   if (count !== 1) {
     await deleteReceipt(saved.key);
-    return { message: "پرداخت این سفارش قبلاً ثبت شده است." };
+    const now = await prisma.order.findUnique({ where: { id: order.id }, select: { status: true } });
+    return {
+      message:
+        now?.status === "PENDING_PAYMENT"
+          ? "رسید دیگری همزمان ارسال شد. صفحه را تازه کنید."
+          : "پرداخت این سفارش قبلاً ثبت شده است.",
+    };
   }
   await deleteReceipt(order.receiptImageUrl);
 

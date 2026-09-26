@@ -172,7 +172,13 @@ export async function handleGatewayReturn(
       order: { select: { publicToken: true } },
     },
   });
-  if (!attempt?.orderId || !attempt.order) return { outcome: "invalid", publicToken: null, orderId: null };
+  const invalid: ReturnResult = { outcome: "invalid", publicToken: null, orderId: null };
+  if (!attempt?.orderId || !attempt.order) return invalid;
+  // The attempt id is in the gateway's return URL and the customer's history;
+  // only with the gateway's own Authority does a return lead to the order
+  // page, which shows the seller's card number while unpaid (#49). This holds
+  // for a repeated return of a settled payment too.
+  if (!input.authority || !attempt.authority || input.authority !== attempt.authority) return invalid;
   const orderId = attempt.orderId;
   const done = (outcome: ReturnOutcome): ReturnResult => ({
     outcome,
@@ -190,8 +196,6 @@ export async function handleGatewayReturn(
       }
       return done(settledOutcome(attempt)); // a repeated return: report, change nothing
     }
-    if (!input.authority || input.authority !== attempt.authority) return done("invalid");
-
     if (input.status !== "OK") {
       await prisma.paymentAttempt.updateMany({
         where: { id: attempt.id, status: "PENDING" },
@@ -203,7 +207,7 @@ export async function handleGatewayReturn(
     const gateway = await gatewayFor(attempt.sellerId, { activeOnly: false });
     if (!gateway) return done("pending"); // left PENDING: it can be verified later
 
-    const verified = await gateway.verify({ authority: input.authority, amount: attempt.amount });
+    const verified = await gateway.verify({ authority: attempt.authority, amount: attempt.amount });
     if (!verified.ok) {
       if (verified.transient) return done("pending"); // left PENDING: a refresh verifies again
       await prisma.paymentAttempt.updateMany({
@@ -232,8 +236,8 @@ export async function handleGatewayReturn(
 
     return done((await applyVerifiedPayment(attempt.id, attempt.sellerId, orderId, now)) ?? (await settled(attempt.id)));
   } catch (err) {
-    const e = err as { name?: string; message?: string; code?: string };
-    log("[payment return] failed", { attemptId: attempt.id, name: e?.name, code: e?.code, message: e?.message });
+    const e = err as { name?: string; code?: string };
+    log("[payment return] failed", { attemptId: attempt.id, name: e?.name, code: e?.code });
     return done(recorded ? "pending" : "failed");
   }
 }

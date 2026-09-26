@@ -67,6 +67,11 @@ src/components/orders/**
 - **Receipts are private:** they're stored in `uploads/receipts`, checked by content, and served only to the owning seller by `/orders/[id]/receipt` with no caching.
 - **Rejected receipts:** the customer can send a new one.
 - **Open:** there's no field for the seller's card number yet, so payment instructions are generic.
+- **Review (phase 2):**
+  - A manual confirmation now carries the receipt the seller was looking at. If the customer has sent a new receipt since, nothing is recorded and the seller is asked to refresh. Before this, an order could be marked paid with a receipt the seller had never seen.
+  - The panel's receipt image is pinned to that receipt (`/orders/[id]/receipt?v=<key>` returns 404 for a newer one).
+  - Two customer uploads at the same moment no longer leave an orphaned receipt file.
+  - Database tests: `payment-store.int.test.ts`.
 
 ### B4 — Shipping (week 3)
 - On each order: method (post, courier, in-person), cost, tracking code, shipping status

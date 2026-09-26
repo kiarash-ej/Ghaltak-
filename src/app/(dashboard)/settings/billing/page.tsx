@@ -123,7 +123,7 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
             return (
               <Card key={id} className={cn(current && "border-neutral-900")}>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between gap-2">
+                  <CardTitle as="h3" className="flex items-center justify-between gap-2">
                     {plan.name}
                     {current && <Badge>پلن شما</Badge>}
                   </CardTitle>

@@ -12,6 +12,7 @@ import {
   type FieldErrors,
   type ProductInput,
 } from "./product-form";
+import { errorSummary } from "@/lib/error-summary";
 
 export type ProductFormState =
   | { errors?: FieldErrors; message?: string }
@@ -57,7 +58,7 @@ function dbErrorState(err: unknown): ProductFormState {
   if ((err as { code?: string }).code === "P2002") {
     return { errors: { variants: [SKU_TAKEN] } };
   }
-  console.error("product save failed", err);
+  console.error("product save failed", errorSummary(err));
   return { message: GENERIC_ERROR };
 }
 

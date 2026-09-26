@@ -14,12 +14,11 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/pay/subscription
     outcome = await handleSubscriptionReturn({ attemptId, authority: q.get("Authority"), status: q.get("Status") });
   } catch (err) {
     // Only reached if the attempt itself couldn't be read (e.g. the database is down).
-    const e = err as { name?: string; message?: string; code?: string };
+    const e = err as { name?: string; code?: string };
     console.error("[subscription payment return] failed before reading the attempt", {
       attemptId,
       name: e?.name,
       code: e?.code,
-      message: e?.message,
     });
     outcome = "pending";
   }
