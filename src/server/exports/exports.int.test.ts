@@ -45,7 +45,12 @@ describe.skipIf(!hasTestDatabase)("data export (database)", () => {
   let sellerB = "";
 
   async function order(sellerId: string, customerId: string, status: OrderStatus, createdAt: string, total: number) {
-    const variant = await prisma.productVariant.findFirstOrThrow({ where: { sellerId } });
+    // Always the same variant: A's black M coat (the first SKU), B's only one.
+    // Without an order Postgres may return any row, and under load it did.
+    const variant = await prisma.productVariant.findFirstOrThrow({
+      where: { sellerId },
+      orderBy: { sku: { sort: "asc", nulls: "last" } },
+    });
     return prisma.order.create({
       data: {
         sellerId,
