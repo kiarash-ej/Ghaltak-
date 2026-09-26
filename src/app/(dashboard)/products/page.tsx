@@ -99,7 +99,9 @@ export default async function ProductsPage(props: PageProps<"/products">) {
                   <th className="p-3 text-start font-medium">قیمت</th>
                   <th className="p-3 text-start font-medium">موجودی</th>
                   <th className="p-3 text-start font-medium">وضعیت</th>
-                  <th className="p-3" />
+                  <th className="p-3">
+                    <span className="sr-only">ویرایش</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>

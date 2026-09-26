@@ -4,6 +4,14 @@
 // mobile users share one IP, and IPs can be rotated. These limits don't
 // depend on the IP at all.
 
+/**
+ * Most of one item a customer can order through a purchase link. Much lower
+ * than the seller's manual form (MAX_QUANTITY): unpaid link orders hold stock
+ * for up to 48 hours, so a high cap would let one visitor hold it all (#18).
+ * Kept here, not in buy-form.ts, because the buy page's client form reads it:
+ * importing buy-form.ts there would ship zod to the customer's phone (#53).
+ */
+export const MAX_BUY_QUANTITY = 10;
 /** Unpaid orders one phone number may have open on one link at a time. */
 export const MAX_OPEN_ORDERS_PER_PHONE = 3;
 /** New orders one link accepts per hour, whoever places them. */

@@ -6,6 +6,10 @@ import { formatNumber, formatToman } from "@/lib/format";
 // Daily sales, one series: plain SVG, no chart library, nothing loaded at runtime.
 // Hover (or keyboard focus) on a day shows its tooltip; the table below the
 // chart has every value for screen readers and exact reading.
+// The svg is a labelled group, not role="img": an img's children are hidden
+// from screen readers, which would silence the focusable day columns. Each
+// column is its own role="img" with the day's label; axis text is aria-hidden
+// because the columns already say it.
 
 export type ChartDay = { key: string; label: string; total: number; count: number };
 
@@ -65,12 +69,12 @@ export function SalesChart({ days }: { days: ChartDay[] }) {
           width={W}
           height={H}
           className="block max-w-full"
-          role="img"
+          role="group"
           aria-label={`فروش روزانهٔ ${formatNumber(days.length)} روز گذشته`}
           onMouseLeave={() => setActive(null)}
         >
           {ticks.map((t) => (
-            <g key={t}>
+            <g key={t} aria-hidden="true">
               <line x1={M.left} x2={W - M.right} y1={yOf(t)} y2={yOf(t)} stroke={GRID} strokeWidth={1} />
               <text
                 x={M.left - 8}
@@ -90,10 +94,15 @@ export function SalesChart({ days }: { days: ChartDay[] }) {
             return (
               <g key={d.key}>
                 {d.total > 0 && (
-                  <path d={barPath(x, M.top + PLOT_H - h, barW, h)} fill={active === i ? BAR_ACTIVE : BAR} />
+                  <path
+                    aria-hidden="true"
+                    d={barPath(x, M.top + PLOT_H - h, barW, h)}
+                    fill={active === i ? BAR_ACTIVE : BAR}
+                  />
                 )}
                 {labelled.has(i) && (
                   <text
+                    aria-hidden="true"
                     // First and last labels hug the plot edges so they never clip.
                     x={i === 0 ? M.left : i === days.length - 1 ? W - M.right : M.left + i * band + band / 2}
                     y={H - 8}
@@ -111,6 +120,7 @@ export function SalesChart({ days }: { days: ChartDay[] }) {
                   height={PLOT_H}
                   fill="transparent"
                   tabIndex={0}
+                  role="img"
                   aria-label={`${d.label}: ${formatToman(d.total)}، ${formatNumber(d.count)} سفارش`}
                   onMouseEnter={() => setActive(i)}
                   onFocus={() => setActive(i)}
