@@ -2,20 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { errorSummary } from "@/lib/error-summary";
 import { prisma } from "@/lib/prisma";
 import { requireSeller } from "@/server/auth";
 import { scheduleCustomerSms } from "@/server/notifications/schedule";
 import { OrderError, createOrderInTx } from "./create-order";
 import { parseOrderForm, type FieldErrors } from "./order-form";
-import { shippingStatusFor } from "./shipping";
-import {
-  STATUS_LABELS,
-  canTransition,
-  detailsRequiredFor,
-  isOrderStatus,
-  restoresStock,
-} from "./status";
-import { OutOfStockError, returnStock } from "./stock";
+import { detailsRequiredFor, isOrderStatus } from "./status";
+import { StatusError, changeOrderStatus } from "./status-change";
+import { OutOfStockError } from "./stock";
 
 export type OrderFormState = { errors?: FieldErrors; message?: string } | undefined;
 export type StatusChangeState = { message?: string } | undefined;
@@ -23,8 +18,6 @@ export type StatusChangeState = { message?: string } | undefined;
 const GENERIC_ERROR = "خطای غیرمنتظره‌ای رخ داد. دوباره تلاش کنید.";
 
 /** A rejected status change; the message is shown to the seller. */
-class StatusError extends Error {}
-
 export async function createOrderAction(
   _prev: OrderFormState,
   formData: FormData,
@@ -46,7 +39,7 @@ export async function createOrderAction(
     if (err instanceof OutOfStockError) {
       return { errors: { items: ["موجودی یکی از کالاها کافی نیست."] } };
     }
-    console.error("order create failed", err);
+    console.error("order create failed", errorSummary(err));
     return { message: GENERIC_ERROR };
   }
 
@@ -67,33 +60,10 @@ export async function changeOrderStatusAction(
   if (detailsRequiredFor(to)) return { message: "این تغییر وضعیت از فرم مخصوص خودش انجام می‌شود." };
 
   try {
-    await prisma.$transaction(async (tx) => {
-      const order = await tx.order.findFirst({
-        where: { id: orderId, sellerId: seller.id },
-        select: { status: true },
-      });
-      if (!order) throw new StatusError("سفارش پیدا نشد.");
-      if (!canTransition(order.status, to)) {
-        throw new StatusError(
-          `تغییر وضعیت از «${STATUS_LABELS[order.status]}» به «${STATUS_LABELS[to]}» مجاز نیست.`,
-        );
-      }
-
-      // Only succeeds if nobody changed the status in the meantime, so stock
-      // is restored at most once even with two clicks or two tabs.
-      const { count } = await tx.order.updateMany({
-        where: { id: orderId, sellerId: seller.id, status: order.status },
-        data: { status: to, shippingStatus: shippingStatusFor(to) },
-      });
-      if (count !== 1) throw new StatusError("وضعیت سفارش همزمان تغییر کرد. صفحه را تازه کنید.");
-
-      if (restoresStock(to)) {
-        await returnStock(orderId, to === "RETURNED" ? "ORDER_RETURNED" : "ORDER_CANCELED", tx);
-      }
-    });
+    await changeOrderStatus(seller.id, orderId, to);
   } catch (err) {
     if (err instanceof StatusError) return { message: err.message };
-    console.error("order status change failed", err);
+    console.error("order status change failed", errorSummary(err));
     return { message: GENERIC_ERROR };
   }
 

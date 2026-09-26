@@ -10,6 +10,7 @@ import { PaymentError, confirmPaymentInTx } from "./payment-store";
 import { isWellFormedToken } from "./purchase-links";
 import { clientIp, createRateLimiter } from "./rate-limit";
 import { deleteReceipt, saveReceipt } from "./receipt-storage";
+import { errorSummary } from "@/lib/error-summary";
 
 export type PaymentActionState = { message?: string; ok?: boolean } | undefined;
 
@@ -63,7 +64,7 @@ export async function confirmPaymentAction(
   } catch (err) {
     await deleteReceipt(receiptKey);
     if (err instanceof PaymentError) return { message: err.message };
-    console.error("payment confirm failed", err);
+    console.error("payment confirm failed", errorSummary(err));
     return { message: GENERIC_ERROR };
   }
 

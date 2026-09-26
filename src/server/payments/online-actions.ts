@@ -30,8 +30,8 @@ export async function startOnlinePaymentAction(
     ({ redirectUrl } = await startOnlinePayment(publicToken, { origin: await requestOrigin() }));
   } catch (err) {
     if (err instanceof OnlinePaymentError) return { message: err.message };
-    const e = err as { name?: string; message?: string; code?: string };
-    console.error("[online payment] start failed", { name: e?.name, code: e?.code, message: e?.message });
+    const e = err as { name?: string; code?: string };
+    console.error("[online payment] start failed", { name: e?.name, code: e?.code });
     return { message: "خطایی رخ داد. لطفاً دوباره تلاش کنید." };
   }
   redirect(redirectUrl);

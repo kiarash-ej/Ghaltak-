@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSeller } from "@/server/auth";
 import { parseCustomerForm, type CustomerInput, type FieldErrors } from "./customer-form";
 import { isCustomerTag } from "./stats";
+import { errorSummary } from "@/lib/error-summary";
 
 export type CustomerFormState =
   | { ok: true; saved: CustomerInput }
@@ -49,7 +50,7 @@ export async function updateCustomerAction(
     if ((err as { code?: string }).code === "P2002") {
       return { ok: false, errors: { phone: [PHONE_TAKEN] } };
     }
-    console.error("customer update failed", err);
+    console.error("customer update failed", errorSummary(err));
     return { ok: false, message: "خطای غیرمنتظره‌ای رخ داد. دوباره تلاش کنید." };
   }
 

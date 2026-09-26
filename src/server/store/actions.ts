@@ -6,6 +6,7 @@ import { requireOwner } from "@/server/auth";
 import { deleteStoreLogo, saveStoreLogo } from "./logo";
 import type { PublicStoreProfile } from "./profile";
 import { parseStoreProfileForm, type FieldErrors } from "./profile-form";
+import { errorSummary } from "@/lib/error-summary";
 
 export type StoreProfileFormState =
   | {
@@ -53,7 +54,7 @@ export async function updateStoreProfileAction(
     });
   } catch (err) {
     await deleteStoreLogo(newLogoUrl);
-    console.error("store profile save failed", err);
+    console.error("store profile save failed", errorSummary(err));
     return { message: GENERIC_ERROR };
   }
 
