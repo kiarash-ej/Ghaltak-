@@ -127,7 +127,9 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
                   <th className="p-3 text-start font-medium">تاریخ</th>
                   <th className="p-3 text-start font-medium">مبلغ</th>
                   <th className="p-3 text-start font-medium">وضعیت</th>
-                  <th className="p-3" />
+                  <th className="p-3">
+                    <span className="sr-only">جزئیات</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
