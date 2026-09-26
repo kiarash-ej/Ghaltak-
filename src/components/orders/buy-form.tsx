@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatToman } from "@/lib/format";
 import type { BuyFormState } from "@/server/orders/buy-actions";
-import { MAX_BUY_QUANTITY } from "@/server/orders/buy-form";
+import { MAX_BUY_QUANTITY } from "@/server/orders/purchase-limits";
 import type { PublicLinkProduct } from "@/server/orders/purchase-links";
 
 type Choice = { variantId: string; quantity: number };

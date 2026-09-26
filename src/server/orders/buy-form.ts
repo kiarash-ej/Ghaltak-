@@ -7,16 +7,11 @@ import {
   type FieldErrors,
   type OrderLineInput,
 } from "./order-form";
+import { MAX_BUY_QUANTITY } from "./purchase-limits";
 
 // Validation of the PUBLIC purchase-link form (/buy/[token]). Everything here
 // comes from an anonymous visitor, so every field is checked. Pure, no database.
 
-/**
- * Most of one item a customer can order through a purchase link. Much lower
- * than the seller's manual form (MAX_QUANTITY): unpaid link orders hold stock
- * for up to 48 hours, so a high cap would let one visitor hold it all (#18).
- */
-export const MAX_BUY_QUANTITY = 10;
 const MAX_BUY_QUANTITY_FA = formatNumber(MAX_BUY_QUANTITY);
 
 export type BuyInput = {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { MAX_BUY_QUANTITY, parseBuyForm } from "./buy-form";
+import { parseBuyForm } from "./buy-form";
+import { MAX_BUY_QUANTITY } from "./purchase-limits";
 
 function form(fields: Record<string, string>): FormData {
   const fd = new FormData();
