@@ -19,14 +19,16 @@ export function PaymentPanel({
   state: payment,
   method,
   paidAtText,
-  hasReceipt,
+  receiptKey,
 }: {
   orderId: string;
   state: PaymentState;
   method: PaymentMethod | null;
   paidAtText: string | null;
-  hasReceipt: boolean;
+  /** The order's receipt when the page was rendered: confirming checks it is still the same. */
+  receiptKey: string | null;
 }) {
+  const hasReceipt = receiptKey !== null;
   const [confirmState, confirmAction, confirming] = useActionState<PaymentActionState, FormData>(
     confirmPaymentAction.bind(null, orderId),
     undefined,
@@ -41,15 +43,17 @@ export function PaymentPanel({
   const [shrinking, setShrinking] = useState(false);
   const [chosenMethod, setChosenMethod] = useState<PaymentMethod>(method ?? "CARD_TO_CARD");
 
+  // Pinned to the receipt this page was rendered with (the route 404s on a newer one).
+  const receiptSrc = `/orders/${orderId}/receipt?v=${encodeURIComponent(receiptKey ?? "")}`;
   const receiptLink = hasReceipt && (
     <a
-      href={`/orders/${orderId}/receipt`}
+      href={receiptSrc}
       target="_blank"
       rel="noopener"
       className="inline-block w-fit overflow-hidden rounded-lg border border-neutral-200"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`/orders/${orderId}/receipt`} alt="رسید پرداخت" className="max-h-72 w-auto" />
+      <img src={receiptSrc} alt="رسید پرداخت" className="max-h-72 w-auto" />
     </a>
   );
 
@@ -97,6 +101,7 @@ export function PaymentPanel({
         }}
         className="flex flex-col gap-4 border-t border-neutral-200 pt-4"
       >
+        <input type="hidden" name="seenReceipt" value={receiptKey ?? ""} />
         <div className="flex max-w-xs flex-col gap-2">
           <Label htmlFor="method">روش پرداخت</Label>
           <select
