@@ -8,6 +8,10 @@ import { formatToman } from "@/lib/format";
 import type { BuyFormState } from "@/server/orders/buy-actions";
 import { MAX_BUY_QUANTITY } from "@/server/orders/purchase-limits";
 import type { PublicLinkProduct } from "@/server/orders/purchase-links";
+import type { Thumbnail } from "@/server/storage/thumbnail";
+
+/** A product as the form shows it: its photo is already a small thumbnail (#47). */
+export type BuyFormProduct = Omit<PublicLinkProduct, "imageUrl"> & { image: Thumbnail | null };
 
 type Choice = { variantId: string; quantity: number };
 
@@ -20,7 +24,7 @@ function FieldError({ messages }: { messages?: string[] }) {
   );
 }
 
-function variantLabel(v: PublicLinkProduct["variants"][number]) {
+function variantLabel(v: BuyFormProduct["variants"][number]) {
   const detail = [v.color, v.size].filter(Boolean).join(" / ") || "استاندارد";
   return v.inStock ? detail : `${detail} (ناموجود)`;
 }
@@ -29,7 +33,7 @@ export function BuyForm({
   products,
   action: submit,
 }: {
-  products: PublicLinkProduct[];
+  products: BuyFormProduct[];
   action: (state: BuyFormState, formData: FormData) => Promise<BuyFormState>;
 }) {
   const [state, action, pending] = useActionState(submit, undefined);
@@ -52,6 +56,10 @@ export function BuyForm({
   const setChoice = (i: number, patch: Partial<Choice>) =>
     setChoices((cs) => cs.map((c, j) => (j === i ? { ...c, ...patch } : c)));
 
+  // The first photo is usually the largest thing on screen (LCP, #47): fetch
+  // it right away. The rest wait until they scroll near the viewport.
+  const firstImage = products.findIndex((p) => p.image);
+
   const total = products.reduce((sum, p, i) => sum + p.price * choices[i].quantity, 0);
 
   return (
@@ -63,12 +71,14 @@ export function BuyForm({
           const showVariants = p.variants.length > 1 || Boolean(p.variants[0]?.color || p.variants[0]?.size);
           return (
             <li key={p.id} className="flex gap-3 rounded-xl border border-neutral-200 p-3">
-              {p.imageUrl ? (
+              {p.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={p.imageUrl}
+                  {...p.image}
                   alt=""
-                  loading="lazy"
+                  loading={i === firstImage ? "eager" : "lazy"}
+                  fetchPriority={i === firstImage ? "high" : undefined}
+                  decoding="async"
                   className="size-20 shrink-0 rounded-lg border border-neutral-200 object-cover"
                 />
               ) : (

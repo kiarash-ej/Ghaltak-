@@ -6,10 +6,12 @@ import { describe, expect, it } from "vitest";
 // (docs/phase2/QUALITY.md, #53). Their client components must not pull zod
 // into the browser: validation runs in the Server Action, and importing a
 // constant from a zod module (e.g. server/orders/buy-form.ts) ships all of
-// zod, about 29 KiB gzipped. This walks every value import from the pages'
-// client components and fails if one reaches a heavy package.
+// zod, about 29 KiB gzipped. Thumbnails (#47) are computed on the server
+// (server/storage/thumbnail.ts), so next/image stays out too. This walks
+// every value import from the pages' client components and fails if one
+// reaches a heavy package.
 const PUBLIC_PAGES = ["src/app/buy/[token]/page.tsx", "src/app/buy/order/[token]/page.tsx"];
-const FORBIDDEN = ["zod"];
+const FORBIDDEN = ["zod", "next/image"];
 
 /** Module specifiers this file loads at runtime (type-only imports are erased). */
 function valueImports(source: string): string[] {
@@ -74,7 +76,7 @@ describe("client JavaScript of the public /buy pages", () => {
     );
   });
 
-  it.each(clientEntries)("%s does not import zod, even indirectly", (entry) => {
+  it.each(clientEntries)("%s does not import zod or next/image, even indirectly", (entry) => {
     const reached = packagesReachedFrom(entry);
     for (const pkg of FORBIDDEN) {
       expect(reached.get(pkg)?.join(" -> "), pkg).toBeUndefined();

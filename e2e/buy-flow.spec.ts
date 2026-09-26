@@ -98,7 +98,13 @@ test("buy flow: purchase link → receipt → payment → shipping → report", 
     // The store as the seller published it, and nothing else about the seller.
     await expect(customer.getByText(storeName)).toBeVisible();
     const logo = customer.getByRole("img", { name: `لوگوی ${storeName}` });
-    await expect.poll(() => logo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+    // The logo really loads (through /_next/image since #47). decode() rather
+    // than naturalWidth: with a 2x srcset, naturalWidth of this 1px test logo
+    // is 1/2, which reads as 0 although the image is fine.
+    await expect
+      .poll(() => logo.evaluate((img: HTMLImageElement) => img.decode().then(() => true, () => false)))
+      .toBe(true);
+    expect(await logo.getAttribute("src")).toMatch(/^\/_next\/image\?url=%2Fuploads%2Flogos%2F/);
     await expect(customer.getByRole("link", { name: "@test.shop" })).toHaveAttribute(
       "href",
       "https://instagram.com/test.shop",

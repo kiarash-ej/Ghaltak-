@@ -1,3 +1,4 @@
+import { THUMBNAIL_PX, thumbnail } from "@/server/storage/thumbnail";
 import type { PublicStoreProfile } from "@/server/store/profile";
 
 // The store's name, logo and contact links at the top of its public pages
@@ -28,7 +29,7 @@ export function StoreHeader({ profile }: { profile: PublicStoreProfile }) {
       {profile.logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={profile.logoUrl}
+          {...thumbnail(profile.logoUrl, THUMBNAIL_PX.logo)}
           alt={`لوگوی ${profile.name}`}
           className="size-14 shrink-0 rounded-xl border border-neutral-200 object-cover"
         />
