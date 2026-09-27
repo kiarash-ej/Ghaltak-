@@ -4,8 +4,8 @@ import { createSmsService } from "./service";
 import type { SendSms } from "./types";
 
 // The SMS service for the whole app (A8). Contract for Track B: see ./types.ts.
-// Kavenegar when KAVENEGAR_API_KEY is set; printed to the console in
-// development without it.
+// sms.ir when SMSIR_API_KEY is set, else Kavenegar when KAVENEGAR_API_KEY is
+// set; printed to the console in development without either.
 
 let service: ReturnType<typeof createSmsService> | undefined;
 
