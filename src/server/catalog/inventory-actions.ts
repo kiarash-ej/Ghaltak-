@@ -11,6 +11,7 @@ import {
   changeStock,
   setStock,
 } from "./inventory";
+import { errorSummary } from "@/lib/error-summary";
 
 export type AdjustStockState =
   | { ok: true; newStock: number }
@@ -75,7 +76,7 @@ export async function adjustStockAction(
     if (err instanceof VariantNotFoundError) {
       return { ok: false, error: "این تنوع پیدا نشد. صفحه را دوباره باز کنید." };
     }
-    console.error("stock adjustment failed", err);
+    console.error("stock adjustment failed", errorSummary(err));
     return { ok: false, error: "خطای غیرمنتظره‌ای رخ داد. دوباره تلاش کنید." };
   }
 

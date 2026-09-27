@@ -140,6 +140,8 @@ export async function handleSubscriptionReturn(
     select: { id: true, invoiceId: true, authority: true, amount: true, status: true, failureReason: true, failureDetail: true },
   });
   if (!attempt?.invoiceId) return "invalid";
+  // Only with the gateway's own Authority, on every path (as for orders, #49).
+  if (!input.authority || !attempt.authority || input.authority !== attempt.authority) return "invalid";
 
   let recorded = attempt.status === "VERIFIED";
   try {
@@ -149,8 +151,6 @@ export async function handleSubscriptionReturn(
       }
       return settled(attempt.id);
     }
-    if (!input.authority || input.authority !== attempt.authority) return "invalid";
-
     if (input.status !== "OK") {
       await prisma.paymentAttempt.updateMany({
         where: { id: attempt.id, status: "PENDING" },
@@ -162,7 +162,7 @@ export async function handleSubscriptionReturn(
     // Verified even if billing was turned off meanwhile: the money is real.
     const gateway = opts.gateway === undefined ? platformGateway() : opts.gateway;
     if (!gateway) return "pending";
-    const verified = await gateway.verify({ authority: input.authority, amount: attempt.amount });
+    const verified = await gateway.verify({ authority: attempt.authority, amount: attempt.amount });
     if (!verified.ok) {
       if (verified.transient) return "pending";
       await prisma.paymentAttempt.updateMany({
@@ -190,8 +190,8 @@ export async function handleSubscriptionReturn(
     await applySubscriptionPayment(attempt.id, now);
     return settled(attempt.id);
   } catch (err) {
-    const e = err as { name?: string; message?: string; code?: string };
-    log("[subscription payment return] failed", { attemptId: attempt.id, name: e?.name, code: e?.code, message: e?.message });
+    const e = err as { name?: string; code?: string };
+    log("[subscription payment return] failed", { attemptId: attempt.id, name: e?.name, code: e?.code });
     return recorded ? "pending" : "failed";
   }
 }

@@ -11,6 +11,7 @@ import type { FieldErrors } from "./order-form";
 import { getPublicLink } from "./purchase-links";
 import { clientIp, createRateLimiter } from "./rate-limit";
 import { OutOfStockError } from "./stock";
+import { errorSummary } from "@/lib/error-summary";
 
 // PUBLIC action behind /buy/[token]: no login. The seller comes from the
 // link token only, never from anything the visitor sends.
@@ -47,7 +48,7 @@ export async function submitPurchaseAction(
     if (err instanceof OutOfStockError) {
       return { errors: { items: ["موجودی یکی از کالاها کافی نیست."] } };
     }
-    console.error("purchase-link order failed", err);
+    console.error("purchase-link order failed", errorSummary(err));
     return { message: GENERIC_ERROR };
   }
 

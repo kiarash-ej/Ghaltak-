@@ -4,6 +4,7 @@ import { sniffImageType } from "@/server/catalog/image-type";
 import type { StoredObject } from "./drivers";
 import { storage } from "./index";
 import { CONTENT_TYPES, isValidKey } from "./keys";
+import { errorSummary } from "@/lib/error-summary";
 
 // Images anyone may see (product photos, store logos), in the "public" bucket.
 // The app serves each folder itself at /uploads/<folder>/<uuid>.<ext>, the
@@ -42,7 +43,7 @@ export function publicImages(folder: PublicImageFolder) {
       try {
         await storage().put("public", `${folder}/${name}`, bytes, CONTENT_TYPES[ext]);
       } catch (err) {
-        console.error(`[public-images] saving to ${folder} failed`, err);
+        console.error(`[public-images] saving to ${folder} failed`, errorSummary(err));
         return { ok: false, error: "ذخیرهٔ تصویر انجام نشد. لطفاً دوباره تلاش کنید." };
       }
       return { ok: true, url: `${urlPrefix}${name}` };
@@ -60,7 +61,7 @@ export function publicImages(folder: PublicImageFolder) {
       try {
         await storage().delete("public", key);
       } catch (err) {
-        console.error(`[public-images] deleting ${key} failed`, err);
+        console.error(`[public-images] deleting ${key} failed`, errorSummary(err));
       }
     },
 

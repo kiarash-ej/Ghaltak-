@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { maskMobile, type SmsProvider } from "./providers";
 import type { SendSmsInput, SendSmsResult } from "./types";
+import { errorSummary } from "@/lib/error-summary";
 
 // The SMS service behind sendSms (A8). Every message is recorded in
 // SmsMessage; order messages go out at most once per (orderId, kind).
@@ -101,7 +102,9 @@ export function createSmsService({
       });
       return { ok: true, status };
     } catch (err) {
-      log(`[sms] ${what} could not be recorded or sent`, err);
+      // Only the error's kind: a failed write quotes the row (mobile, tokens,
+      // possibly a login code).
+      log(`[sms] ${what} could not be recorded or sent`, errorSummary(err));
       return { ok: false, reason: "ERROR" };
     }
   }

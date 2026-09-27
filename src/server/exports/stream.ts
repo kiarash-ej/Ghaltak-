@@ -1,5 +1,6 @@
 import "server-only";
 import { BOM, csvLine, type CsvValue } from "./csv";
+import { errorSummary } from "@/lib/error-summary";
 
 // Sends a CSV as it is built: one database batch at a time goes out and is
 // forgotten, so memory stays flat however big the store is (C6).
@@ -16,8 +17,8 @@ export function csvResponse(filename: string, header: string[], batches: AsyncGe
         if (done) controller.close();
         else controller.enqueue(encoder.encode(value.map(csvLine).join("")));
       } catch (error) {
-        // The message only: never the rows, which hold customers' details.
-        console.error("data export failed:", error instanceof Error ? error.message : "unknown error");
+        // The error's kind only: its message can quote rows with customers' details (#50).
+        console.error("data export failed:", errorSummary(error));
         controller.error(error);
       }
     },
