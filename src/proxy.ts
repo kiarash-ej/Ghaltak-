@@ -11,7 +11,8 @@ import { SESSION_COOKIE, decryptSession } from "@/server/session-token";
 // /privacy is the public privacy page (Phase 2, A11).
 // /help is the public seller guide (Phase 2, C5), readable before signing up.
 // /api/health is the host's uptime check.
-const PUBLIC_PREFIXES = ["/login", "/buy", "/uploads", "/pay", "/privacy", "/help", "/api/health"];
+// /welcome is the public landing page; visitors without a session see it at /.
+const PUBLIC_PREFIXES = ["/login", "/buy", "/uploads", "/pay", "/privacy", "/help", "/welcome", "/api/health"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -22,6 +23,11 @@ export async function proxy(request: NextRequest) {
     request.cookies.get(SESSION_COOKIE)?.value,
   );
 
+  if (pathname === "/" && !session) {
+    // The landing page, at the site's own address: what the SMS providers and
+    // new sellers see first. Its login buttons open the login popup.
+    return NextResponse.rewrite(new URL("/welcome", request.url));
+  }
   if (!isPublic && !session) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
