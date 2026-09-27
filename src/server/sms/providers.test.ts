@@ -4,7 +4,9 @@ import {
   kavenegarProvider,
   lookupTokens,
   maskMobile,
+  parseSmsIrTemplate,
   providerFromEnv,
+  smsIrProvider,
   templateEnvName,
 } from "./providers";
 
@@ -72,6 +74,76 @@ describe("kavenegarProvider", () => {
   });
 });
 
+describe("smsIrProvider", () => {
+  const templates = { LOGIN_OTP: { id: 123456, params: ["Code"] } };
+
+  it("posts to send/verify with the key in the header, and returns the message id", async () => {
+    const fetch = fakeFetch(200, { status: 1, message: "موفق", data: { messageId: 88912345, cost: 1 } });
+    const provider = smsIrProvider({ apiKey: API_KEY, templates, fetch });
+
+    const result = await provider.send({ to: "09121234567", kind: "LOGIN_OTP", tokens: ["482913"] });
+
+    expect(result).toEqual({ ok: true, providerId: "88912345" });
+    const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.sms.ir/v1/send/verify");
+    expect(init.method).toBe("POST");
+    expect((init.headers as Record<string, string>)["X-API-KEY"]).toBe(API_KEY);
+    expect(JSON.parse(String(init.body))).toEqual({
+      mobile: "09121234567",
+      templateId: 123456,
+      parameters: [{ name: "Code", value: "482913" }],
+    });
+  });
+
+  it("reports sms.ir's error status, never the API key", async () => {
+    const provider = smsIrProvider({
+      apiKey: API_KEY,
+      templates,
+      fetch: fakeFetch(400, { status: 113, message: "قالب یافت نشد", data: null }),
+    });
+    const result = await provider.send({ to: "09121234567", kind: "LOGIN_OTP", tokens: ["482913"] });
+    expect(result).toEqual({ ok: false, error: "sms.ir status 113" });
+  });
+
+  it("turns a timeout or network error into a failure without the key", async () => {
+    const fetch = vi.fn(async () => {
+      throw Object.assign(new Error(`X-API-KEY ${API_KEY} rejected`), { name: "TimeoutError" });
+    });
+    const result = await smsIrProvider({ apiKey: API_KEY, templates, fetch }).send({
+      to: "09121234567",
+      kind: "LOGIN_OTP",
+      tokens: ["482913"],
+    });
+    expect(result).toEqual({ ok: false, error: "sms.ir request failed (TimeoutError)" });
+    expect(JSON.stringify(result)).not.toContain(API_KEY);
+  });
+
+  it("fails without calling sms.ir for a kind with no template, the wrong token count or a long value", async () => {
+    const fetch = fakeFetch(200, { status: 1 });
+    const provider = smsIrProvider({ apiKey: API_KEY, templates, fetch });
+    const send = (kind: "LOGIN_OTP" | "ORDER_PAID", tokens: string[]) =>
+      provider.send({ to: "09121234567", kind, tokens });
+
+    expect(await send("ORDER_PAID", ["A1B2C3"])).toEqual({
+      ok: false,
+      error: "no sms.ir template configured for ORDER_PAID",
+    });
+    expect(await send("LOGIN_OTP", ["1", "2"])).toMatchObject({ ok: false });
+    expect(await send("LOGIN_OTP", ["x".repeat(26)])).toMatchObject({ ok: false });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("parseSmsIrTemplate", () => {
+  it("reads <templateId>:<Param>[,<Param>...]", () => {
+    expect(parseSmsIrTemplate("123456:Code")).toEqual({ id: 123456, params: ["Code"] });
+    expect(parseSmsIrTemplate(" 42 : ORDER, LINK ")).toEqual({ id: 42, params: ["ORDER", "LINK"] });
+    expect(parseSmsIrTemplate("123456")).toBeNull();
+    expect(parseSmsIrTemplate("login:Code")).toBeNull();
+    expect(parseSmsIrTemplate("123456:")).toBeNull();
+  });
+});
+
 describe("lookupTokens", () => {
   it("accepts 1 to 3 tokens of at most 100 characters", () => {
     expect(lookupTokens(["a"]).ok).toBe(true);
@@ -94,6 +166,37 @@ describe("providerFromEnv", () => {
     expect(await provider.send({ to: "09121234567", kind: "LOGIN_OTP", tokens: ["123456"] })).toMatchObject({
       ok: false,
     });
+  });
+
+  it("uses sms.ir when its key is set, even with a Kavenegar key too", async () => {
+    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ status: 1, data: { messageId: 7 } }), { status: 200 }),
+    );
+    try {
+      const provider = providerFromEnv({
+        NODE_ENV: "production",
+        SMSIR_API_KEY: API_KEY,
+        SMSIR_TEMPLATE: "123456:Code",
+        KAVENEGAR_API_KEY: "kavenegar-key",
+      });
+      expect(await provider.send({ to: "09121234567", kind: "LOGIN_OTP", tokens: ["482913"] })).toEqual({
+        ok: true,
+        providerId: "7",
+      });
+      expect(String(fetch.mock.calls[0][0])).toBe("https://api.sms.ir/v1/send/verify");
+    } finally {
+      fetch.mockRestore();
+    }
+  });
+
+  it("a malformed sms.ir template variable fails with a message naming it", async () => {
+    const provider = providerFromEnv({ SMSIR_API_KEY: API_KEY, SMSIR_TEMPLATE_ORDER_PAID: "ghaltak-paid" });
+    const result = await provider.send({ to: "09121234567", kind: "ORDER_PAID", tokens: ["A1B2C3"] });
+    expect(result).toEqual({
+      ok: false,
+      error: "SMSIR_TEMPLATE_ORDER_PAID must look like <templateId>:<ParamName>, e.g. 123456:Code",
+    });
+    expect(templateEnvName("LOGIN_OTP", "SMSIR")).toBe("SMSIR_TEMPLATE");
   });
 
   it("reads each kind's template from its own variable", () => {
