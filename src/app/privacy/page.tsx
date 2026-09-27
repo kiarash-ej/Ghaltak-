@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
+import { SiteShell } from "@/components/landing/site-shell";
 
 // Public (PUBLIC_PREFIXES in src/proxy.ts): plain-language privacy page (C6).
 // Every sentence must stay true to the code; when a feature changes what is
@@ -31,15 +30,7 @@ function List({ items }: { items: React.ReactNode[] }) {
 
 export default function PrivacyPage() {
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="border-b border-neutral-200">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/brand/logo-symbol.png" alt="" width={32} height={32} />
-            <span className="font-bold">غلتک</span>
-          </Link>
-        </div>
-      </header>
+    <SiteShell>
 
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-6 md:py-10">
         <div className="flex flex-col gap-2">
@@ -139,6 +130,6 @@ export default function PrivacyPage() {
           />
         </Section>
       </main>
-    </div>
+    </SiteShell>
   );
 }
