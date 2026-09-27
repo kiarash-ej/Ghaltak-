@@ -1,3 +1,5 @@
+import type { SmsKind } from "@/generated/prisma/enums";
+
 // Text of the public landing page (/, for visitors) and its «امکانات» menu.
 // Plain data so it is easy to edit. Every line must be true of the app as it
 // is on main: when a feature is added, changed or removed, change it here in
@@ -76,16 +78,22 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
 ];
 
 /**
- * Every SMS the app sends (src/server/sms: SmsKind). All are verify/template
- * messages about the recipient's own login or order; none is advertising.
+ * Every SMS the app sends, one per SmsKind (content.test.ts checks none is
+ * missing). All are verify/template messages about the recipient's own
+ * login, order or store; none is advertising.
  */
-export const SMS_USES: { title: string; text: string }[] = [
-  { title: "کد ورود", text: "کد ۶ رقمی برای ورود فروشنده و همکارانش؛ غلتک رمز عبور ندارد." },
-  { title: "ثبت سفارش", text: "به مشتری: کد سفارش و لینک صفحهٔ سفارشش." },
-  { title: "تأیید پرداخت", text: "به مشتری، وقتی پرداخت سفارشش تأیید شد." },
-  { title: "ارسال", text: "به مشتری: کد رهگیری مرسوله." },
-  { title: "یادآوری پرداخت", text: "به مشتری، برای سفارشی که هنوز پرداخت نشده است." },
-  { title: "دعوت همکار", text: "به همکاری که فروشنده به فروشگاهش اضافه کرده است." },
+export const SMS_USES: { kind: SmsKind; title: string; text: string }[] = [
+  { kind: "LOGIN_OTP", title: "کد ورود", text: "کد ۶ رقمی برای ورود فروشنده و همکارانش؛ غلتک رمز عبور ندارد." },
+  { kind: "ORDER_PLACED", title: "ثبت سفارش", text: "به مشتری: کد سفارش و لینک صفحهٔ سفارشش." },
+  { kind: "ORDER_PAID", title: "تأیید پرداخت", text: "به مشتری، وقتی پرداخت سفارشش تأیید شد." },
+  { kind: "ORDER_SHIPPED", title: "ارسال", text: "به مشتری: کد رهگیری مرسوله." },
+  { kind: "PAYMENT_REMINDER", title: "یادآوری پرداخت", text: "به مشتری، برای سفارشی که هنوز پرداخت نشده است." },
+  { kind: "MEMBER_INVITE", title: "دعوت همکار", text: "به همکاری که فروشنده به فروشگاهش اضافه کرده است." },
+  {
+    kind: "SUBSCRIPTION_REMINDER",
+    title: "یادآوری تمدید اشتراک",
+    text: "به فروشنده، سه روز پیش از پایان دورهٔ آزمایشی یا اشتراک.",
+  },
 ];
 
 export const HOW_IT_WORKS: { title: string; text: string }[] = [
