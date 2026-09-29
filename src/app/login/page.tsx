@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ClipboardList, Package, Truck } from "lucide-react";
 import { LoginForm } from "./login-form";
+import { ThemeToggle } from "@/components/landing/theme-toggle";
 import styles from "../marketing.module.css";
 
 export const metadata: Metadata = {
@@ -18,7 +19,10 @@ export default function LoginPage() {
           <Image src="/brand/logo-symbol.png" alt="" width={48} height={48} priority />
           <span>غلتک</span>
         </Link>
-        <Link href="/" className={styles.authHeaderLink}><ArrowRight size={17} aria-hidden="true" /> بازگشت به صفحهٔ اصلی</Link>
+        <div className={styles.authHeaderActions}>
+          <ThemeToggle />
+          <Link href="/" className={styles.authHeaderLink}><ArrowRight size={17} aria-hidden="true" /> بازگشت به صفحهٔ اصلی</Link>
+        </div>
       </header>
 
       <div className={styles.authShell}>

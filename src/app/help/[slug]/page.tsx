@@ -19,10 +19,10 @@ export async function generateMetadata(props: PageProps<"/help/[slug]">): Promis
 function Block({ block }: { block: HelpBlock }) {
   switch (block.kind) {
     case "p":
-      return <p className="leading-8 text-neutral-800">{block.text}</p>;
+      return <p className="leading-8 text-neutral-800 public-dark:text-[var(--ink)]">{block.text}</p>;
     case "steps":
       return (
-        <ol className="flex list-decimal flex-col gap-2 ps-6 leading-7 text-neutral-800 marker:text-neutral-400">
+        <ol className="flex list-decimal flex-col gap-2 ps-6 leading-7 text-neutral-800 public-dark:text-[var(--ink)] marker:text-neutral-400 public-dark:marker:text-[var(--muted-small)]">
           {block.items.map((item) => (
             <li key={item}>{item}</li>
           ))}
@@ -30,7 +30,7 @@ function Block({ block }: { block: HelpBlock }) {
       );
     case "tip":
       return (
-        <p className="rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm leading-7 text-sky-900">
+        <p className="rounded-lg border border-sky-200 public-dark:border-sky-800 bg-sky-50 public-dark:bg-sky-950 p-3 text-sm leading-7 text-sky-900 public-dark:text-sky-100">
           <span className="font-semibold">نکته: </span>
           {block.text}
         </p>
@@ -44,10 +44,10 @@ function Block({ block }: { block: HelpBlock }) {
             width={block.image.width}
             height={block.image.height}
             sizes="(min-width: 640px) 390px, 90vw"
-            className="h-auto w-full max-w-[390px] rounded-xl border border-neutral-200 shadow-sm"
+            className="h-auto w-full max-w-[390px] rounded-xl border border-neutral-200 public-dark:border-[var(--line)] shadow-sm"
           />
           {block.image.caption && (
-            <figcaption className="text-sm text-neutral-500">{block.image.caption}</figcaption>
+            <figcaption className="text-sm text-neutral-500 public-dark:text-[var(--muted-small)]">{block.image.caption}</figcaption>
           )}
         </figure>
       );
@@ -64,11 +64,11 @@ export default async function HelpGuidePage(props: PageProps<"/help/[slug]">) {
   return (
     <article className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
-        <Link href="/help" className="text-sm text-neutral-500 hover:text-neutral-800">
+        <Link href="/help" className="text-sm text-neutral-500 public-dark:text-[var(--muted-small)] hover:text-neutral-800 public-dark:hover:text-[var(--ink)]">
           → همهٔ راهنماها
         </Link>
         <h1 className="text-2xl font-bold">{guide.title}</h1>
-        <p className="text-neutral-600">{guide.summary}</p>
+        <p className="text-neutral-600 public-dark:text-[var(--muted)]">{guide.summary}</p>
       </div>
 
       {guide.sections.map((section) => (
@@ -80,12 +80,12 @@ export default async function HelpGuidePage(props: PageProps<"/help/[slug]">) {
         </section>
       ))}
 
-      <nav className="flex flex-wrap justify-between gap-3 border-t border-neutral-200 pt-6 text-sm">
-        <Link href="/help" className="font-medium text-neutral-700 hover:text-neutral-900">
+      <nav className="flex flex-wrap justify-between gap-3 border-t border-neutral-200 public-dark:border-[var(--line)] pt-6 text-sm">
+        <Link href="/help" className="font-medium text-neutral-700 public-dark:text-[var(--ink)] hover:text-neutral-900 public-dark:hover:text-[var(--ink)]">
           همهٔ راهنماها و پرسش‌های پرتکرار
         </Link>
         {next && (
-          <Link href={`/help/${next.slug}`} className="font-medium text-neutral-900 underline underline-offset-4">
+          <Link href={`/help/${next.slug}`} className="font-medium text-neutral-900 public-dark:text-[var(--ink)] underline underline-offset-4">
             راهنمای بعدی: {next.title}
           </Link>
         )}
