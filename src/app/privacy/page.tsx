@@ -13,14 +13,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="flex flex-col gap-3">
       <h2 className="text-lg font-semibold">{title}</h2>
-      <div className="flex flex-col gap-3 leading-8 text-neutral-800">{children}</div>
+      <div className="flex flex-col gap-3 leading-8 text-neutral-800 public-dark:text-[var(--ink)]">{children}</div>
     </section>
   );
 }
 
 function List({ items }: { items: React.ReactNode[] }) {
   return (
-    <ul className="flex list-disc flex-col gap-1 ps-6 marker:text-neutral-400">
+    <ul className="flex list-disc flex-col gap-1 ps-6 marker:text-neutral-400 public-dark:marker:text-[var(--muted-small)]">
       {items.map((item, i) => (
         <li key={i}>{item}</li>
       ))}
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-6 md:py-10">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold">حریم خصوصی</h1>
-          <p className="text-neutral-600">
+          <p className="text-neutral-600 public-dark:text-[var(--muted)]">
             به زبان ساده: غلتک چه داده‌ای نگه می‌دارد، برای چه، چه کسی آن را می‌بیند و کجا. آخرین به‌روزرسانی: {UPDATED}.
           </p>
         </div>
@@ -70,6 +70,7 @@ export default function PrivacyPage() {
             items={[
               "کد ورود پیامکی فقط به‌صورت درهم‌شده (hash) ذخیره می‌شود و بعد از ۲ دقیقه باطل است.",
               "یک کوکی ورود برای فروشنده. مشتری‌ها کوکی ندارند و حساب کاربری لازم ندارند.",
+              "انتخاب حالت روشن یا تیرهٔ صفحات عمومی در همین مرورگر ذخیره می‌شود.",
               "برای لینک‌های خرید فقط تعداد بازدید هر روز شمرده می‌شود، بدون آدرس IP.",
               "برای جلوگیری از سوءاستفاده، تعداد سفارش هر آدرس IP مدتی کوتاه در حافظهٔ سرور شمرده می‌شود و در دیتابیس ذخیره نمی‌شود.",
             ]}

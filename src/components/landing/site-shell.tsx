@@ -6,6 +6,7 @@ import { readSession } from "@/server/session";
 import { FEATURE_GROUPS } from "./content";
 import { LoginButton, LoginDialogProvider } from "./login-dialog";
 import { MobileMenu, NavMenu, type NavGroup, type NavLink } from "./nav-menu";
+import { ThemeToggle } from "./theme-toggle";
 
 // Header, footer and login popup of the public pages: the landing page (/ for
 // visitors), the guide (/help) and the privacy page. All public (PUBLIC_PREFIXES
@@ -50,7 +51,7 @@ export async function SiteShell({
 
   return (
     <LoginDialogProvider signedIn={signedIn}>
-      <div className={`${styles.publicShell} flex flex-1 flex-col`}>
+      <div className={`${styles.publicShell} public-surface flex flex-1 flex-col`}>
         <header className={styles.publicHeader}>
           <div className={styles.publicHeaderInner}>
             <Link href="/" className={styles.brand}>
@@ -74,7 +75,8 @@ export async function SiteShell({
             </nav>
 
             <div className={styles.publicActions}>
-              <nav aria-label="منوی اصلی" className="md:hidden">
+              <ThemeToggle />
+              <nav aria-label="منوی اصلی" className="lg:hidden">
                 <MobileMenu groups={groups} extra={extra} />
               </nav>
               {signedIn ? (

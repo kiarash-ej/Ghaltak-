@@ -54,10 +54,10 @@ function LinkList({ links, onPick }: { links: NavLink[]; onPick: () => void }) {
           <Link
             href={l.href}
             onClick={onPick}
-            className="flex flex-col gap-0.5 rounded-lg px-3 py-2 hover:bg-neutral-100 focus-visible:bg-neutral-100"
+            className="flex flex-col gap-0.5 rounded-lg px-3 py-2 hover:bg-neutral-100 public-dark:hover:bg-[var(--hover)] focus-visible:bg-neutral-100 public-dark:focus-visible:bg-[var(--hover)]"
           >
-            <span className="text-sm font-medium text-neutral-900">{l.label}</span>
-            {l.description && <span className="text-xs leading-5 text-neutral-500">{l.description}</span>}
+            <span className="text-sm font-medium text-neutral-900 public-dark:text-[var(--ink)]">{l.label}</span>
+            {l.description && <span className="text-xs leading-5 text-neutral-500 public-dark:text-[var(--muted-small)]">{l.description}</span>}
           </Link>
         </li>
       ))}
@@ -78,7 +78,7 @@ export function NavMenu({ group }: { group: NavGroup }) {
         aria-expanded={open}
         aria-controls={panel}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900"
+        className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 public-dark:text-[var(--ink)] hover:bg-neutral-100 public-dark:hover:bg-[var(--hover)] hover:text-neutral-900 public-dark:hover:text-[var(--ink)]"
       >
         {group.label}
         <Chevron open={open} />
@@ -86,7 +86,7 @@ export function NavMenu({ group }: { group: NavGroup }) {
       {open && (
         <div
           id={panel}
-          className="absolute start-0 top-full z-20 mt-1 w-72 rounded-xl border border-neutral-200 bg-white p-2 shadow-lg"
+          className="absolute start-0 top-full z-20 mt-1 w-72 rounded-xl border border-neutral-200 public-dark:border-[var(--line)] bg-white public-dark:bg-[var(--surface)] p-2 shadow-lg"
         >
           <LinkList links={group.links} onPick={() => setOpen(false)} />
         </div>
@@ -101,14 +101,14 @@ export function MobileMenu({ groups, extra }: { groups: NavGroup[]; extra: NavLi
   const panel = useId();
 
   return (
-    <div ref={root} className="md:hidden">
+    <div ref={root} className="lg:hidden">
       <button
         ref={button}
         type="button"
         aria-expanded={open}
         aria-controls={panel}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+        className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 public-dark:text-[var(--ink)] hover:bg-neutral-100 public-dark:hover:bg-[var(--hover)]"
       >
         منو
         <Chevron open={open} />
@@ -116,11 +116,11 @@ export function MobileMenu({ groups, extra }: { groups: NavGroup[]; extra: NavLi
       {open && (
         <div
           id={panel}
-          className="absolute inset-x-0 top-full z-20 max-h-[75vh] overflow-y-auto border-b border-neutral-200 bg-white px-4 pb-4 shadow-lg"
+          className="absolute inset-x-0 top-full z-20 max-h-[75vh] overflow-y-auto border-b border-neutral-200 public-dark:border-[var(--line)] bg-white public-dark:bg-[var(--surface)] px-4 pb-4 shadow-lg"
         >
           {groups.map((g) => (
-            <div key={g.label} className="flex flex-col gap-1 border-b border-neutral-100 py-3">
-              <p className="px-3 text-xs font-semibold text-neutral-500">{g.label}</p>
+            <div key={g.label} className="flex flex-col gap-1 border-b border-neutral-100 public-dark:border-[var(--line)] py-3">
+              <p className="px-3 text-xs font-semibold text-neutral-500 public-dark:text-[var(--muted-small)]">{g.label}</p>
               <LinkList links={g.links} onPick={() => setOpen(false)} />
             </div>
           ))}

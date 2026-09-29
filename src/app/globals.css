@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
-/* Light theme only. The components use light-mode colors (white cards,
-   neutral-50 panels); a dark theme needs its own design pass before it can
-   be enabled, otherwise dark-mode phones get light text on light surfaces. */
+/* Only the public shell opts into these variants. */
+@custom-variant public-dark (&:where([data-public-theme="dark"] .public-surface, [data-public-theme="dark"] .public-surface *));
+
+/* App and checkout surfaces remain light. The public pages scope their own
+   light/dark palette and color-scheme in marketing.module.css. */
 :root {
   --background: #ffffff;
   --foreground: #171717;
