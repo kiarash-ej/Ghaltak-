@@ -10,7 +10,7 @@ test("a visitor sees the landing page at / and logs in from its popup", async ({
   await page.goto("/");
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("فروش اینستاگرامی و تلگرامی");
-  await expect(page.getByRole("heading", { name: "امکانات", level: 2 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "امکاناتی برای کارهای واقعی هر روز.", level: 2 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "پیامک‌هایی که غلتک می‌فرستد" })).toBeVisible();
 
   await test.step("the submenus open, close on Escape, and lead to the page's sections and the guide", async () => {
@@ -34,6 +34,7 @@ test("a visitor sees the landing page at / and logs in from its popup", async ({
 
   await test.step("«شروع کنید» opens the login popup; logging in there opens the dashboard", async () => {
     const mobile = uniqueMobile("0917");
+    const correctedMobile = uniqueMobile("0918");
     await page.getByRole("link", { name: "شروع کنید" }).first().click();
     const dialog = page.getByRole("dialog", { name: "ورود یا ساخت حساب" });
     await expect(dialog).toBeVisible();
@@ -42,7 +43,12 @@ test("a visitor sees the landing page at / and logs in from its popup", async ({
     await dialog.getByLabel("شمارهٔ موبایل").fill(mobile);
     await dialog.getByRole("button", { name: "دریافت کد تأیید" }).click();
     await expect(dialog.getByLabel("کد تأیید")).toBeVisible();
-    await setLoginCode(mobile, "135790");
+    await dialog.getByRole("button", { name: "شماره را اشتباه وارد کردم" }).click();
+    await expect(dialog.getByLabel("شمارهٔ موبایل")).toBeVisible();
+    await dialog.getByLabel("شمارهٔ موبایل").fill(correctedMobile);
+    await dialog.getByRole("button", { name: "دریافت کد تأیید" }).click();
+    await expect(dialog.getByLabel("کد تأیید")).toBeVisible();
+    await setLoginCode(correctedMobile, "135790");
     await dialog.getByLabel("کد تأیید").fill("135790");
     await dialog.getByRole("button", { name: "ورود" }).click();
 

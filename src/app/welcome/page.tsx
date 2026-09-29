@@ -1,135 +1,125 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowLeft, ArrowUpLeft, Check, ClipboardList, Link2, Package, Truck } from "lucide-react";
 import { FEATURE_GROUPS, HOW_IT_WORKS, SMS_USES } from "@/components/landing/content";
 import { LoginButton } from "@/components/landing/login-dialog";
 import { SiteShell } from "@/components/landing/site-shell";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
-// The public landing page. Visitors without a session see it at / (src/proxy.ts
-// rewrites / to /welcome); sellers see their dashboard there. Everything that
-// needs an account opens the login popup. The text lives in
-// src/components/landing/content.ts.
+import styles from "../marketing.module.css";
 
 export const metadata: Metadata = {
-  title: "غلتک | مدیریت فروش اینستاگرامی و تلگرامی",
-  description:
-    "لینک خرید برای اینستاگرام و تلگرام، سفارش و موجودی، کارت‌به‌کارت و پرداخت آنلاین، ارسال با کد رهگیری و پیامک خودکار به مشتری.",
+  title: "غلتک | فروش اینستاگرامی و تلگرامی، سر جای خودش",
+  description: "از لینک خرید و موجودی تا سفارش، پرداخت و ارسال؛ غلتک کارهای فروشگاه آنلاین ایرانی را در یک مسیر روشن کنار هم می‌گذارد.",
 };
 
-const faDigit = (n: number) => n.toLocaleString("fa-IR");
+const stepIcons = [Package, Link2, Truck];
 
 export default function WelcomePage() {
   return (
     <SiteShell onLanding>
-      <main className="flex-1">
-        <section className="border-b border-neutral-200 bg-gradient-to-b from-neutral-50 to-white">
-          <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 px-4 py-14 text-center md:py-20">
-            <Image
-              src="/brand/logo-with-name.png"
-              alt=""
-              width={720}
-              height={337}
-              priority
-              className="h-auto w-44 md:w-56"
-            />
-            <h1 className="max-w-2xl text-3xl leading-tight font-bold text-balance md:text-4xl md:leading-tight">
-              فروش اینستاگرامی و تلگرامی، مرتب و بدون دفترچه
-            </h1>
-            <p className="max-w-2xl text-lg leading-8 text-neutral-700">
-              غلتک برای فروشگاه‌هایی است که در دایرکت و پیام‌رسان می‌فروشند. محصول‌ها و موجودی، سفارش‌ها، پرداخت و ارسال
-              را در یک جا نگه دارید، و با یک لینک خرید، سفارش را از خود مشتری بگیرید.
+      <main className={styles.site}>
+        <section className={styles.hero} aria-labelledby="hero-title">
+          <div className={styles.heroCopy}>
+            <p className={styles.heroKicker}><span className={styles.kickerDot} /> برای فروشنده‌هایی که همه‌جا می‌فروشند</p>
+            <h1 id="hero-title">فروش اینستاگرامی و تلگرامی، <span>همه‌چیز سر جای خودش.</span></h1>
+            <p className={styles.heroDescription}>
+              از گفت‌وگو با مشتری تا تحویل سفارش، کارهای پراکندهٔ فروشگاهتان را در یک جا دنبال کنید؛
+              محصول، موجودی، لینک خرید، پرداخت و ارسال.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <LoginButton className={cn(buttonVariants({ size: "lg" }))}>شروع کنید</LoginButton>
-              <Link href="/help/getting-started" className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
-                راهنمای شروع کار
-              </Link>
+            <div className={styles.heroActions}>
+              <LoginButton className={styles.primaryAction}>شروع کنید <ArrowUpLeft size={20} aria-hidden="true" /></LoginButton>
+              <Link href="#how-it-works" className={styles.textAction}>دیدن مسیر کار <ArrowLeft size={18} aria-hidden="true" /></Link>
             </div>
-            <p className="text-sm text-neutral-500">ورود با شمارهٔ موبایل و کد پیامکی؛ بدون رمز عبور.</p>
+            <p className={styles.heroAside}>ورود و ساخت حساب با کد پیامکی؛ بدون رمز عبور</p>
+          </div>
+
+          <div className={styles.heroVisual} role="img" aria-label="نمایی از مسیر پیام مشتری، سفارش و آماده‌سازی ارسال">
+            <div className={styles.visualGlow} />
+            <div className={styles.visualTrack} aria-hidden="true"><span /></div>
+            <div className={`${styles.floatingNote} ${styles.messageNote}`}>
+              <span className={styles.noteCaption}>پیام مشتری</span>
+              <span className={styles.messageText}>«این رنگ موجوده؟»</span>
+              <span className={styles.messageReply}>بله، آمادهٔ سفارشه ✨</span>
+            </div>
+            <div className={styles.appPreview}>
+              <div className={styles.previewTop}>
+                <div className={styles.previewBrand}><Image src="/brand/logo-symbol.png" alt="" width={28} height={28} /><span>غلتک</span></div>
+                <span className={styles.previewTopLabel}>فروشگاه من</span>
+              </div>
+              <div className={styles.previewBody}>
+                <div className={styles.previewHeading}>
+                  <div><span className={styles.previewOverline}>امروز در فروشگاه</span><strong>سفارش‌ها، زیر نظر شما</strong></div>
+                  <span className={styles.previewCircle} aria-hidden="true"><ClipboardList size={20} /></span>
+                </div>
+                <div className={styles.orderPreview}>
+                  <div className={styles.orderPreviewTop}><span>سفارش تازه</span><span className={styles.statusPill}>در انتظار پرداخت</span></div>
+                  <div className={styles.productRow}><span className={styles.productThumb}><Package size={22} aria-hidden="true" /></span><div><strong>کیف دستی، رنگ سرمه‌ای</strong><small>۱ عدد · آمادهٔ ثبت</small></div></div>
+                  <div className={styles.orderFooter}><span>از محصول تا پرداخت</span><span className={styles.orderProgress}><i /><i /><i /></span></div>
+                </div>
+                <div className={styles.previewMiniRows}><span /><span /><span /></div>
+              </div>
+            </div>
+            <div className={`${styles.floatingNote} ${styles.shipNote}`}>
+              <span className={styles.shipIcon}><Check size={17} strokeWidth={3} aria-hidden="true" /></span>
+              <span><strong>آمادهٔ ارسال</strong><small>مرحلهٔ بعد مشخص است</small></span>
+            </div>
+            <div className={styles.visualCaption}>یک مسیر روشن برای هر سفارش <span aria-hidden="true">↗</span></div>
           </div>
         </section>
 
-        <section aria-labelledby="how" className="mx-auto max-w-5xl px-4 py-14">
-          <h2 id="how" className="text-center text-2xl font-bold">
-            چطور کار می‌کند
-          </h2>
-          <ol className="mt-8 grid gap-4 md:grid-cols-3">
-            {HOW_IT_WORKS.map((s, i) => (
-              <li key={s.title} className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-5">
-                <span
-                  aria-hidden="true"
-                  className="flex size-8 items-center justify-center rounded-full bg-neutral-900 text-sm font-bold text-white"
-                >
-                  {faDigit(i + 1)}
-                </span>
-                <h3 className="font-semibold">{s.title}</h3>
-                <p className="leading-7 text-neutral-600">{s.text}</p>
-              </li>
-            ))}
+        <section id="how-it-works" className={styles.workflow} aria-labelledby="workflow-title">
+          <div className={styles.sectionIntro}>
+            <p className={styles.sectionLabel}>جریان کار فروشگاه</p>
+            <h2 id="workflow-title">فروش را از چند پنجره، به یک مسیر بیاورید.</h2>
+            <p>هر بخش به بخش بعدی وصل است؛ از محصولی که ثبت می‌کنید تا سفارشی که به دست مشتری می‌رسد.</p>
+          </div>
+          <ol className={styles.steps}>
+            {HOW_IT_WORKS.map((step, index) => {
+              const Icon = stepIcons[index];
+              return (
+                <li className={styles.step} key={step.title}>
+                  <div className={styles.stepTop}><span className={styles.stepIcon}><Icon size={24} strokeWidth={1.8} aria-hidden="true" /></span><span className={styles.stepNumber}>{["۰۱", "۰۲", "۰۳"][index]}</span></div>
+                  <h3>{step.title}</h3>
+                  <p>{step.text}</p>
+                </li>
+              );
+            })}
           </ol>
         </section>
 
-        <section id="features" aria-labelledby="features-title" className="scroll-mt-20 bg-neutral-50 py-14">
-          <div className="mx-auto max-w-5xl px-4">
-            <h2 id="features-title" className="text-center text-2xl font-bold">
-              امکانات
-            </h2>
-            <p className="mt-2 text-center text-neutral-600">آنچه همین امروز در غلتک هست.</p>
-            <div className="mt-8 grid gap-4 md:grid-cols-2">
-              {FEATURE_GROUPS.map((g) => (
-                <section
-                  key={g.id}
-                  id={g.id}
-                  aria-labelledby={`${g.id}-title`}
-                  className="flex scroll-mt-20 flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5"
-                >
-                  <div className="flex flex-col gap-1">
-                    <h3 id={`${g.id}-title`} className="text-lg font-semibold">
-                      {g.title}
-                    </h3>
-                    <p className="text-sm text-neutral-600">{g.summary}</p>
-                  </div>
-                  <ul className="flex list-disc flex-col gap-2 ps-5 leading-7 text-neutral-800 marker:text-neutral-400">
-                    {g.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
+        <section id="features" className={styles.featureSection} aria-labelledby="features-title">
+          <div className={styles.featureInner}>
+            <div className={styles.sectionIntro}>
+              <p className={styles.sectionLabel}>امکانات غلتک</p>
+              <h2 id="features-title">امکاناتی برای کارهای واقعی هر روز.</h2>
+              <p>آنچه همین امروز در غلتک در دسترس است، از فروش با لینک خرید تا کار تیمی.</p>
+            </div>
+            <div className={styles.featureGrid}>
+              {FEATURE_GROUPS.map((group) => (
+                <section key={group.id} id={group.id} aria-labelledby={`${group.id}-title`} className={styles.featureItem}>
+                  <h3 id={`${group.id}-title`}>{group.title}</h3>
+                  <p>{group.summary}</p>
+                  <ul>{group.items.map((item) => <li key={item}>{item}</li>)}</ul>
                 </section>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="sms" aria-labelledby="sms-title" className="mx-auto max-w-5xl scroll-mt-20 px-4 py-14">
-          <h2 id="sms-title" className="text-center text-2xl font-bold">
-            پیامک‌هایی که غلتک می‌فرستد
-          </h2>
-          <p className="mx-auto mt-2 max-w-2xl text-center leading-7 text-neutral-600">
-            فقط پیامک‌های خدماتی، هرکدام از یک قالب ثابت و دربارهٔ حساب یا سفارش خود گیرنده. غلتک پیامک تبلیغاتی نمی‌فرستد.
-            فروشنده در تنظیمات انتخاب می‌کند کدام پیامک‌ها به مشتری‌هایش برود.
-          </p>
-          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {SMS_USES.map((s) => (
-              <li key={s.title} className="flex flex-col gap-1 rounded-xl border border-neutral-200 p-4">
-                <span className="font-semibold">{s.title}</span>
-                <span className="text-sm leading-6 text-neutral-600">{s.text}</span>
-              </li>
-            ))}
+        <section id="sms" className={styles.smsSection} aria-labelledby="sms-title">
+          <div className={styles.smsIntro}>
+            <p className={styles.sectionLabel}>ارتباط با مشتری</p>
+            <h2 id="sms-title">پیامک‌هایی که غلتک می‌فرستد</h2>
+            <p>فقط پیامک‌های خدماتی مربوط به حساب یا سفارش گیرنده. فروشنده در تنظیمات انتخاب می‌کند کدام پیامک‌ها برای مشتریانش ارسال شود.</p>
+          </div>
+          <ul className={styles.smsGrid}>
+            {SMS_USES.map((sms) => <li key={sms.kind}><strong>{sms.title}</strong><span>{sms.text}</span></li>)}
           </ul>
         </section>
 
-        <section className="border-t border-neutral-200 bg-neutral-900 text-white">
-          <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 py-12 text-center">
-            <h2 className="text-2xl font-bold">فروشگاهتان را در چند دقیقه راه بیندازید</h2>
-            <p className="max-w-xl leading-7 text-neutral-300">
-              با شمارهٔ موبایلتان وارد شوید، نام و لوگوی فروشگاه را بگذارید، اولین محصول را ثبت کنید و لینک خریدش را بفرستید.
-            </p>
-            <LoginButton className={cn(buttonVariants({ size: "lg" }), "bg-white text-neutral-900 hover:bg-neutral-200")}>
-              ورود یا ساخت حساب
-            </LoginButton>
-          </div>
+        <section className={styles.bottomCallout} aria-labelledby="callout-title">
+          <div><p>جای همه‌چیز در فروشگاه شما پیدا می‌شود.</p><h2 id="callout-title">برای سفارش بعدی آماده‌اید؟</h2></div>
+          <LoginButton className={styles.calloutButton}>ورود یا ساخت حساب <ArrowUpLeft size={19} aria-hidden="true" /></LoginButton>
         </section>
       </main>
     </SiteShell>
