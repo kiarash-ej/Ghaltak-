@@ -27,7 +27,7 @@ function LoginFormFields({ onEditNumber }: { onEditNumber: () => void }) {
       {isCodeStep ? (
         <>
           <input type="hidden" name="mobile" value={state.mobile} />
-          <p className={styles.sentMessage}>کد تأیید به شمارهٔ <span dir="ltr">{state.mobile}</span> فرستاده شد.</p>
+          <p className={styles.sentMessage}>کد تأیید به شمارهٔ <span dir="ltr">{state.mobile}</span> ارسال شد.</p>
           <div className={styles.field}>
             <Label htmlFor="code" className={styles.fieldLabel}>کد تأیید</Label>
             <Input
@@ -44,7 +44,7 @@ function LoginFormFields({ onEditNumber }: { onEditNumber: () => void }) {
             />
             <p className={styles.fieldHint}>کد شش‌رقمی پیامک‌شده را وارد کنید.</p>
           </div>
-          <button type="button" onClick={onEditNumber} className={styles.editNumber}>شماره را اشتباه وارد کردم</button>
+          <button type="button" onClick={onEditNumber} className={styles.editNumber}>تغییر شماره یا دریافت کد جدید</button>
         </>
       ) : (
         <div className={styles.field}>
@@ -63,7 +63,7 @@ function LoginFormFields({ onEditNumber }: { onEditNumber: () => void }) {
             autoFocus
             required
           />
-          <p id="mobile-hint" className={styles.fieldHint}>شمارهٔ موبایل ایران را با ۰۹ وارد کنید.</p>
+          <p id="mobile-hint" className={styles.fieldHint}>شمارهٔ موبایل را با ۰۹ شروع کنید.</p>
         </div>
       )}
 

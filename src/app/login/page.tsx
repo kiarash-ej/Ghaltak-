@@ -25,8 +25,8 @@ export default function LoginPage() {
         <section className={styles.authFormSide} aria-labelledby="auth-title">
           <div className={styles.authFormInner}>
             <p className={styles.authEyebrow}><i aria-hidden="true" /> خوش آمدید</p>
-            <h1 id="auth-title">فروشگاهتان از اینجا شروع می‌شود.</h1>
-            <p className={styles.authLead}>برای ورود یا ساخت حساب، شمارهٔ موبایل خود را وارد کنید. یک کد تأیید برایتان پیامک می‌شود.</p>
+            <h1 id="auth-title">ورود یا ساخت حساب</h1>
+            <p className={styles.authLead}>با شمارهٔ موبایل و کد تأیید وارد شوید. اگر اولین بار است از غلتک استفاده می‌کنید، حساب شما پس از تأیید شماره ساخته می‌شود.</p>
             <LoginForm />
             <p className={styles.legal}>اطلاعات شما مطابق <Link href="/privacy">سیاست حفظ حریم خصوصی</Link> نگهداری می‌شود.</p>
           </div>
@@ -34,9 +34,9 @@ export default function LoginPage() {
 
         <aside className={styles.authArtSide} aria-label="آشنایی با غلتک">
           <div className={styles.authArtHeader}>
-            <p>همهٔ فروشگاه، در یک جریان</p>
-            <h2>فروش را راحت‌تر دنبال کنید.</h2>
-            <span>از ثبت محصول تا پیگیری سفارش، کارهای هر روز فروشگاه کنار هم قرار می‌گیرند.</span>
+            <p>مدیریت روزانهٔ فروشگاه</p>
+            <h2>از موجودی کالا تا ارسال سفارش، یک‌جا.</h2>
+            <span>محصولات را ثبت کنید، لینک خرید بسازید و وضعیت پرداخت و ارسال هر سفارش را دنبال کنید.</span>
           </div>
           <div className={styles.authArt} aria-hidden="true">
             <div className={styles.authArtRoute} />
