@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpLeft, Check, ClipboardList, Link2, Package, Truck } from "lucide-react";
-import { FEATURE_GROUPS, HOW_IT_WORKS, SMS_USES } from "@/components/landing/content";
+import { ArrowLeft, ArrowUpLeft, Check, ChevronDown, ClipboardList, Link2, Package, Truck } from "lucide-react";
+import { CUSTOMER_STEPS, FEATURE_GROUPS, HOW_IT_WORKS, LANDING_FAQS } from "@/components/landing/content";
 import { LoginButton } from "@/components/landing/login-dialog";
 import { SiteShell } from "@/components/landing/site-shell";
 import styles from "../marketing.module.css";
 
 export const metadata: Metadata = {
-  title: "غلتک | فروش اینستاگرامی و تلگرامی، سر جای خودش",
-  description: "از لینک خرید و موجودی تا سفارش، پرداخت و ارسال؛ غلتک کارهای فروشگاه آنلاین ایرانی را در یک مسیر روشن کنار هم می‌گذارد.",
+  title: "غلتک | مدیریت سفارش و فروش فروشگاه‌های آنلاین",
+  description: "محصول و موجودی را ثبت کنید، لینک خرید بسازید و سفارش‌های فروشگاه اینستاگرامی یا تلگرامی خود را تا پرداخت و ارسال در غلتک پیگیری کنید.",
 };
 
 const stepIcons = [Package, Link2, Truck];
@@ -20,26 +20,26 @@ export default function WelcomePage() {
       <main className={styles.site}>
         <section className={styles.hero} aria-labelledby="hero-title">
           <div className={styles.heroCopy}>
-            <p className={styles.heroKicker}><span className={styles.kickerDot} /> برای فروشنده‌هایی که همه‌جا می‌فروشند</p>
-            <h1 id="hero-title">فروش اینستاگرامی و تلگرامی، <span>همه‌چیز سر جای خودش.</span></h1>
+            <p className={styles.heroKicker}><span className={styles.kickerDot} /> برای فروشگاه‌های اینستاگرامی و تلگرامی</p>
+            <h1 id="hero-title">همهٔ سفارش‌ها، <span>یک‌جا زیر نظر شما.</span></h1>
             <p className={styles.heroDescription}>
-              از گفت‌وگو با مشتری تا تحویل سفارش، کارهای پراکندهٔ فروشگاهتان را در یک جا دنبال کنید؛
-              محصول، موجودی، لینک خرید، پرداخت و ارسال.
+              محصول و موجودی را ثبت کنید، لینک خرید را برای مشتری بفرستید و سفارش‌ها را
+              تا پرداخت و ارسال در غلتک پیگیری کنید.
             </p>
             <div className={styles.heroActions}>
-              <LoginButton className={styles.primaryAction}>شروع کنید <ArrowUpLeft size={20} aria-hidden="true" /></LoginButton>
-              <Link href="#how-it-works" className={styles.textAction}>دیدن مسیر کار <ArrowLeft size={18} aria-hidden="true" /></Link>
+              <LoginButton className={styles.primaryAction}>ساخت حساب <ArrowUpLeft size={20} aria-hidden="true" /></LoginButton>
+              <Link href="#how-it-works" className={styles.textAction}>غلتک چطور کار می‌کند؟ <ArrowLeft size={18} aria-hidden="true" /></Link>
             </div>
-            <p className={styles.heroAside}>ورود و ساخت حساب با کد پیامکی؛ بدون رمز عبور</p>
+            <p className={styles.heroAside}>ورود با کد پیامکی؛ بدون نیاز به رمز عبور</p>
           </div>
 
-          <div className={styles.heroVisual} role="img" aria-label="نمایی از مسیر پیام مشتری، سفارش و آماده‌سازی ارسال">
+          <div className={styles.heroVisual} role="img" aria-label="نمونه‌ای از لینک خرید، ثبت سفارش و آماده‌سازی ارسال در غلتک">
             <div className={styles.visualGlow} />
             <div className={styles.visualTrack} aria-hidden="true"><span /></div>
             <div className={`${styles.floatingNote} ${styles.messageNote}`}>
-              <span className={styles.noteCaption}>پیام مشتری</span>
-              <span className={styles.messageText}>«این رنگ موجوده؟»</span>
-              <span className={styles.messageReply}>بله، آمادهٔ سفارشه ✨</span>
+              <span className={styles.noteCaption}>لینک خرید فروشگاه</span>
+              <span className={styles.messageText}>انتخاب رنگ و تعداد</span>
+              <span className={styles.messageReply}>سفارش بدون ساخت حساب</span>
             </div>
             <div className={styles.appPreview}>
               <div className={styles.previewTop}>
@@ -53,25 +53,25 @@ export default function WelcomePage() {
                 </div>
                 <div className={styles.orderPreview}>
                   <div className={styles.orderPreviewTop}><span>سفارش تازه</span><span className={styles.statusPill}>در انتظار پرداخت</span></div>
-                  <div className={styles.productRow}><span className={styles.productThumb}><Package size={22} aria-hidden="true" /></span><div><strong>کیف دستی، رنگ سرمه‌ای</strong><small>۱ عدد · آمادهٔ ثبت</small></div></div>
-                  <div className={styles.orderFooter}><span>از محصول تا پرداخت</span><span className={styles.orderProgress}><i /><i /><i /></span></div>
+                  <div className={styles.productRow}><span className={styles.productThumb}><Package size={22} aria-hidden="true" /></span><div><strong>کیف دستی، رنگ سرمه‌ای</strong><small>۱ عدد · ثبت‌شده از لینک خرید</small></div></div>
+                  <div className={styles.orderFooter}><span>اطلاعات سفارش ثبت شده است</span><span className={styles.orderProgress}><i /><i /><i /></span></div>
                 </div>
                 <div className={styles.previewMiniRows}><span /><span /><span /></div>
               </div>
             </div>
             <div className={`${styles.floatingNote} ${styles.shipNote}`}>
               <span className={styles.shipIcon}><Check size={17} strokeWidth={3} aria-hidden="true" /></span>
-              <span><strong>آمادهٔ ارسال</strong><small>مرحلهٔ بعد مشخص است</small></span>
+              <span><strong>آمادهٔ ارسال</strong><small>پرداخت تأیید شده است</small></span>
             </div>
-            <div className={styles.visualCaption}>یک مسیر روشن برای هر سفارش <span aria-hidden="true">↗</span></div>
+            <div className={styles.visualCaption}>نمونه‌ای از مدیریت سفارش در غلتک</div>
           </div>
         </section>
 
         <section id="how-it-works" className={styles.workflow} aria-labelledby="workflow-title">
           <div className={styles.sectionIntro}>
-            <p className={styles.sectionLabel}>جریان کار فروشگاه</p>
-            <h2 id="workflow-title">فروش را از چند پنجره، به یک مسیر بیاورید.</h2>
-            <p>هر بخش به بخش بعدی وصل است؛ از محصولی که ثبت می‌کنید تا سفارشی که به دست مشتری می‌رسد.</p>
+            <p className={styles.sectionLabel}>شروع کار با غلتک</p>
+            <h2 id="workflow-title">از ثبت محصول تا ارسال سفارش.</h2>
+            <p>سه مرحله برای نظم دادن به کارهای روزانهٔ فروشگاه؛ با اطلاعاتی که برای هر سفارش در دسترس شماست.</p>
           </div>
           <ol className={styles.steps}>
             {HOW_IT_WORKS.map((step, index) => {
@@ -87,12 +87,45 @@ export default function WelcomePage() {
           </ol>
         </section>
 
+        <section className={styles.customerSection} aria-labelledby="customer-title">
+          <div className={styles.customerCopy}>
+            <div className={styles.sectionIntro}>
+              <p className={styles.sectionLabel}>از نگاه مشتری</p>
+              <h2 id="customer-title">یک لینک برای خرید، یک صفحه برای پیگیری.</h2>
+              <p>مشتری از همان جایی که با فروشگاه شما آشنا شده، وارد لینک خرید می‌شود. نیازی به نصب برنامه یا ساخت حساب ندارد.</p>
+            </div>
+            <ol className={styles.customerSteps}>
+              {CUSTOMER_STEPS.map((step, index) => (
+                <li key={step.title}>
+                  <span className={styles.customerStepNumber} aria-hidden="true">{["۱", "۲", "۳"][index]}</span>
+                  <div><h3>{step.title}</h3><p>{step.text}</p></div>
+                </li>
+              ))}
+            </ol>
+            <Link href="/help/purchase-links" className={styles.textAction}>راهنمای ساخت لینک خرید <ArrowLeft size={18} aria-hidden="true" /></Link>
+          </div>
+          <figure className={styles.customerPreview}>
+            <div className={styles.receiptHeader}>
+              <span className={styles.receiptIcon} aria-hidden="true"><Package size={25} /></span>
+              <div><p>فروشگاه شما</p><strong>پیگیری سفارش</strong></div>
+              <span className={styles.receiptCode}>شمارهٔ ۱۰۴۲</span>
+            </div>
+            <div className={styles.receiptProduct}><span>کیف دستی سرمه‌ای</span><span>۱ عدد</span></div>
+            <ol className={styles.receiptTimeline}>
+              <li><span className={styles.receiptDone}><Check size={16} aria-hidden="true" /></span><div><strong>سفارش ثبت شد</strong><p>اطلاعات خرید و نشانی دریافت شد.</p></div></li>
+              <li><span className={styles.receiptDone}><Check size={16} aria-hidden="true" /></span><div><strong>پرداخت تأیید شد</strong><p>سفارش برای ارسال آماده می‌شود.</p></div></li>
+              <li><span className={styles.receiptCurrent}><Truck size={16} aria-hidden="true" /></span><div><strong>سفارش ارسال شد</strong><p>کد رهگیری در همین صفحه در دسترس است.</p></div></li>
+            </ol>
+            <figcaption>نمونهٔ نمایشی از مراحل پیگیری سفارش</figcaption>
+          </figure>
+        </section>
+
         <section id="features" className={styles.featureSection} aria-labelledby="features-title">
           <div className={styles.featureInner}>
             <div className={styles.sectionIntro}>
               <p className={styles.sectionLabel}>امکانات غلتک</p>
-              <h2 id="features-title">امکاناتی برای کارهای واقعی هر روز.</h2>
-              <p>آنچه همین امروز در غلتک در دسترس است، از فروش با لینک خرید تا کار تیمی.</p>
+              <h2 id="features-title">ابزارهای کار روزانهٔ فروشگاهتان.</h2>
+              <p>اطلاعات محصول، مشتری و سفارش کنار هم قرار می‌گیرند تا برای هر کار، بدانید از کجا شروع کنید.</p>
             </div>
             <div className={styles.featureGrid}>
               {FEATURE_GROUPS.map((group) => (
@@ -106,20 +139,28 @@ export default function WelcomePage() {
           </div>
         </section>
 
-        <section id="sms" className={styles.smsSection} aria-labelledby="sms-title">
-          <div className={styles.smsIntro}>
-            <p className={styles.sectionLabel}>ارتباط با مشتری</p>
-            <h2 id="sms-title">پیامک‌هایی که غلتک می‌فرستد</h2>
-            <p>فقط پیامک‌های خدماتی مربوط به حساب یا سفارش گیرنده. فروشنده در تنظیمات انتخاب می‌کند کدام پیامک‌ها برای مشتریانش ارسال شود.</p>
+        <section id="questions" className={styles.faqSection} aria-labelledby="faq-title">
+          <div className={styles.sectionIntro}>
+            <h2 id="faq-title">پیش از شروع، بیشتر بدانید.</h2>
+            <p>پاسخ به پرسش‌هایی که ممکن است دربارهٔ کار با غلتک داشته باشید.</p>
+            <Link href="/help" className={styles.textAction}>همهٔ راهنماها <ArrowLeft size={18} aria-hidden="true" /></Link>
           </div>
-          <ul className={styles.smsGrid}>
-            {SMS_USES.map((sms) => <li key={sms.kind}><strong>{sms.title}</strong><span>{sms.text}</span></li>)}
-          </ul>
+          <div className={styles.faqList}>
+            {LANDING_FAQS.map((faq) => (
+              <details key={faq.question} className={styles.faqItem}>
+                <summary>{faq.question}<ChevronDown size={19} aria-hidden="true" /></summary>
+                <p>{faq.answer}</p>
+              </details>
+            ))}
+          </div>
         </section>
 
         <section className={styles.bottomCallout} aria-labelledby="callout-title">
-          <div><p>جای همه‌چیز در فروشگاه شما پیدا می‌شود.</p><h2 id="callout-title">برای سفارش بعدی آماده‌اید؟</h2></div>
-          <LoginButton className={styles.calloutButton}>ورود یا ساخت حساب <ArrowUpLeft size={19} aria-hidden="true" /></LoginButton>
+          <div><p>با ثبت اولین محصول شروع کنید.</p><h2 id="callout-title">سفارش بعدی را با غلتک مدیریت کنید.</h2></div>
+          <div className={styles.calloutActions}>
+            <LoginButton className={styles.calloutButton}>ورود یا ساخت حساب <ArrowUpLeft size={19} aria-hidden="true" /></LoginButton>
+            <Link href="/help/getting-started" className={styles.calloutGuide}>راهنمای شروع کار</Link>
+          </div>
         </section>
       </main>
     </SiteShell>

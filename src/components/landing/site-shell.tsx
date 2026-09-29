@@ -29,9 +29,8 @@ function menuGroups(landing: string): NavGroup[] {
   ];
 }
 
-function extraLinks(landing: string): NavLink[] {
+function extraLinks(): NavLink[] {
   return [
-    { href: `${landing}#sms`, label: "پیامک‌ها" },
     { href: "/privacy", label: "حریم خصوصی" },
   ];
 }
@@ -47,7 +46,7 @@ export async function SiteShell({
   const signedIn = Boolean(await readSession());
   const landing = onLanding ? "" : "/welcome";
   const groups = menuGroups(landing);
-  const extra = extraLinks(landing);
+  const extra = extraLinks();
 
   return (
     <LoginDialogProvider signedIn={signedIn}>
@@ -87,7 +86,7 @@ export async function SiteShell({
                   <LoginButton className={styles.headerLogin}>
                     ورود
                   </LoginButton>
-                  <LoginButton className={styles.headerCta}>شروع کنید</LoginButton>
+                  <LoginButton className={styles.headerCta}>ساخت حساب</LoginButton>
                 </>
               )}
             </div>
@@ -98,7 +97,7 @@ export async function SiteShell({
 
         <footer className={styles.publicFooter}>
           <div className={styles.publicFooterInner}>
-            <p>غلتک: مدیریت فروش آنلاین برای فروشگاه‌های اینستاگرامی و تلگرامی.</p>
+            <p>غلتک؛ مدیریت سفارش، موجودی و فروش برای فروشگاه‌های آنلاین.</p>
             <ul className="flex flex-wrap gap-x-5 gap-y-2">
               <li>
                 <Link href={`${landing}#features`} className="hover:text-neutral-900">
