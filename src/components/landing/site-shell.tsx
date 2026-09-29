@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import styles from "@/app/marketing.module.css";
 import { GUIDES } from "@/app/help/guides";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { readSession } from "@/server/session";
 import { FEATURE_GROUPS } from "./content";
 import { LoginButton, LoginDialogProvider } from "./login-dialog";
@@ -52,15 +51,15 @@ export async function SiteShell({
 
   return (
     <LoginDialogProvider signedIn={signedIn}>
-      <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/95 backdrop-blur">
-          <div className="relative mx-auto flex max-w-5xl items-center gap-2 px-4 py-3">
-            <Link href="/" className="flex shrink-0 items-center gap-2">
-              <Image src="/brand/logo-symbol.png" alt="" width={32} height={32} />
-              <span className="font-bold">غلتک</span>
+      <div className={`${styles.publicShell} flex flex-1 flex-col`}>
+        <header className={styles.publicHeader}>
+          <div className={styles.publicHeaderInner}>
+            <Link href="/" className={styles.brand}>
+              <Image src="/brand/logo-symbol.png" alt="" width={42} height={42} />
+              <span>غلتک</span>
             </Link>
 
-            <nav aria-label="منوی اصلی" className="ms-4 hidden items-center gap-1 md:flex">
+            <nav aria-label="منوی اصلی" className={styles.publicNav}>
               {groups.map((g) => (
                 <NavMenu key={g.label} group={g} />
               ))}
@@ -68,27 +67,27 @@ export async function SiteShell({
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900"
+                  className={styles.publicNavLink}
                 >
                   {l.label}
                 </Link>
               ))}
             </nav>
 
-            <div className="ms-auto flex items-center gap-2">
+            <div className={styles.publicActions}>
               <nav aria-label="منوی اصلی" className="md:hidden">
                 <MobileMenu groups={groups} extra={extra} />
               </nav>
               {signedIn ? (
-                <Link href="/" className={cn(buttonVariants({ size: "sm" }))}>
+                <Link href="/" className={styles.headerCta}>
                   ورود به داشبورد
                 </Link>
               ) : (
                 <>
-                  <LoginButton className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "hidden sm:inline-flex")}>
+                  <LoginButton className={styles.headerLogin}>
                     ورود
                   </LoginButton>
-                  <LoginButton className={cn(buttonVariants({ size: "sm" }))}>شروع کنید</LoginButton>
+                  <LoginButton className={styles.headerCta}>شروع کنید</LoginButton>
                 </>
               )}
             </div>
@@ -97,8 +96,8 @@ export async function SiteShell({
 
         {children}
 
-        <footer className="border-t border-neutral-200 bg-neutral-50">
-          <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 text-sm text-neutral-600 md:flex-row md:items-center md:justify-between">
+        <footer className={styles.publicFooter}>
+          <div className={styles.publicFooterInner}>
             <p>غلتک: مدیریت فروش آنلاین برای فروشگاه‌های اینستاگرامی و تلگرامی.</p>
             <ul className="flex flex-wrap gap-x-5 gap-y-2">
               <li>
