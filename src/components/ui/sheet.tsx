@@ -60,3 +60,6 @@ export function Sheet({
     </Dialog.Root>
   );
 }
+
+/** Wrap a link or button inside a sheet so using it also closes the sheet. */
+export const SheetClose = Dialog.Close;
