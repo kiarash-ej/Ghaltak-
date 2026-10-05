@@ -81,7 +81,7 @@ export function SalesChart({ days }: { days: ChartDay[] }) {
                 y={yOf(t)}
                 textAnchor="end"
                 dominantBaseline="middle"
-                className="fill-neutral-500 text-[11px]"
+                className="fill-muted text-[11px]"
               >
                 {compact.format(t)}
               </text>
@@ -107,7 +107,7 @@ export function SalesChart({ days }: { days: ChartDay[] }) {
                     x={i === 0 ? M.left : i === days.length - 1 ? W - M.right : M.left + i * band + band / 2}
                     y={H - 8}
                     textAnchor={i === 0 ? "start" : i === days.length - 1 ? "end" : "middle"}
-                    className="fill-neutral-500 text-[11px]"
+                    className="fill-muted text-[11px]"
                   >
                     {d.label}
                   </text>
@@ -125,7 +125,7 @@ export function SalesChart({ days }: { days: ChartDay[] }) {
                   onMouseEnter={() => setActive(i)}
                   onFocus={() => setActive(i)}
                   onBlur={() => setActive(null)}
-                  className="outline-none focus-visible:stroke-neutral-400"
+                  className="outline-none focus-visible:stroke-focus"
                 />
               </g>
             );
@@ -136,29 +136,29 @@ export function SalesChart({ days }: { days: ChartDay[] }) {
           <div
             role="status"
             dir="rtl"
-            className="pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs shadow-sm"
+            className="pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-lg border border-line bg-raised px-3 py-2 text-xs shadow-sm"
             style={{
               left: `${Math.min(88, Math.max(12, ((M.left + (active + 0.5) * band) / W) * 100))}%`,
             }}
           >
-            <div className="font-medium text-neutral-900">{current.label}</div>
-            <div className="text-neutral-700">{formatToman(current.total)}</div>
-            <div className="text-neutral-500">{formatNumber(current.count)} سفارش</div>
+            <div className="font-medium text-ink">{current.label}</div>
+            <div className="text-ink-soft">{formatToman(current.total)}</div>
+            <div className="text-muted">{formatNumber(current.count)} سفارش</div>
           </div>
         )}
 
         {!hasSales && (
-          <p className="absolute inset-0 flex items-center justify-center text-sm text-neutral-500" dir="rtl">
+          <p className="absolute inset-0 flex items-center justify-center text-sm text-muted" dir="rtl">
             در این بازه فروشی نداشته‌اید.
           </p>
         )}
       </div>
 
       <details className="text-sm">
-        <summary className="cursor-pointer text-neutral-600">نمایش جدول روزانه</summary>
+        <summary className="cursor-pointer text-muted">نمایش جدول روزانه</summary>
         <div className="mt-2 max-h-64 overflow-y-auto">
           <table className="w-full">
-            <thead className="text-neutral-500">
+            <thead className="text-muted">
               <tr>
                 <th className="py-1 text-start font-medium">روز</th>
                 <th className="py-1 text-start font-medium">فروش</th>
@@ -167,7 +167,7 @@ export function SalesChart({ days }: { days: ChartDay[] }) {
             </thead>
             <tbody>
               {[...days].reverse().map((d) => (
-                <tr key={d.key} className="border-t border-neutral-100">
+                <tr key={d.key} className="border-t border-line">
                   <td className="py-1">{d.label}</td>
                   <td className="py-1">{formatToman(d.total)}</td>
                   <td className="py-1">{formatNumber(d.count)}</td>

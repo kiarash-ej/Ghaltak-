@@ -39,7 +39,7 @@ export function GatewaySettingsForm({
 
   return (
     <div className="flex max-w-lg flex-col gap-5">
-      <p className="text-sm text-neutral-600">
+      <p className="text-sm text-muted">
         اگر درگاه زرین‌پال خودتان را اینجا وصل کنید، مشتری می‌تواند از صفحهٔ سفارشش آنلاین پرداخت کند و پول
         مستقیم به حساب شما می‌رود. وقتی درگاه پرداخت را تأیید کند، سفارش خودکار «پرداخت‌شده» می‌شود.
         کارت‌به‌کارت هم مثل قبل فعال می‌ماند.
@@ -58,12 +58,12 @@ export function GatewaySettingsForm({
             onChange={(e) => setMerchantId(e.target.value)}
           />
           {current?.merchantMasked && (
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-muted">
               مرچنت‌کد ذخیره‌شده: <span dir="ltr">{current.merchantMasked}</span>. برای تغییر، کد جدید را وارد کنید.
             </p>
           )}
           {errors.merchantId && (
-            <p role="alert" className="text-sm text-red-600">
+            <p role="alert" className="text-sm text-danger">
               {errors.merchantId[0]}
             </p>
           )}
@@ -74,7 +74,7 @@ export function GatewaySettingsForm({
           حالت آزمایشی زرین‌پال (sandbox)؛ پرداخت واقعی انجام نمی‌شود
         </label>
         {fakeAllowed && (
-          <label className="flex items-center gap-2 text-sm text-amber-800">
+          <label className="flex items-center gap-2 text-sm text-warning">
             <input type="checkbox" name="fake" checked={fake} onChange={(e) => setFake(e.target.checked)} />
             درگاه آزمایشی داخلی (فقط برای تست خودکار؛ در نسخهٔ اصلی سایت نیست)
           </label>
@@ -88,22 +88,22 @@ export function GatewaySettingsForm({
           <Button type="submit" disabled={saving}>
             {saving ? "در حال ذخیره…" : "ذخیرهٔ درگاه"}
           </Button>
-          {state?.savedAt && !saving && <span className="text-sm text-green-700">ذخیره شد.</span>}
+          {state?.savedAt && !saving && <span className="text-sm text-success">ذخیره شد.</span>}
         </div>
         {state?.message && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-danger">
             {state.message}
           </p>
         )}
       </form>
 
       {current && (
-        <form action={test} className="flex flex-wrap items-center gap-3 border-t border-neutral-200 pt-4">
+        <form action={test} className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
           <Button type="submit" variant="outline" disabled={testing}>
             {testing ? "در حال آزمایش…" : "آزمایش اتصال"}
           </Button>
           {testState?.test && (
-            <span role="status" className={testState.test.ok ? "text-sm text-green-700" : "text-sm text-red-600"}>
+            <span role="status" className={testState.test.ok ? "text-sm text-success" : "text-sm text-danger"}>
               {testState.test.text}
             </span>
           )}

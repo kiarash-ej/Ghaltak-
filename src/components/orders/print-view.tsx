@@ -130,12 +130,12 @@ export function PrintView({
 
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div className="flex flex-col gap-1">
-          <Link href={backHref} className="text-sm text-neutral-500 hover:underline">
+          <Link href={backHref} className="text-sm text-muted hover:text-ink hover:underline">
             ← بازگشت
           </Link>
           <h1 className="text-2xl font-bold">برگهٔ ارسال</h1>
           {orders.length > 0 && (
-            <p className="text-sm text-neutral-600">{formatNumber(orders.length)} سفارش، هر سفارش در یک صفحه</p>
+            <p className="text-sm text-muted">{formatNumber(orders.length)} سفارش، هر سفارش در یک صفحه</p>
           )}
         </div>
         {orders.length > 0 && (
@@ -158,15 +158,16 @@ export function PrintView({
       </div>
 
       {notice && (
-        <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 print:hidden">
+        <p role="status" className="rounded-lg border border-warning/40 bg-warning-bg p-3 text-sm text-warning print:hidden">
           {notice}
         </p>
       )}
 
       {orders.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-neutral-300 p-10 text-center text-neutral-600">{empty}</p>
+        <p className="rounded-xl border border-dashed border-line-strong p-10 text-center text-muted">{empty}</p>
       ) : (
-        <div className="flex flex-col items-center gap-6 print:block">
+        // Paper stays light inside the dark dashboard: sheets on a dark desk.
+        <div data-app-theme="light" className="flex flex-col items-center gap-6 bg-transparent print:block">
           {orders.map((order) => (
             <ShippingSheet key={order.id} order={order} store={store} size={size} />
           ))}

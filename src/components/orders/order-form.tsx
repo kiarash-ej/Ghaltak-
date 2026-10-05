@@ -12,12 +12,12 @@ import type { OrderFormCustomer, OrderFormVariant } from "@/server/orders/querie
 type Line = { key: number; variantId: string; quantity: string };
 
 const selectClass =
-  "h-10 w-full rounded-lg border border-neutral-300 bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400";
+  "h-10 w-full rounded-lg border border-line-strong bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 function FieldError({ messages }: { messages?: string[] }) {
   if (!messages?.length) return null;
   return (
-    <p role="alert" className="text-sm text-red-600">
+    <p role="alert" className="text-sm text-danger">
       {messages[0]}
     </p>
   );
@@ -144,7 +144,7 @@ export function OrderForm({
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">کالاها</h2>
         {variants.length === 0 ? (
-          <p className="text-neutral-600">هیچ محصول فعالی برای فروش ندارید.</p>
+          <p className="text-muted">هیچ محصول فعالی برای فروش ندارید.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {lines.map((line, i) => {
@@ -185,10 +185,10 @@ export function OrderForm({
                       value={line.quantity}
                       onChange={(e) => updateLine(line.key, { quantity: e.target.value })}
                       aria-invalid={qtyError ? true : undefined}
-                      className={cn(qtyError && "border-red-500")}
+                      className={cn(qtyError && "border-danger")}
                     />
                   </div>
-                  <div className="w-36 pb-2 text-sm text-neutral-600">
+                  <div className="w-36 pb-2 text-sm text-muted">
                     {variant ? formatToman(variant.price * (Number(line.quantity) || 0)) : "—"}
                   </div>
                   <Button
@@ -202,7 +202,7 @@ export function OrderForm({
                     حذف
                   </Button>
                   {qtyError && (
-                    <p role="alert" className="w-full text-sm text-red-600">
+                    <p role="alert" className="w-full text-sm text-danger">
                       {qtyError[0]}
                     </p>
                   )}
@@ -236,18 +236,18 @@ export function OrderForm({
           maxLength={500}
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 bg-transparent p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+          className="w-full rounded-lg border border-line-strong bg-transparent p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         />
         <FieldError messages={errors.shippingAddress} />
       </section>
 
-      <div className="flex flex-wrap items-center gap-4 border-t border-neutral-200 pt-6">
+      <div className="flex flex-wrap items-center gap-4 border-t border-line pt-6">
         <div className="text-lg font-semibold">جمع: {formatToman(previewTotal)}</div>
         <Button type="submit" disabled={pending || variants.length === 0}>
           {pending ? "در حال ثبت…" : "ثبت سفارش"}
         </Button>
         {state?.message && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-danger">
             {state.message}
           </p>
         )}

@@ -66,7 +66,7 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
           role="status"
           className={cn(
             "rounded-lg border p-3 text-sm",
-            payment.ok ? "border-green-200 bg-green-50 text-green-900" : "border-amber-200 bg-amber-50 text-amber-900",
+            payment.ok ? "border-success/30 bg-success-bg text-success" : "border-warning/30 bg-warning-bg text-warning",
           )}
         >
           {payment.text}
@@ -80,12 +80,12 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
             <Badge variant={state.variant}>{state.text}</Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col gap-2 text-sm text-neutral-700">
+        <CardContent className="flex flex-col gap-2 text-sm text-ink-soft">
           {effective.periodEnd && effective.state !== "PAST_DUE" && (
             <p>اعتبار تا {formatDate(effective.periodEnd)}</p>
           )}
           {effective.state === "PAST_DUE" && effective.graceEndsAt && (
-            <p className="text-red-700">
+            <p className="text-danger">
               دورهٔ اشتراک شما {formatDate(effective.periodEnd!)} تمام شد. اگر تا {formatDate(effective.graceEndsAt)} تمدید
               نکنید، فروشگاه به محدودیت‌های پلن رایگان برمی‌گردد.
             </p>
@@ -95,8 +95,8 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
               از {formatDate(effective.nextPlanFrom)} پلن شما {planName(effective.nextPlan)} می‌شود.
             </p>
           )}
-          {!enabled && <p className="text-neutral-500">پرداخت اشتراک هنوز فعال نشده است؛ فعلاً هیچ محدودیتی ندارید.</p>}
-          <p className="text-neutral-500">سفارش گرفتن در هیچ پلنی محدود یا قطع نمی‌شود.</p>
+          {!enabled && <p className="text-muted">پرداخت اشتراک هنوز فعال نشده است؛ فعلاً هیچ محدودیتی ندارید.</p>}
+          <p className="text-muted">سفارش گرفتن در هیچ پلنی محدود یا قطع نمی‌شود.</p>
         </CardContent>
       </Card>
 
@@ -121,7 +121,7 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
             const plan = PLANS[id];
             const current = effective.limitsPlan === id && effective.state !== "TRIAL";
             return (
-              <Card key={id} className={cn(current && "border-neutral-900")}>
+              <Card key={id} className={cn(current && "border-brand-2/60")}>
                 <CardHeader>
                   <CardTitle as="h3" className="flex items-center justify-between gap-2">
                     {plan.name}
@@ -132,7 +132,7 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
                   <p className="text-base font-semibold">
                     {plan.monthlyPrice === 0 ? "رایگان" : `${formatToman(plan.monthlyPrice)} در ماه`}
                   </p>
-                  <ul className="flex flex-col gap-1 text-neutral-700">
+                  <ul className="flex flex-col gap-1 text-ink-soft">
                     <li>{limitText(plan.limits.products)} محصول فعال</li>
                     <li>{limitText(plan.limits.sms)} پیامک سفارش در ماه</li>
                     <li>{plan.limits.members === 1 ? "فقط خودتان" : `${limitText(plan.limits.members)} نفر در تیم`}</li>
@@ -155,7 +155,7 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
             );
           })}
         </div>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted">
           دورهٔ آزمایشی ۱۴ روزه است و امکانات پلن پایه را دارد. اگر پیش از پایان دوره تمدید کنید، چیزی از دست
           نمی‌دهید: ماه جدید از پایان دورهٔ فعلی شروع می‌شود. تغییر پلن هم از همان موقع اعمال می‌شود.
         </p>
@@ -167,15 +167,15 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
         </CardHeader>
         <CardContent>
           {invoices.length === 0 ? (
-            <p className="text-sm text-neutral-500">هنوز فاکتوری ندارید.</p>
+            <p className="text-sm text-muted">هنوز فاکتوری ندارید.</p>
           ) : (
-            <ul className="flex flex-col divide-y divide-neutral-200 text-sm">
+            <ul className="flex flex-col divide-y divide-line text-sm">
               {invoices.map((inv) => (
                 <li key={inv.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                   <span>
                     پلن {planName(inv.plan)} · {formatToman(inv.amount)}
                   </span>
-                  <span className="text-neutral-600">
+                  <span className="text-muted">
                     {inv.status === "PAID"
                       ? `${formatDate(inv.periodStart)} تا ${formatDate(inv.periodEnd)}`
                       : formatDate(inv.createdAt)}
@@ -197,10 +197,10 @@ function UsageItem({ label, quota }: { label: string; quota: Quota }) {
   const full = quota.limit !== null && quota.used >= quota.limit;
   return (
     <div className="flex flex-col gap-1">
-      <dt className="text-sm text-neutral-600">{label}</dt>
-      <dd className={cn("text-lg font-semibold", full && "text-red-700")}>
+      <dt className="text-sm text-muted">{label}</dt>
+      <dd className={cn("text-lg font-semibold", full && "text-danger")}>
         {formatNumber(quota.used)}
-        {quota.limit !== null && <span className="text-sm font-normal text-neutral-500"> از {formatNumber(quota.limit)}</span>}
+        {quota.limit !== null && <span className="text-sm font-normal text-muted"> از {formatNumber(quota.limit)}</span>}
       </dd>
     </div>
   );

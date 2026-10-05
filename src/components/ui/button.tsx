@@ -13,6 +13,8 @@ const buttonVariants = cva(
         outline: "border border-line-strong bg-transparent text-ink hover:bg-raised-2",
         ghost: "text-ink hover:bg-raised-2",
         destructive: "bg-destructive text-white hover:bg-destructive-hover",
+        /** Cancel / return: clearly not the main action, but still a warning. */
+        "danger-outline": "border border-danger/50 bg-transparent text-danger hover:bg-danger-bg",
       },
       size: {
         default: "h-10 px-4",

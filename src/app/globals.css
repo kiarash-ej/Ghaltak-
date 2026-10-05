@@ -209,13 +209,23 @@ body {
   font-family: var(--font-sans);
 }
 
-[data-app-theme] {
-  background: var(--gk-canvas);
-  color: var(--gk-ink);
+/* In the base layer so utilities (bg-transparent, font-bold…) still win. */
+@layer base {
+  [data-app-theme] {
+    background: var(--gk-canvas);
+    color: var(--gk-ink);
+  }
+  .gk-btn {
+    font-weight: var(--gk-button-weight);
+  }
 }
 
-.gk-btn {
-  font-weight: var(--gk-button-weight);
+/* On paper the dashboard is white, whatever the screen theme. */
+@media print {
+  [data-app-theme="dark"] {
+    background: #ffffff;
+    color: #171717;
+  }
 }
 
 /* Count-up numbers (src/components/ui/count-up.tsx): with JavaScript on, a

@@ -18,12 +18,12 @@ function Tile({
   attention?: boolean;
 }) {
   return (
-    <Link href={href} className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400">
-      <Card className={cn("h-full group-hover:bg-neutral-50", attention && "border-amber-300 bg-amber-50 group-hover:bg-amber-100")}>
+    <Link href={href} className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+      <Card className={cn("h-full group-hover:bg-raised-2", attention && "border-warning/40 bg-warning-bg group-hover:bg-warning-bg")}>
         <CardContent className="flex flex-col gap-1 pt-6">
-          <div className="text-sm text-neutral-500">{label}</div>
+          <div className="text-sm text-muted">{label}</div>
           <div className="text-2xl font-semibold">{formatNumber(value)}</div>
-          <div className="text-sm text-neutral-600">{note}</div>
+          <div className="text-sm text-muted">{note}</div>
         </CardContent>
       </Card>
     </Link>

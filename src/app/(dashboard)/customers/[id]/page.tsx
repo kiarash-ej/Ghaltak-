@@ -4,15 +4,15 @@ import { notFound } from "next/navigation";
 import { CustomerEditForm } from "@/components/customers/customer-edit-form";
 import { TagBadge } from "@/components/customers/tag-badge";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatDateTime, formatNumber, formatToman } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { requireSeller } from "@/server/auth";
 import { setCustomerTagAction } from "@/server/customers/actions";
 import { PROFILE_ORDER_LIMIT, getCustomerProfile } from "@/server/customers/queries";
 import { CUSTOMER_TAGS, TAG_LABELS, suggestTag } from "@/server/customers/stats";
 import { orderCode } from "@/server/orders/queries";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "مشتری | غلتک" };
 
@@ -42,37 +42,33 @@ export default async function CustomerPage(props: PageProps<"/customers/[id]">) 
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-bold">{customer.name ?? "بدون نام"}</h1>
-          <TagBadge tag={customer.tag} />
-        </div>
-        <Link href="/customers" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
-          بازگشت به مشتریان
-        </Link>
-      </div>
+      <PageHeader
+        back={{ href: "/customers", label: "مشتریان" }}
+        title={customer.name ?? "بدون نام"}
+        badge={<TagBadge tag={customer.tag} />}
+      />
 
-      <div className="flex flex-col gap-1 text-sm text-neutral-700">
+      <div className="flex flex-col gap-1 text-sm text-ink-soft">
         <a href={`tel:${customer.phone}`} dir="ltr" className="self-start underline">
           {customer.phone}
         </a>
         <p>{customer.address ?? "آدرسی ثبت نشده."}</p>
-        <p className="text-neutral-500">مشتری شما از {formatDate(customer.createdAt)}</p>
+        <p className="text-muted">مشتری شما از {formatDate(customer.createdAt)}</p>
       </div>
 
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {statCards.map((s) => (
-          <div key={s.label} className="rounded-xl border border-neutral-200 p-3">
-            <dt className="text-xs text-neutral-500">{s.label}</dt>
+          <div key={s.label} className="rounded-xl border border-line p-3">
+            <dt className="text-xs text-muted">{s.label}</dt>
             <dd className="mt-1 font-semibold">{s.value}</dd>
           </div>
         ))}
       </dl>
-      <p className="-mt-3 text-xs text-neutral-500">
+      <p className="-mt-3 text-xs text-muted">
         «خرید» یعنی سفارش پرداخت‌شده‌ای که لغو یا مرجوع نشده است.
       </p>
 
-      <section className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-sm">
+      <section className="flex flex-col gap-3 rounded-xl border border-line bg-raised-2 p-3 text-sm">
         <form action={setCustomerTagAction.bind(null, customer.id)} className="flex flex-wrap items-center gap-2">
           <span className="font-medium">برچسب:</span>
           {CUSTOMER_TAGS.map((t) => (
@@ -90,9 +86,9 @@ export default async function CustomerPage(props: PageProps<"/customers/[id]">) 
             </Button>
           ))}
         </form>
-        <p className="text-neutral-700">
+        <p className="text-ink-soft">
           پیشنهاد: <strong>{TAG_LABELS[suggestion.tag]}</strong>. {suggestion.reason}
-          {suggestion.tag === customer.tag && <span className="text-neutral-500"> (برچسب فعلی هم همین است)</span>}
+          {suggestion.tag === customer.tag && <span className="text-muted"> (برچسب فعلی هم همین است)</span>}
         </p>
       </section>
 
@@ -104,26 +100,26 @@ export default async function CustomerPage(props: PageProps<"/customers/[id]">) 
         </CardHeader>
         <CardContent>
           {orders.length === 0 ? (
-            <p className="text-sm text-neutral-600">این مشتری هنوز سفارشی ندارد.</p>
+            <p className="text-sm text-muted">این مشتری هنوز سفارشی ندارد.</p>
           ) : (
             <>
               {totalOrders > orders.length && (
-                <p className="mb-2 text-xs text-neutral-500">
+                <p className="mb-2 text-xs text-muted">
                   فقط {formatNumber(PROFILE_ORDER_LIMIT)} سفارش آخر را می‌بینید.
                 </p>
               )}
-              <ul className="flex flex-col divide-y divide-neutral-200">
+              <ul className="flex flex-col divide-y divide-line">
                 {orders.map((o) => (
                   <li key={o.id}>
                     <Link
                       href={`/orders/${o.id}`}
-                      className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm hover:bg-neutral-50"
+                      className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm hover:bg-raised-2"
                     >
                       <span className="flex items-center gap-2">
                         <span dir="ltr" className="font-mono">{orderCode(o.id)}</span>
                         <OrderStatusBadge status={o.status} />
                       </span>
-                      <span className="text-neutral-600">
+                      <span className="text-muted">
                         {formatDateTime(o.createdAt)} · {formatNumber(o._count.items)} قلم ·{" "}
                         {formatToman(o.totalPrice)}
                         {o.source === "PURCHASE_LINK" && " · لینک خرید"}

@@ -15,7 +15,7 @@ export default async function DashboardHome() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">خوش آمدید، {seller.name}</h1>
-        <p className="text-neutral-600">
+        <p className="text-muted">
           محصولات، مشتری‌ها و سفارش‌هایتان را از منوی کناری مدیریت کنید.
         </p>
       </div>
@@ -26,9 +26,9 @@ export default async function DashboardHome() {
 
       <TodaySummary summary={summary} showMoney={isOwner} />
 
-      <p className="text-sm text-neutral-600">
+      <p className="text-sm text-muted">
         سؤالی دارید؟{" "}
-        <Link href="/help" className="font-medium text-neutral-900 underline underline-offset-4">
+        <Link href="/help" className="font-medium text-ink underline underline-offset-4">
           راهنمای غلتک
         </Link>{" "}
         را ببینید.

@@ -4,6 +4,7 @@ import { ProductForm } from "@/components/catalog/product-form";
 import { requireSeller } from "@/server/auth";
 import { updateProductAction } from "@/server/catalog/actions";
 import { getProduct, listCategories } from "@/server/catalog/queries";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "ویرایش محصول | غلتک" };
 
@@ -22,7 +23,7 @@ export default async function EditProductPage(
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">ویرایش محصول</h1>
+      <PageHeader back={{ href: "/products", label: "محصولات" }} title="ویرایش محصول" description={product.name} />
       <ProductForm
         action={updateProductAction.bind(null, product.id)}
         categories={categories}

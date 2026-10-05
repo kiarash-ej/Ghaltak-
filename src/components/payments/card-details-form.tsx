@@ -10,7 +10,7 @@ import type { CardDetailsForSettings } from "@/server/payments/card-store";
 function FieldError({ messages }: { messages?: string[] }) {
   if (!messages?.length) return null;
   return (
-    <p role="alert" className="text-sm text-red-600">
+    <p role="alert" className="text-sm text-danger">
       {messages[0]}
     </p>
   );
@@ -47,7 +47,7 @@ export function CardDetailsForm({
 
   return (
     <form action={action} className="flex max-w-lg flex-col gap-5">
-      <p className="text-sm text-neutral-600">
+      <p className="text-sm text-muted">
         این اطلاعات را فقط مشتری‌ای می‌بیند که باید مبلغ سفارشش را کارت‌به‌کارت کند، آن هم روی صفحهٔ همان سفارش.
         شمارهٔ کارت و شبا رمزشده ذخیره می‌شوند و بعد از ذخیره، اینجا فقط چهار رقم آخرشان را می‌بینید.
       </p>
@@ -66,7 +66,7 @@ export function CardDetailsForm({
           onChange={(e) => setCardNumber(e.target.value)}
         />
         {current.cardMasked && (
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted">
             کارت ذخیره‌شده: <span dir="ltr">{current.cardMasked}</span>. برای تغییر، شمارهٔ جدید را وارد کنید.
           </p>
         )}
@@ -93,7 +93,7 @@ export function CardDetailsForm({
           value={holder}
           onChange={(e) => setHolder(e.target.value)}
         />
-        <p className="text-xs text-neutral-500">همان نامی که مشتری موقع کارت‌به‌کارت در اپ بانک می‌بیند.</p>
+        <p className="text-xs text-muted">همان نامی که مشتری موقع کارت‌به‌کارت در اپ بانک می‌بیند.</p>
         <FieldError messages={errors.cardHolder} />
       </div>
 
@@ -127,10 +127,10 @@ export function CardDetailsForm({
         <Button type="submit" disabled={pending}>
           {pending ? "در حال ذخیره…" : "ذخیرهٔ اطلاعات کارت"}
         </Button>
-        {state?.savedAt && !pending && <span className="text-sm text-green-700">ذخیره شد.</span>}
+        {state?.savedAt && !pending && <span className="text-sm text-success">ذخیره شد.</span>}
       </div>
       {state?.message && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger">
           {state.message}
         </p>
       )}

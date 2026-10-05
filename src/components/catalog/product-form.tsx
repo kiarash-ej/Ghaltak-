@@ -60,7 +60,7 @@ const emptyRow = (key: number): VariantRow => ({
 function FieldError({ messages }: { messages?: string[] }) {
   if (!messages?.length) return null;
   return (
-    <p role="alert" className="text-sm text-red-600">
+    <p role="alert" className="text-sm text-danger">
       {messages.join(" ")}
     </p>
   );
@@ -129,7 +129,7 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
   return (
     <form action={submit} className="flex max-w-3xl flex-col gap-6">
       {state?.message && (
-        <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+        <p role="alert" className="rounded-lg bg-danger-bg p-3 text-sm text-danger">
           {state.message}
         </p>
       )}
@@ -165,7 +165,7 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
                 required
               />
               {parsedPrice !== null && parsedPrice > 0 && (
-                <p className="text-xs text-neutral-500">{formatToman(parsedPrice)}</p>
+                <p className="text-xs text-muted">{formatToman(parsedPrice)}</p>
               )}
               <FieldError messages={errors?.price} />
             </div>
@@ -227,7 +227,7 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
             <img
               src={shownImage}
               alt="پیش‌نمایش تصویر محصول"
-              className="size-40 rounded-lg border border-neutral-200 object-cover"
+              className="size-40 rounded-lg border border-line object-cover"
             />
           )}
           <Input
@@ -237,7 +237,7 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
             aria-label="انتخاب تصویر محصول"
             className="h-auto py-2"
           />
-          {imageBusy && <p className="text-xs text-neutral-500">در حال کوچک‌کردن تصویر…</p>}
+          {imageBusy && <p className="text-xs text-muted">در حال کوچک‌کردن تصویر…</p>}
           {initial?.imageUrl && !imageFile && (
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -260,12 +260,12 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {initial && (
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-muted">
               موجودی تنوع‌های فعلی را اینجا نمی‌شود تغییر داد تا سابقهٔ همهٔ تغییرها ثبت بماند.
               {inventoryHref && (
                 <>
                   {" "}
-                  <Link href={inventoryHref} className="text-neutral-900 underline">
+                  <Link href={inventoryHref} className="text-ink underline">
                     تغییر موجودی در صفحهٔ موجودی
                   </Link>
                 </>
@@ -277,12 +277,12 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
           {rows.map((row, i) => (
             <div
               key={row.key}
-              className="grid grid-cols-2 gap-2 rounded-lg border border-neutral-200 p-3 md:grid-cols-[1fr_1fr_1fr_8rem_auto] md:items-start"
+              className="grid grid-cols-2 gap-2 rounded-lg border border-line p-3 md:grid-cols-[1fr_1fr_1fr_8rem_auto] md:items-start"
             >
               <input type="hidden" name="variantId" value={row.id} />
 
               <div className="flex flex-col gap-1">
-                <Label htmlFor={`color-${row.key}`} className="text-xs text-neutral-500">
+                <Label htmlFor={`color-${row.key}`} className="text-xs text-muted">
                   رنگ
                 </Label>
                 <Input
@@ -295,7 +295,7 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
               </div>
 
               <div className="flex flex-col gap-1">
-                <Label htmlFor={`size-${row.key}`} className="text-xs text-neutral-500">
+                <Label htmlFor={`size-${row.key}`} className="text-xs text-muted">
                   سایز
                 </Label>
                 <Input
@@ -307,7 +307,7 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
               </div>
 
               <div className="flex flex-col gap-1">
-                <Label htmlFor={`sku-${row.key}`} className="text-xs text-neutral-500">
+                <Label htmlFor={`sku-${row.key}`} className="text-xs text-muted">
                   کد کالا (اختیاری)
                 </Label>
                 <Input
@@ -321,7 +321,7 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
               </div>
 
               <div className="flex flex-col gap-1">
-                <Label htmlFor={`stock-${row.key}`} className="text-xs text-neutral-500">
+                <Label htmlFor={`stock-${row.key}`} className="text-xs text-muted">
                   موجودی
                 </Label>
                 {row.savedStock !== null ? (

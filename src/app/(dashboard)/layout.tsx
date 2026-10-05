@@ -30,7 +30,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/">) {
   const canSwitchStore = storeCount > 1;
 
   return (
-    <div data-app-theme="dark" className="flex min-h-dvh flex-1 flex-col md:flex-row print:block">
+    <div data-app-theme="dark" className="flex min-h-dvh flex-1 flex-col overflow-x-clip md:flex-row print:block">
       <JsMarker />
       <Sidebar storeName={seller.name} canSwitchStore={canSwitchStore} settingsHref={settingsHref} badges={badges} />
       <MobileTopBar

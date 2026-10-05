@@ -13,6 +13,9 @@ import {
   type InventoryFilter,
   type InventorySort,
 } from "@/server/catalog/inventory-queries";
+import { PageHeader } from "@/components/ui/page-header";
+import { CATALOG_TABS } from "@/components/catalog/catalog-tabs";
+import { NavTabs } from "@/components/ui/nav-tabs";
 
 export const metadata: Metadata = { title: "موجودی | غلتک" };
 
@@ -77,17 +80,16 @@ export default async function InventoryPage(props: PageProps<"/inventory">) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">موجودی</h1>
-        <p className="text-sm text-neutral-600">
-          «نیاز به شارژ» یعنی تنوع‌هایی از محصولات فعال که موجودی‌شان به حد هشدار رسیده یا از آن کمتر شده است.
-        </p>
-      </div>
+      <PageHeader
+        title="محصولات و موجودی"
+        description="«نیاز به شارژ» یعنی تنوع‌هایی از محصولات فعال که موجودی‌شان به حد هشدار رسیده یا از آن کمتر شده است."
+      />
+      <NavTabs label="محصولات یا موجودی" tabs={CATALOG_TABS} />
 
       {product && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="rounded-full bg-neutral-100 px-3 py-1">فقط تنوع‌های «{product.name}»</span>
-          <Link href="/inventory" className="text-neutral-600 underline">
+          <span className="rounded-full bg-raised-2 px-3 py-1">فقط تنوع‌های «{product.name}»</span>
+          <Link href="/inventory" className="text-muted underline">
             نمایش همهٔ محصولات
           </Link>
         </div>
@@ -102,8 +104,8 @@ export default async function InventoryPage(props: PageProps<"/inventory">) {
             className={cn(
               "rounded-full border px-3 py-1.5 text-sm",
               filter === t.value
-                ? "border-neutral-900 bg-neutral-900 text-white"
-                : "border-neutral-300 hover:bg-neutral-100",
+                ? "border-transparent bg-action"
+                : "border-line-strong hover:bg-raised-2",
             )}
           >
             {t.label} ({formatNumber(t.count)})
@@ -125,7 +127,7 @@ export default async function InventoryPage(props: PageProps<"/inventory">) {
           name="sort"
           defaultValue={sort}
           aria-label="مرتب‌سازی"
-          className="h-10 rounded-lg border border-neutral-300 bg-transparent px-3 text-sm"
+          className="h-10 rounded-lg border border-line-strong bg-transparent px-3 text-sm"
         >
           {SORTS.map((s) => (
             <option key={s.value} value={s.value}>
@@ -139,7 +141,7 @@ export default async function InventoryPage(props: PageProps<"/inventory">) {
       </form>
 
       {items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-300 p-10 text-center text-neutral-600">
+        <div className="rounded-xl border border-dashed border-line-strong p-10 text-center text-muted">
           {summary.total === 0 ? (
             <div className="flex flex-col items-center gap-3">
               <p>هنوز محصولی ثبت نکرده‌اید.</p>
@@ -155,7 +157,7 @@ export default async function InventoryPage(props: PageProps<"/inventory">) {
         </div>
       ) : (
         <>
-          <p className="text-sm text-neutral-500">{formatNumber(total)} تنوع</p>
+          <p className="text-sm text-muted">{formatNumber(total)} تنوع</p>
           <ul className="flex flex-col gap-3">
             {items.map((row) => (
               <InventoryRow key={row.variantId} row={row} />
@@ -174,7 +176,7 @@ export default async function InventoryPage(props: PageProps<"/inventory">) {
               ) : (
                 <span />
               )}
-              <span className="text-sm text-neutral-600">
+              <span className="text-sm text-muted">
                 صفحهٔ {formatNumber(page)} از {formatNumber(pageCount)}
               </span>
               {page < pageCount ? (

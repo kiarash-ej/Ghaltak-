@@ -24,11 +24,11 @@ export function SmsSettingsForm({
   const [state, action, pending] = useActionState(save, undefined);
   return (
     <form action={action} className="flex max-w-lg flex-col gap-4">
-      <p className="text-sm text-neutral-600">
+      <p className="text-sm text-muted">
         پیامک‌ها خودکار به موبایل مشتری می‌روند و هر کدام برای هر سفارش حداکثر یک بار فرستاده می‌شود.
       </p>
       {quotaReached && (
-        <p role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+        <p role="alert" className="rounded-lg bg-warning-bg p-3 text-sm text-warning">
           سهمیهٔ پیامک پلن شما برای این ماه تمام شده و فعلاً برای مشتری‌ها پیامکی فرستاده نمی‌شود. ثبت سفارش مثل
           قبل ادامه دارد.
         </p>
@@ -38,7 +38,7 @@ export function SmsSettingsForm({
           <input type="checkbox" name={row.name} defaultChecked={initial[row.name]} className="mt-1" />
           <span>
             <span className="font-medium">{row.label}</span>
-            <span className="block text-xs text-neutral-500">{row.hint}</span>
+            <span className="block text-xs text-muted">{row.hint}</span>
           </span>
         </label>
       ))}
@@ -46,7 +46,7 @@ export function SmsSettingsForm({
         <Button type="submit" disabled={pending}>
           {pending ? "در حال ذخیره…" : "ذخیرهٔ تنظیمات پیامک"}
         </Button>
-        {state?.savedAt && !pending && <span className="text-sm text-green-700">ذخیره شد.</span>}
+        {state?.savedAt && !pending && <span className="text-sm text-success">ذخیره شد.</span>}
       </div>
     </form>
   );

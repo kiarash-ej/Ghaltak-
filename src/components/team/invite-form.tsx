@@ -25,12 +25,12 @@ export function InviteForm({
         </Button>
       </div>
       {state?.error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger">
           {state.error}
         </p>
       )}
       {state?.ok && (
-        <p role="status" className="text-sm text-green-700">
+        <p role="status" className="text-sm text-success">
           همکار اضافه شد و پیامک دعوت برایش فرستاده شد.
         </p>
       )}

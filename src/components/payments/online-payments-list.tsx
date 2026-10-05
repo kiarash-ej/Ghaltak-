@@ -41,7 +41,7 @@ function reviewNote(a: OnlineAttemptView): string | null {
 
 export function OnlinePaymentsList({ attempts }: { attempts: OnlineAttemptView[] }) {
   return (
-    <ul className="flex flex-col divide-y divide-neutral-100 text-sm">
+    <ul className="flex flex-col divide-y divide-line text-sm">
       {attempts.map((a) => {
         const note = reviewNote(a);
         return (
@@ -49,10 +49,10 @@ export function OnlinePaymentsList({ attempts }: { attempts: OnlineAttemptView[]
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={STATUS[a.status].variant}>{STATUS[a.status].text}</Badge>
               <span>{formatToman(a.amount)}</span>
-              <span className="text-neutral-500">· {formatDateTime(a.verifiedAt ?? a.createdAt)}</span>
+              <span className="text-muted">· {formatDateTime(a.verifiedAt ?? a.createdAt)}</span>
             </div>
             {a.refId && (
-              <div className="text-neutral-600">
+              <div className="text-muted">
                 کد پیگیری درگاه: <span dir="ltr" className="font-mono">{a.refId}</span>
                 {a.cardPanMasked && (
                   <>
@@ -62,10 +62,10 @@ export function OnlinePaymentsList({ attempts }: { attempts: OnlineAttemptView[]
               </div>
             )}
             {a.status === "FAILED" && a.failureReason === "AMOUNT_MISMATCH" && (
-              <div className="text-red-700">مبلغی که درگاه گزارش داد با مبلغ ثبت‌شده یکی نبود؛ پرداخت تأیید نشد.</div>
+              <div className="text-danger">مبلغی که درگاه گزارش داد با مبلغ ثبت‌شده یکی نبود؛ پرداخت تأیید نشد.</div>
             )}
             {note && (
-              <p role="alert" className="rounded-lg bg-red-50 p-2 text-red-800">
+              <p role="alert" className="rounded-lg bg-danger-bg p-2 text-danger">
                 {note}
               </p>
             )}

@@ -18,7 +18,7 @@ export function PurchaseLinkForm({ products }: { products: { id: string; name: s
   const errors = state?.errors ?? {};
 
   if (products.length === 0) {
-    return <p className="text-neutral-600">برای ساختن لینک خرید، اول دست‌کم یک محصول فعال اضافه کنید.</p>;
+    return <p className="text-muted">برای ساختن لینک خرید، اول دست‌کم یک محصول فعال اضافه کنید.</p>;
   }
 
   return (
@@ -26,12 +26,12 @@ export function PurchaseLinkForm({ products }: { products: { id: string; name: s
       <div className="flex max-w-md flex-col gap-2">
         <Label htmlFor="title">عنوان (اختیاری؛ مشتری آن را می‌بیند)</Label>
         <Input id="title" name="title" maxLength={80} placeholder="مثلاً فروش ویژهٔ پاییز" />
-        {errors.title && <p className="text-sm text-red-600">{errors.title[0]}</p>}
+        {errors.title && <p className="text-sm text-danger">{errors.title[0]}</p>}
       </div>
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-sm font-medium">محصولات این لینک</legend>
-        <div className="grid max-h-64 gap-2 overflow-y-auto rounded-lg border border-neutral-200 p-3 sm:grid-cols-2">
+        <div className="grid max-h-64 gap-2 overflow-y-auto rounded-lg border border-line p-3 sm:grid-cols-2">
           {products.map((p) => (
             <label key={p.id} className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="productId" value={p.id} className="size-4" />
@@ -40,7 +40,7 @@ export function PurchaseLinkForm({ products }: { products: { id: string; name: s
           ))}
         </div>
         {errors.productIds && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-danger">
             {errors.productIds[0]}
           </p>
         )}
@@ -52,11 +52,11 @@ export function PurchaseLinkForm({ products }: { products: { id: string; name: s
         </Button>
         {state?.createdToken && (
           <>
-            <span className="text-sm text-green-700">لینک ساخته شد.</span>
+            <span className="text-sm text-success">لینک ساخته شد.</span>
             <CopyLinkButton path={`/buy/${state.createdToken}`} />
           </>
         )}
-        {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
+        {state?.message && <p className="text-sm text-danger">{state.message}</p>}
       </div>
     </form>
   );

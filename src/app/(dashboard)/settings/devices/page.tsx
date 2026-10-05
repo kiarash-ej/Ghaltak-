@@ -27,7 +27,7 @@ export default async function DevicesPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <ul className="flex flex-col divide-y divide-neutral-200">
+        <ul className="flex flex-col divide-y divide-line">
           {sessions.map((s) => (
             <li key={s.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-col gap-1">
@@ -35,7 +35,7 @@ export default async function DevicesPage() {
                   {deviceLabel(s.userAgent)}
                   {s.id === me.sessionId && <Badge variant="success">همین دستگاه</Badge>}
                 </div>
-                <div className="text-sm text-neutral-600">
+                <div className="text-sm text-muted">
                   ورود: {formatDateTime(s.createdAt)} · آخرین فعالیت: {formatDateTime(s.lastSeenAt)}
                 </div>
               </div>

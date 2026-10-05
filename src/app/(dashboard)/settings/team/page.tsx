@@ -31,7 +31,7 @@ export default async function TeamSettingsPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <InviteForm action={inviteMemberAction} disabled={full} />
-          <p className="text-sm text-neutral-600">
+          <p className="text-sm text-muted">
             {limit === null ? `${formatNumber(used)} نفر در تیم` : `${formatNumber(used)} نفر از ${formatNumber(limit)} نفر مجاز در پلن شما`}
             {full && " · برای افزودن همکار بیشتر، پلن را از «اشتراک» ارتقا دهید."}
           </p>
@@ -43,7 +43,7 @@ export default async function TeamSettingsPage() {
           <CardTitle>تیم فروشگاه</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="flex flex-col divide-y divide-neutral-200">
+          <ul className="flex flex-col divide-y divide-line">
             {members.map((m) => (
               <li key={m.userId} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-col gap-1">
@@ -52,9 +52,9 @@ export default async function TeamSettingsPage() {
                       {m.mobile}
                     </span>
                     <Badge variant={m.role === "OWNER" ? "success" : "neutral"}>{m.role === "OWNER" ? "مالک" : "اپراتور"}</Badge>
-                    {m.userId === owner.userId && <span className="text-xs text-neutral-500">(شما)</span>}
+                    {m.userId === owner.userId && <span className="text-xs text-muted">(شما)</span>}
                   </div>
-                  <div className="text-sm text-neutral-600">
+                  <div className="text-sm text-muted">
                     از {formatDate(m.joinedAt)} در تیم · {formatNumber(m.devices)} دستگاه فعال
                   </div>
                 </div>

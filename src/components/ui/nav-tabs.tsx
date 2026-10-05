@@ -30,7 +30,7 @@ export function NavTabs({ tabs, label, className }: { tabs: NavTab[]; label: str
   }, [active]);
 
   return (
-    <nav aria-label={label} className={cn("max-w-full overflow-x-auto", className)}>
+    <nav aria-label={label} className={cn("relative max-w-full overflow-x-auto", className)}>
       <div ref={list} className="relative flex w-max gap-1 rounded-xl border border-line bg-sidebar p-1">
         {box && (
           <span

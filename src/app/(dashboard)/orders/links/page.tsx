@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { CopyLinkButton } from "@/components/orders/copy-link-button";
 import { FUNNEL_NOTE, LinkFunnelStats } from "@/components/orders/link-funnel";
 import { PurchaseLinkForm } from "@/components/orders/purchase-link-form";
@@ -11,6 +10,7 @@ import { requireSeller } from "@/server/auth";
 import { setPurchaseLinkActiveAction } from "@/server/orders/link-actions";
 import { listLinkableProducts, listPurchaseLinks } from "@/server/orders/purchase-links";
 import { getLinkFunnel } from "@/server/reports/link-funnel";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "لینک‌های خرید | غلتک" };
 
@@ -26,16 +26,10 @@ export default async function PurchaseLinksPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link href="/orders" className="text-sm text-neutral-500 hover:underline">
-          ← سفارش‌ها
-        </Link>
-        <h1 className="text-2xl font-bold">لینک‌های خرید</h1>
-        <p className="text-sm text-neutral-600">
-          لینک را در دایرکت یا تلگرام بفرستید. مشتری بدون ثبت‌نام سفارش می‌دهد و سفارشش به فهرست سفارش‌های
-          شما اضافه می‌شود.
-        </p>
-      </div>
+      <PageHeader
+        title="لینک‌های خرید"
+        description="لینک را در دایرکت یا تلگرام بفرستید. مشتری بدون ثبت‌نام سفارش می‌دهد و سفارشش به فهرست سفارش‌های شما اضافه می‌شود."
+      />
 
       <Card>
         <CardHeader>
@@ -47,17 +41,17 @@ export default async function PurchaseLinksPage() {
       </Card>
 
       {links.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-neutral-300 p-10 text-center text-neutral-600">
+        <p className="rounded-xl border border-dashed border-line-strong p-10 text-center text-muted">
           هنوز لینکی نساخته‌اید.
         </p>
       ) : (
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-muted">
             آمار لینک‌ها از اول این ماه ({formatDate(funnel.since)}) حساب شده است.
           </p>
           <ul className="flex flex-col gap-3">
             {links.map((link) => (
-              <li key={link.id} className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-4">
+              <li key={link.id} className="flex flex-col gap-3 rounded-xl border border-line p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{link.title ?? "بدون عنوان"}</span>
                   {link.isActive ? (
@@ -65,14 +59,14 @@ export default async function PurchaseLinksPage() {
                   ) : (
                     <Badge>غیرفعال</Badge>
                   )}
-                  <span className="text-xs text-neutral-500">
+                  <span className="text-xs text-muted">
                     ساخته‌شده در {formatDate(link.createdAt)} · {formatNumber(link._count.orders)} سفارش
                   </span>
                 </div>
-                <p className="text-sm text-neutral-600">{link.products.map((p) => p.name).join("، ")}</p>
+                <p className="text-sm text-muted">{link.products.map((p) => p.name).join("، ")}</p>
                 <LinkFunnelStats counts={funnelByLink.get(link.id) ?? noActivity} />
                 <div className="flex flex-wrap items-center gap-2">
-                  <code dir="ltr" className="rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
+                  <code dir="ltr" className="rounded bg-raised-2 px-2 py-1 text-xs text-ink-soft">
                     /buy/{link.token}
                   </code>
                   <CopyLinkButton path={`/buy/${link.token}`} />
@@ -89,7 +83,7 @@ export default async function PurchaseLinksPage() {
         </div>
       )}
 
-      {links.length > 0 && <p className="text-xs text-neutral-500">{FUNNEL_NOTE}</p>}
+      {links.length > 0 && <p className="text-xs text-muted">{FUNNEL_NOTE}</p>}
     </div>
   );
 }

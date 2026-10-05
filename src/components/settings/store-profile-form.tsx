@@ -18,7 +18,7 @@ type Props = {
 function FieldError({ messages }: { messages?: string[] }) {
   if (!messages?.length) return null;
   return (
-    <p role="alert" className="text-sm text-red-600">
+    <p role="alert" className="text-sm text-danger">
       {messages.join(" ")}
     </p>
   );
@@ -85,7 +85,7 @@ export function StoreProfileForm({ action, initial }: Props) {
   return (
     <form action={submit} className="flex max-w-2xl flex-col gap-6">
       {state?.message && (
-        <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+        <p role="alert" className="rounded-lg bg-danger-bg p-3 text-sm text-danger">
           {state.message}
         </p>
       )}
@@ -95,7 +95,7 @@ export function StoreProfileForm({ action, initial }: Props) {
           <CardTitle>فروشگاه</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <p className="text-sm text-neutral-600">
+          <p className="text-sm text-muted">
             مشتری نام، لوگو و راه‌های تماسی را که اینجا وارد می‌کنید روی صفحهٔ خرید می‌بیند، اما شمارهٔ موبایلی را
             که با آن وارد غلتک می‌شوید نمی‌بیند.
           </p>
@@ -124,7 +124,7 @@ export function StoreProfileForm({ action, initial }: Props) {
             <img
               src={shownLogo}
               alt="لوگوی فروشگاه"
-              className="size-24 rounded-xl border border-neutral-200 object-cover"
+              className="size-24 rounded-xl border border-line object-cover"
             />
           )}
           <Input
@@ -134,7 +134,7 @@ export function StoreProfileForm({ action, initial }: Props) {
             aria-label="انتخاب لوگوی فروشگاه"
             className="h-auto py-2"
           />
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted">
             {logoBusy ? "در حال آماده‌کردن لوگو…" : "لوگو به شکل مربع از وسط تصویر برش می‌خورد."}
           </p>
           {logoUrl && !logoFile && (
@@ -203,7 +203,7 @@ export function StoreProfileForm({ action, initial }: Props) {
           {pending ? "در حال ذخیره…" : "ذخیرهٔ تغییرات"}
         </Button>
         {justSaved && (
-          <p role="status" className="text-sm text-green-700">
+          <p role="status" className="text-sm text-success">
             تغییرات ذخیره شد.
           </p>
         )}
