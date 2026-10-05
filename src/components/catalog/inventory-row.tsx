@@ -17,7 +17,7 @@ import { parseWholeNumber } from "@/server/catalog/product-form";
 const MODES: { value: AdjustMode; label: string }[] = [
   { value: "add", label: "افزودن" },
   { value: "remove", label: "کم‌کردن" },
-  { value: "set", label: "تنظیم روی" },
+  { value: "set", label: "تعیین موجودی" },
 ];
 
 export function StockBadge({ status }: { status: Row["status"] }) {
@@ -85,7 +85,7 @@ export function InventoryRow({ row }: { row: Row }) {
           <div className="text-center">
             <div className="text-2xl font-bold leading-none">{formatNumber(row.stock)}</div>
             <div className="mt-1 text-xs text-neutral-500">
-              آستانه {formatNumber(row.lowStockThreshold)}
+              حد هشدار {formatNumber(row.lowStockThreshold)}
             </div>
           </div>
           <StockBadge status={row.status} />
@@ -112,7 +112,7 @@ export function InventoryRow({ row }: { row: Row }) {
 
       {state?.ok && !open && (
         <p role="status" className="text-sm text-green-700">
-          موجودی ثبت شد: {formatNumber(state.newStock)}
+          موجودی به {formatNumber(state.newStock)} رسید.
         </p>
       )}
 
@@ -171,7 +171,7 @@ export function InventoryRow({ row }: { row: Row }) {
                 id={`note-${row.variantId}`}
                 name="note"
                 maxLength={MAX_NOTE_LENGTH}
-                placeholder="مثلاً: رسید بار جدید، شمارش انبار، کالای معیوب"
+                placeholder="مثلاً رسیدن بار جدید، انبارگردانی یا کالای معیوب"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
               />

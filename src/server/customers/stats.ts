@@ -85,20 +85,20 @@ export function suggestTag(
     return {
       tag: "INACTIVE",
       reason: input.purchaseCount === 0
-        ? `بیش از ${INACTIVE_AFTER_DAYS.toLocaleString("fa-IR")} روز است که ثبت شده و خریدی نداشته.`
+        ? `بیش از ${INACTIVE_AFTER_DAYS.toLocaleString("fa-IR")} روز از ثبتش گذشته و هنوز خریدی نداشته.`
         : `بیش از ${INACTIVE_AFTER_DAYS.toLocaleString("fa-IR")} روز از آخرین خرید گذشته.`,
     };
   }
   if (input.purchaseCount >= LOYAL_MIN_PURCHASES) {
     return {
       tag: "LOYAL",
-      reason: `${input.purchaseCount.toLocaleString("fa-IR")} خرید، آخرینش در ${INACTIVE_AFTER_DAYS.toLocaleString("fa-IR")} روز اخیر.`,
+      reason: `${input.purchaseCount.toLocaleString("fa-IR")} خرید داشته که آخرینش در ${INACTIVE_AFTER_DAYS.toLocaleString("fa-IR")} روز اخیر بوده.`,
     };
   }
   return {
     tag: "NEW",
     reason: input.purchaseCount === 0
       ? "هنوز خریدی نداشته."
-      : `کمتر از ${LOYAL_MIN_PURCHASES.toLocaleString("fa-IR")} خرید.`,
+      : `کمتر از ${LOYAL_MIN_PURCHASES.toLocaleString("fa-IR")} خرید داشته.`,
   };
 }

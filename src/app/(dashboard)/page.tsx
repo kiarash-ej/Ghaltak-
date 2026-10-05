@@ -16,7 +16,7 @@ export default async function DashboardHome() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">خوش آمدید، {seller.name}</h1>
         <p className="text-neutral-600">
-          از منوی کناری محصولات، مشتریان و سفارش‌های خود را مدیریت کنید.
+          محصولات، مشتری‌ها و سفارش‌هایتان را از منوی کناری مدیریت کنید.
         </p>
       </div>
 

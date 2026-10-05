@@ -82,7 +82,7 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
           ))}
         </select>
         <Button type="submit" variant="outline">
-          اعمال
+          جستجو
         </Button>
         {hasFilters && (
           <Link href="/orders" className={cn(buttonVariants({ variant: "ghost" }))}>
@@ -94,10 +94,10 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
       {items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-neutral-300 p-10 text-center text-neutral-600">
           {hasFilters ? (
-            <p>سفارشی با این فیلتر پیدا نشد.</p>
+            <p>با این فیلترها سفارشی پیدا نشد.</p>
           ) : (
             <div className="flex flex-col items-center gap-3">
-              <p>هنوز سفارشی ثبت نشده است.</p>
+              <p>هنوز سفارشی ندارید.</p>
               <Link href="/orders/new" className={cn(buttonVariants())}>
                 ثبت اولین سفارش
               </Link>
@@ -111,7 +111,7 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
             {/* The checkboxes in the table belong to this form (form="print-orders"). */}
             <form id="print-orders" action="/orders/print" method="GET">
               <Button type="submit" variant="outline" size="sm">
-                چاپ برگهٔ ارسال انتخاب‌شده‌ها
+                چاپ برگهٔ ارسال سفارش‌های انتخاب‌شده
               </Button>
             </form>
           </div>
@@ -158,15 +158,15 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
                     <td className="p-3 whitespace-nowrap">
                       <div>{formatToman(o.totalPrice)}</div>
                       <div className="text-xs text-neutral-500">
-                        {formatNumber(o.itemCount)} قلم
+                        {formatNumber(o.itemCount)} کالا
                         {o.source === "PURCHASE_LINK" && " · لینک خرید"}
                       </div>
                     </td>
                     <td className="p-3">
                       <div className="flex flex-wrap gap-1">
                         <OrderStatusBadge status={o.status} />
-                        {o.receiptPending && <Badge variant="warning">رسید دریافت شد</Badge>}
-                        {o.onlinePaymentNeedsReview && <Badge variant="danger">پرداخت آنلاین: بررسی لازم</Badge>}
+                        {o.receiptPending && <Badge variant="warning">رسید منتظر بررسی</Badge>}
+                        {o.onlinePaymentNeedsReview && <Badge variant="danger">پرداخت آنلاین نیاز به بررسی دارد</Badge>}
                       </div>
                     </td>
                     <td className="p-3 text-end">

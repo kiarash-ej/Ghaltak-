@@ -94,16 +94,16 @@ test("on a phone: one «منو» button with every group, and no sideways scroll
   await expect(phone).toHaveURL(/#team$/);
   await expect(phone.getByRole("button", { name: "منو" })).toHaveAttribute("aria-expanded", "false");
   await phone.getByRole("button", { name: "منو" }).click();
-  await phone.getByRole("link", { name: "پیامک‌ها و تنظیمات آن‌ها" }).click();
+  await phone.getByRole("link", { name: "پیامک‌های غلتک" }).click();
   await expect(phone).toHaveURL(/\/help\/sms$/);
-  await expect(phone.getByRole("heading", { level: 1, name: "پیامک‌ها و تنظیمات آن‌ها" })).toBeVisible();
+  await expect(phone.getByRole("heading", { level: 1, name: "پیامک‌های غلتک" })).toBeVisible();
   await context.close();
 });
 
 test("the FAQ works with a keyboard and SMS information is available under the guide", async ({ page }) => {
   await page.goto("/");
   const question = page.locator("summary").filter({ hasText: "مشتری برای خرید باید حساب بسازد؟" });
-  const answer = page.getByText("خیر. مشتری لینک خرید را باز می‌کند، محصول و اطلاعات ارسال را وارد می‌کند و سفارش می‌دهد.", { exact: false });
+  const answer = page.getByText("خیر. مشتری لینک خرید را باز می‌کند، محصول را انتخاب می‌کند، مشخصات ارسال را می‌نویسد و سفارش می‌دهد.", { exact: false });
   await expect(answer).toBeHidden();
   await question.focus();
   await page.keyboard.press("Enter");
@@ -115,7 +115,7 @@ test("the FAQ works with a keyboard and SMS information is available under the g
   await expect(page.locator('header a[href$="#sms"]')).toHaveCount(0);
   await expect(page.locator('header a[href="/help/sms"]')).toHaveCount(0);
   await page.getByRole("button", { name: "راهنما", exact: true }).click();
-  await page.getByRole("link", { name: "پیامک‌ها و تنظیمات آن‌ها" }).click();
+  await page.getByRole("link", { name: "پیامک‌های غلتک" }).click();
   await expect(page).toHaveURL(/\/help\/sms$/);
   await expect(page.getByRole("heading", { name: "کد ورود", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "یادآوری تمدید اشتراک", exact: true })).toBeVisible();

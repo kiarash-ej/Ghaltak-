@@ -193,7 +193,7 @@ test("re-take the /help screenshots", async ({ browser }) => {
 
   // purchase-links-create: a titled link.
   await seller.goto("/orders/links");
-  await seller.getByLabel("عنوان (اختیاری، به مشتری نمایش داده می‌شود)").fill("فروش ویژهٔ پاییز");
+  await seller.getByLabel("عنوان (اختیاری؛ مشتری آن را می‌بیند)").fill("فروش ویژهٔ پاییز");
   await seller.getByLabel(PRODUCT).check();
   await seller.getByRole("button", { name: "ساخت لینک خرید" }).click();
   await expect(seller.getByText("لینک ساخته شد.")).toBeVisible();
@@ -226,9 +226,9 @@ test("re-take the /help screenshots", async ({ browser }) => {
   await seller.getByRole("link", { name: "جزئیات" }).first().click();
   await expect(seller.getByRole("img", { name: "رسید پرداخت" })).toBeVisible();
   await seller.getByRole("img", { name: "رسید پرداخت" }).evaluate((img: HTMLImageElement) => img.decode());
-  await shot(seller, "card-to-card-review.jpg", seller.getByText("رسید مشتری در انتظار بررسی"), 600);
+  await shot(seller, "card-to-card-review.jpg", seller.getByText("مشتری رسید فرستاده؛ منتظر بررسی شماست"), 600);
   await seller.getByRole("button", { name: "تأیید پرداخت" }).click();
-  await expect(seller.getByText("کارت به کارت")).toBeVisible();
+  await expect(seller.getByText("کارت‌به‌کارت")).toBeVisible();
 
   // shipping-panel: method, cost and tracking code, ready to ship.
   await seller.getByRole("button", { name: "در حال آماده‌سازی" }).click();

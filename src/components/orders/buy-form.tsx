@@ -102,7 +102,7 @@ export function BuyForm({
                         onChange={(e) => setChoice(i, { variantId: e.target.value })}
                         className="h-10 min-w-0 flex-1 rounded-lg border border-neutral-300 bg-transparent px-2 text-sm"
                       >
-                        <option value="">رنگ / سایز</option>
+                        <option value="">انتخاب رنگ / سایز</option>
                         {p.variants.map((v) => (
                           <option key={v.id} value={v.id} disabled={!v.inStock}>
                             {variantLabel(v)}

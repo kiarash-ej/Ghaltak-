@@ -39,7 +39,7 @@ test("customer SMS: placed and paid are texted; a switched-off event is not", as
   await test.step("confirming payment texts the customer", async () => {
     await seller.goto(`/orders/${order.id}`);
     await seller.getByRole("button", { name: "تأیید پرداخت" }).click();
-    await expect(seller.getByText("کارت به کارت", { exact: true })).toBeVisible();
+    await expect(seller.getByText("کارت‌به‌کارت", { exact: true })).toBeVisible();
     await expectSmsRow(seller, order.id, "تأیید پرداخت");
   });
 

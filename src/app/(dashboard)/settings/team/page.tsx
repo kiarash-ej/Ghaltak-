@@ -9,9 +9,9 @@ import { getPlanUsage } from "@/server/billing/usage";
 import { inviteMemberAction, removeMemberAction, signOutMemberAction } from "@/server/team/actions";
 import { listMembers } from "@/server/team/members";
 
-// «اعضا» tab (A10), owner only: operators get a 404 (requireOwner).
+// «همکاران» tab (A10), owner only: operators get a 404 (requireOwner).
 
-export const metadata: Metadata = { title: "اعضا | غلتک" };
+export const metadata: Metadata = { title: "همکاران | غلتک" };
 
 export default async function TeamSettingsPage() {
   const owner = await requireOwner();
@@ -23,24 +23,24 @@ export default async function TeamSettingsPage() {
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>افزودن عضو</CardTitle>
+          <CardTitle>افزودن همکار</CardTitle>
           <CardDescription>
-            عضو جدید «اپراتور» است: محصولات، موجودی، مشتریان و سفارش‌ها را مدیریت می‌کند، ولی به تنظیمات، اشتراک و
-            گزارش‌های مالی دسترسی ندارد. با همان شماره و کد پیامکی وارد می‌شود.
+            همکار جدید نقش «اپراتور» دارد: محصولات، موجودی، مشتریان و سفارش‌ها را مدیریت می‌کند، اما به تنظیمات،
+            اشتراک و گزارش‌های مالی دسترسی ندارد. با همین شمارهٔ موبایل و کد پیامکی وارد غلتک می‌شود.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <InviteForm action={inviteMemberAction} disabled={full} />
           <p className="text-sm text-neutral-600">
-            {limit === null ? `${formatNumber(used)} عضو` : `${formatNumber(used)} از ${formatNumber(limit)} عضو پلن شما`}
-            {full && " · برای عضو بیشتر، پلن را از «اشتراک» ارتقا دهید."}
+            {limit === null ? `${formatNumber(used)} نفر در تیم` : `${formatNumber(used)} نفر از ${formatNumber(limit)} نفر مجاز در پلن شما`}
+            {full && " · برای افزودن همکار بیشتر، پلن را از «اشتراک» ارتقا دهید."}
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>اعضای فروشگاه</CardTitle>
+          <CardTitle>تیم فروشگاه</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="flex flex-col divide-y divide-neutral-200">
@@ -55,7 +55,7 @@ export default async function TeamSettingsPage() {
                     {m.userId === owner.userId && <span className="text-xs text-neutral-500">(شما)</span>}
                   </div>
                   <div className="text-sm text-neutral-600">
-                    عضو از {formatDate(m.joinedAt)} · {formatNumber(m.devices)} دستگاه فعال
+                    از {formatDate(m.joinedAt)} در تیم · {formatNumber(m.devices)} دستگاه فعال
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -69,7 +69,7 @@ export default async function TeamSettingsPage() {
                   {m.role === "OPERATOR" && (
                     <form action={removeMemberAction.bind(null, m.userId)}>
                       <Button type="submit" variant="destructive" size="sm">
-                        حذف عضو
+                        حذف همکار
                       </Button>
                     </form>
                   )}

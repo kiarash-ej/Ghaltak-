@@ -98,7 +98,7 @@ function ShippingSheet({
           ))}
         </tbody>
       </table>
-      <p className="mt-auto text-xs text-neutral-500">جمع اقلام: {formatNumber(itemCount)}</p>
+      <p className="mt-auto text-xs text-neutral-500">تعداد کل کالاها: {formatNumber(itemCount)}</p>
     </article>
   );
 }

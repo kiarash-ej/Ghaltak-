@@ -48,8 +48,8 @@ export function CardDetailsForm({
   return (
     <form action={action} className="flex max-w-lg flex-col gap-5">
       <p className="text-sm text-neutral-600">
-        این اطلاعات فقط روی صفحهٔ سفارش همان مشتری نمایش داده می‌شود تا مبلغ را کارت‌به‌کارت واریز کند. شمارهٔ
-        کارت و شبا رمزشده نگه داشته می‌شوند و بعد از ذخیره فقط چهار رقم آخرشان نمایش داده می‌شود.
+        این اطلاعات را فقط مشتری‌ای می‌بیند که باید مبلغ سفارشش را کارت‌به‌کارت کند، آن هم روی صفحهٔ همان سفارش.
+        شمارهٔ کارت و شبا رمزشده ذخیره می‌شوند و بعد از ذخیره، اینجا فقط چهار رقم آخرشان را می‌بینید.
       </p>
 
       <div className="flex flex-col gap-2">
@@ -93,7 +93,7 @@ export function CardDetailsForm({
           value={holder}
           onChange={(e) => setHolder(e.target.value)}
         />
-        <p className="text-xs text-neutral-500">همان نامی که مشتری هنگام انتقال وجه در بانک می‌بیند.</p>
+        <p className="text-xs text-neutral-500">همان نامی که مشتری موقع کارت‌به‌کارت در اپ بانک می‌بیند.</p>
         <FieldError messages={errors.cardHolder} />
       </div>
 

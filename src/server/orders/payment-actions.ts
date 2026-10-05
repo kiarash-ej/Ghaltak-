@@ -14,7 +14,7 @@ import { errorSummary } from "@/lib/error-summary";
 
 export type PaymentActionState = { message?: string; ok?: boolean } | undefined;
 
-const GENERIC_ERROR = "خطای غیرمنتظره‌ای رخ داد. دوباره تلاش کنید.";
+const GENERIC_ERROR = "مشکلی پیش آمد. دوباره تلاش کنید.";
 
 function uploadedFile(formData: FormData, name: string): File | null {
   const value = formData.get(name);
@@ -125,7 +125,7 @@ export async function uploadReceiptAction(
   if (!file) return { message: "تصویر رسید را انتخاب کنید." };
 
   if (!receiptLimiter.hit(clientIp(await headers()))) {
-    return { message: "تعداد ارسال‌ها زیاد است. چند دقیقه دیگر دوباره تلاش کنید." };
+    return { message: "رسیدهای زیادی پشت سر هم فرستاده شده است. چند دقیقه دیگر دوباره تلاش کنید." };
   }
 
   const order = await prisma.order.findUnique({
@@ -150,7 +150,7 @@ export async function uploadReceiptAction(
     return {
       message:
         now?.status === "PENDING_PAYMENT"
-          ? "رسید دیگری همزمان ارسال شد. صفحه را تازه کنید."
+          ? "همین حالا رسید دیگری برای این سفارش فرستاده شد. صفحه را تازه کنید."
           : "پرداخت این سفارش قبلاً ثبت شده است.",
     };
   }

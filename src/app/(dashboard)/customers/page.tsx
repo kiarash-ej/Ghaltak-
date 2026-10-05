@@ -48,7 +48,7 @@ export default async function CustomersPage(props: PageProps<"/customers">) {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">مشتریان</h1>
         <p className="text-sm text-neutral-600">
-          مشتری‌ها هنگام ثبت سفارش (دستی یا از لینک خرید) با شمارهٔ موبایل ساخته می‌شوند.
+          با ثبت هر سفارش (دستی یا با لینک خرید)، مشتری با شمارهٔ موبایلش به این فهرست اضافه می‌شود.
         </p>
       </div>
 
@@ -93,7 +93,7 @@ export default async function CustomersPage(props: PageProps<"/customers">) {
       {items.length === 0 ? (
         <p className="rounded-xl border border-dashed border-neutral-300 p-10 text-center text-neutral-600">
           {counts.total === 0
-            ? "هنوز مشتری‌ای ندارید. با اولین سفارش، مشتری اینجا ظاهر می‌شود."
+            ? "هنوز مشتری‌ای ندارید. با ثبت اولین سفارش، مشتری‌هایتان اینجا اضافه می‌شوند."
             : "مشتری‌ای با این مشخصات پیدا نشد."}
         </p>
       ) : (
@@ -122,7 +122,7 @@ export default async function CustomersPage(props: PageProps<"/customers">) {
                         {c.stats.lastPurchaseAt && <> · آخرین خرید {formatDate(c.stats.lastPurchaseAt)}</>}
                       </>
                     ) : c.stats.orderCount > 0 ? (
-                      <>{formatNumber(c.stats.orderCount)} سفارش، بدون خرید پرداخت‌شده</>
+                      <>{formatNumber(c.stats.orderCount)} سفارش، هنوز بدون پرداخت</>
                     ) : (
                       "بدون سفارش"
                     )}

@@ -20,15 +20,15 @@ export type InviteState = { ok?: boolean; error?: string } | undefined;
 export async function inviteMemberAction(_prev: InviteState, formData: FormData): Promise<InviteState> {
   const owner = await requireOwner();
   const mobile = normalizeIranMobile(String(formData.get("mobile") ?? ""));
-  if (!mobile) return { error: "شماره موبایل معتبر نیست. مثال: ۰۹۱۲۱۲۳۴۵۶۷" };
+  if (!mobile) return { error: "شمارهٔ موبایل معتبر نیست. آن را مثل ۰۹۱۲۱۲۳۴۵۶۷ وارد کنید." };
 
   const result = await inviteMember(owner.id, mobile);
   if (!result.ok) {
     return {
       error:
         result.reason === "LIMIT"
-          ? "به سقف اعضای پلن خود رسیده‌اید. برای افزودن عضو، پلن را از «اشتراک» ارتقا دهید."
-          : "این شماره از قبل عضو فروشگاه است.",
+          ? "به سقف تعداد افراد پلنتان رسیده‌اید. برای افزودن همکار، پلن را از «اشتراک» ارتقا دهید."
+          : "این شماره از قبل در تیم فروشگاه است.",
     };
   }
   // After the response: the membership is committed, and a failed SMS never

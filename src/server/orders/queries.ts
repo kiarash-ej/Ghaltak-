@@ -37,7 +37,7 @@ export type OrderListResult = {
 
 /**
  * A customer uploaded a card-to-card receipt and the order still awaits
- * payment, so the seller should review it. The list's «رسید دریافت شد» badge
+ * payment, so the seller should review it. The list's «رسید منتظر بررسی» badge
  * and the dashboard's count (Track C, C5) both use this rule.
  */
 export function isReceiptPending(o: { status: OrderStatus; receiptImageUrl: string | null }): boolean {

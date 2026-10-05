@@ -44,21 +44,21 @@ export const storeProfileSchema = z.object({
     .string()
     .trim()
     .min(1, { error: "نام فروشگاه را وارد کنید." })
-    .max(STORE_NAME_MAX, { error: `نام فروشگاه حداکثر ${STORE_NAME_MAX} نویسه باشد.` }),
+    .max(STORE_NAME_MAX, { error: `نام فروشگاه نباید بیشتر از ${STORE_NAME_MAX} کاراکتر باشد.` }),
   contactPhone: z
     .string()
     .transform((v) => (v.trim() === "" ? "" : (normalizeIranMobile(v) ?? "invalid")))
-    .refine((v) => v !== "invalid", { error: "شمارهٔ موبایل معتبر نیست. مثال: 09121234567" })
+    .refine((v) => v !== "invalid", { error: "شمارهٔ موبایل معتبر نیست. آن را مثل 09121234567 وارد کنید." })
     .transform((v) => (v === "" ? null : v)),
   instagram: handle(
     "instagram",
     INSTAGRAM,
-    "آیدی اینستاگرام فقط حروف انگلیسی، عدد، نقطه و زیرخط دارد (حداکثر ۳۰ نویسه).",
+    "آیدی اینستاگرام فقط حروف انگلیسی، عدد، نقطه و زیرخط (_) دارد و حداکثر ۳۰ کاراکتر است.",
   ),
   telegram: handle(
     "telegram",
     TELEGRAM,
-    "آیدی تلگرام ۵ تا ۳۲ نویسه است: حروف انگلیسی، عدد و زیرخط، و با حرف شروع می‌شود.",
+    "آیدی تلگرام ۵ تا ۳۲ کاراکتر است، با حرف انگلیسی شروع می‌شود و فقط حروف انگلیسی، عدد و زیرخط (_) دارد.",
   ),
 });
 

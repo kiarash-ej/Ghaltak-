@@ -29,7 +29,7 @@ export async function saveCardDetailsAction(
   } catch (err) {
     // Never log the error object: it could carry the card number.
     console.error("card details save failed:", (err as Error).name);
-    return { message: "ذخیره انجام نشد. دوباره تلاش کنید." };
+    return { message: "ذخیره نشد. دوباره تلاش کنید." };
   }
 
   revalidatePath("/settings/payments");

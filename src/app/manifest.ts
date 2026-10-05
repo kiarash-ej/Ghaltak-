@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "غلتک",
     short_name: "غلتک",
-    description: "پلتفرم مدیریت فروشندگان آنلاین",
+    description: "مدیریت سفارش، موجودی و فروش برای فروشگاه‌های آنلاین",
     lang: "fa",
     dir: "rtl",
     start_url: "/",

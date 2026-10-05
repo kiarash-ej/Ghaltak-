@@ -129,14 +129,14 @@ export default async function ReportsPage() {
                 <div className="text-2xl font-semibold">
                   {formatNumber(report.customers.returningCustomers)}
                 </div>
-                <div className="text-sm text-neutral-600">مشتری بازگشتی</div>
+                <div className="text-sm text-neutral-600">مشتری قدیمی</div>
               </div>
             </div>
             {buyers > 0 && (
               <div
                 className="flex h-2 gap-0.5 overflow-hidden rounded-full"
                 role="img"
-                aria-label={`${formatNumber(report.customers.newCustomers)} جدید، ${formatNumber(report.customers.returningCustomers)} بازگشتی`}
+                aria-label={`${formatNumber(report.customers.newCustomers)} جدید، ${formatNumber(report.customers.returningCustomers)} قدیمی`}
               >
                 <div className="bg-[#2a78d6]" style={{ flexGrow: report.customers.newCustomers }} />
                 <div className="bg-[#86b6ef]" style={{ flexGrow: report.customers.returningCustomers }} />
@@ -170,12 +170,12 @@ export default async function ReportsPage() {
           <CardHeader>
             <CardTitle>کم‌موجودی</CardTitle>
             <CardDescription>
-              {formatNumber(report.lowStock.total)} تنوع به آستانهٔ کم‌موجودی رسیده است
+              موجودی {formatNumber(report.lowStock.total)} تنوع به حد هشدار رسیده است
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {report.lowStock.rows.length === 0 ? (
-              <p className="text-sm text-neutral-500">همهٔ کالاها موجودی کافی دارند.</p>
+              <p className="text-sm text-neutral-500">موجودی همهٔ محصولات کافی است.</p>
             ) : (
               <ul className="flex flex-col divide-y divide-neutral-100 text-sm">
                 {report.lowStock.rows.map((v) => (
@@ -194,7 +194,7 @@ export default async function ReportsPage() {
               </ul>
             )}
             <Link href="/inventory?filter=low" className="text-sm text-neutral-600 hover:underline">
-              مشاهده در صفحهٔ موجودی ←
+              دیدن همه در صفحهٔ موجودی ←
             </Link>
           </CardContent>
         </Card>
@@ -203,7 +203,7 @@ export default async function ReportsPage() {
       <Card>
         <CardHeader>
           <CardTitle>قیف لینک‌های خرید این ماه</CardTitle>
-          <CardDescription>بازدید، سفارش و پرداخت برای هر لینک خرید</CardDescription>
+          <CardDescription>بازدید، سفارش و پرداخت هر لینک خرید</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {activeLinks.length === 0 ? (
@@ -218,9 +218,9 @@ export default async function ReportsPage() {
       </Card>
 
       <p className="text-xs text-neutral-500">
-        فروش یعنی سفارش‌های پرداخت‌شده (پرداخت‌شده، در حال آماده‌سازی، ارسال‌شده و تحویل‌شده) بر اساس روز ثبت
-        سفارش به وقت ایران. سفارش‌های لغوشده، مرجوعی و در انتظار پرداخت حساب نمی‌شوند. مبالغ بدون هزینهٔ ارسال
-        است. {FUNNEL_NOTE}
+        منظور از فروش، سفارش‌های پرداخت‌شده است (پرداخت‌شده، در حال آماده‌سازی، ارسال‌شده و تحویل‌شده) و هر سفارش
+        در روز ثبتش به وقت ایران حساب می‌شود. سفارش‌های لغوشده، مرجوعی و در انتظار پرداخت حساب نمی‌شوند. مبلغ‌ها
+        بدون هزینهٔ ارسال‌اند. {FUNNEL_NOTE}
       </p>
     </div>
   );

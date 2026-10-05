@@ -47,14 +47,14 @@ export function parseAdjustForm(formData: FormData): ParsedAdjustForm {
   if (note.length > MAX_NOTE_LENGTH) {
     return {
       success: false,
-      error: `توضیح حداکثر ${MAX_NOTE_LENGTH.toLocaleString("fa-IR")} نویسه باشد.`,
+      error: `توضیح نباید بیشتر از ${MAX_NOTE_LENGTH.toLocaleString("fa-IR")} نویسه باشد.`,
     };
   }
 
   if (mode === "set") {
     const expectedStock = parseWholeNumber(formData.get("expectedStock"));
     if (expectedStock === null) {
-      return { success: false, error: "صفحه را دوباره باز کنید و مجدداً تلاش کنید." };
+      return { success: false, error: "صفحه را از نو باز کنید و دوباره تلاش کنید." };
     }
     return {
       success: true,

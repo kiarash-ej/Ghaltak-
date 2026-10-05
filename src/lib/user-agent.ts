@@ -3,7 +3,7 @@
 
 const BROWSERS: [RegExp, string][] = [
   [/SamsungBrowser/i, "مرورگر سامسونگ"],
-  [/Edg\//i, "اج"],
+  [/Edg\//i, "مایکروسافت اج"],
   [/OPR\/|Opera/i, "اپرا"],
   [/Firefox|FxiOS/i, "فایرفاکس"],
   [/Chrome|CriOS/i, "کروم"],

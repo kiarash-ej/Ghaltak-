@@ -65,7 +65,7 @@ test("data export: three CSV files for the owner, safe in Excel; the privacy pag
 
   await test.step("orders: today's date and «در انتظار پرداخت» include the order", async () => {
     await seller.getByLabel("از تاریخ").fill(jalaliToday());
-    await seller.getByLabel("تا تاریخ (خود این روز هم می‌آید)").fill(jalaliToday());
+    await seller.getByLabel("تا تاریخ (خود این روز هم حساب می‌شود)").fill(jalaliToday());
     await seller.getByLabel("وضعیت").selectOption({ label: "در انتظار پرداخت" });
     const file = await download(seller, seller.getByRole("button", { name: "دریافت فایل سفارش‌ها" }));
     expect(file.text).toContain(`${order.code},${jalaliToday()},`);
@@ -87,9 +87,9 @@ test("data export: three CSV files for the owner, safe in Excel; the privacy pag
   await test.step("an operator (A10) can't export: 404 on the page and on a direct download", async () => {
     const operatorMobile = `0917${String(Date.now() + 11).slice(-7)}`;
     await seller.goto("/settings/team");
-    await seller.getByLabel("شمارهٔ موبایل عضو جدید").fill(operatorMobile);
+    await seller.getByLabel("شمارهٔ موبایل همکار").fill(operatorMobile);
     await seller.getByRole("button", { name: "افزودن" }).click();
-    await expect(seller.getByText("عضو اضافه شد")).toBeVisible();
+    await expect(seller.getByText("همکار اضافه شد")).toBeVisible();
 
     const context = await browser.newContext({ locale: "fa-IR", timezoneId: "Asia/Tehran" });
     const operator = await context.newPage();

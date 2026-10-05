@@ -11,9 +11,9 @@ export function formatConversion(rate: number | null): string {
 }
 
 export const FUNNEL_NOTE =
-  "بازدید یعنی باز شدن صفحهٔ لینک توسط مشتری (پیش‌نمایش پیام‌رسان‌ها، ربات‌ها و باز کردن لینک توسط خود شما شمرده نمی‌شوند). " +
-  "سفارش یعنی همهٔ سفارش‌های ثبت‌شده با لینک، و پرداخت‌شده همان تعریف «فروش» در گزارش است. " +
-  "درصد تبدیل: پرداخت‌شده تقسیم بر بازدید.";
+  "«بازدید» یعنی مشتری صفحهٔ لینک را باز کرده است؛ پیش‌نمایش پیام‌رسان‌ها، ربات‌ها و دفعاتی که خودتان لینک را باز می‌کنید، شمرده نمی‌شوند. " +
+  "«سفارش» همهٔ سفارش‌هایی است که با لینک ثبت شده‌اند و «پرداخت‌شده» همان چیزی است که در گزارش، «فروش» حساب می‌شود. " +
+  "«تبدیل» یعنی تعداد پرداخت‌شده‌ها تقسیم بر تعداد بازدیدها.";
 
 /** Four small numbers for one link's card in /orders/links. */
 export function LinkFunnelStats({ counts }: { counts: FunnelCounts }) {
@@ -66,7 +66,7 @@ export function LinkFunnelTable({ links, total }: { links: LinkFunnelRow[]; tota
         {links.length > 1 && (
           <tfoot>
             <tr className="border-t border-neutral-300 font-semibold">
-              <td className="py-2">همه</td>
+              <td className="py-2">جمع کل</td>
               <td className="py-2">{formatNumber(total.views)}</td>
               <td className="py-2">{formatNumber(total.orders)}</td>
               <td className="py-2">{formatNumber(total.paid)}</td>

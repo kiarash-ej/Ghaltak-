@@ -25,7 +25,7 @@ export async function startSubscriptionPaymentAction(
     if (err instanceof SubscriptionPaymentError) return { message: err.message };
     const e = err as { name?: string; code?: string };
     console.error("[subscription payment] start failed", { name: e?.name, code: e?.code });
-    return { message: "خطایی رخ داد. لطفاً دوباره تلاش کنید." };
+    return { message: "مشکلی پیش آمد. دوباره تلاش کنید." };
   }
   redirect(redirectUrl);
 }

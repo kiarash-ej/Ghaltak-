@@ -33,14 +33,14 @@ test.describe("billing on", () => {
       await expect(page.getByRole("heading", { name: "درگاه آزمایشی" })).toBeVisible();
       await expect(page.getByText(toman(2_200_000))).toBeVisible();
       await page.getByRole("link", { name: "انصراف از پرداخت" }).click();
-      await expect(page.getByText("پرداخت لغو شد. چیزی تغییر نکرد.")).toBeVisible();
+      await expect(page.getByText("پرداخت لغو شد و اشتراک شما تغییری نکرد.")).toBeVisible();
       await expect(page.getByText("پلن فعلی: آزمایشی")).toBeVisible();
     });
 
     await test.step("pay: PRO for a month, and the invoice is paid", async () => {
       await proCard.getByRole("button", { name: "انتخاب و پرداخت" }).click();
       await page.getByRole("link", { name: "پرداخت موفق" }).click();
-      await expect(page.getByText("پرداخت انجام شد و اشتراک شما تمدید شد.")).toBeVisible();
+      await expect(page.getByText("پرداخت موفق بود و اشتراک شما تمدید شد.")).toBeVisible();
       await expect(page.getByText("پلن فعلی: حرفه‌ای")).toBeVisible();
       await expect(page.getByText("پرداخت‌شده")).toHaveCount(1);
     });

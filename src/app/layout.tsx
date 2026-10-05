@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "غلتک",
-  description: "پلتفرم مدیریت فروشندگان آنلاین",
+  description: "مدیریت سفارش، موجودی و فروش برای فروشگاه‌های آنلاین",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

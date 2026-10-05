@@ -66,7 +66,7 @@ export default async function ProductsPage(props: PageProps<"/products">) {
           ))}
         </select>
         <Button type="submit" variant="outline">
-          اعمال
+          اعمال فیلتر
         </Button>
         {hasFilters && (
           <Link href="/products" className={cn(buttonVariants({ variant: "ghost" }))}>
@@ -78,7 +78,7 @@ export default async function ProductsPage(props: PageProps<"/products">) {
       {items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-neutral-300 p-10 text-center text-neutral-600">
           {hasFilters ? (
-            <p>محصولی با این فیلتر پیدا نشد.</p>
+            <p>محصولی با این فیلترها پیدا نشد.</p>
           ) : (
             <div className="flex flex-col items-center gap-3">
               <p>هنوز محصولی ثبت نکرده‌اید.</p>

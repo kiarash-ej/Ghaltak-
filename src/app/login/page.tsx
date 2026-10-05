@@ -30,9 +30,9 @@ export default function LoginPage() {
           <div className={styles.authFormInner}>
             <p className={styles.authEyebrow}><i aria-hidden="true" /> خوش آمدید</p>
             <h1 id="auth-title">ورود یا ساخت حساب</h1>
-            <p className={styles.authLead}>با شمارهٔ موبایل و کد تأیید وارد شوید. اگر اولین بار است از غلتک استفاده می‌کنید، حساب شما پس از تأیید شماره ساخته می‌شود.</p>
+            <p className={styles.authLead}>با شمارهٔ موبایل و کد تأیید وارد شوید. اگر بار اول است که از غلتک استفاده می‌کنید، حسابتان بعد از تأیید شماره ساخته می‌شود.</p>
             <LoginForm />
-            <p className={styles.legal}>اطلاعات شما مطابق <Link href="/privacy">سیاست حفظ حریم خصوصی</Link> نگهداری می‌شود.</p>
+            <p className={styles.legal}>اطلاعات شما طبق <Link href="/privacy">سیاست حریم خصوصی</Link> غلتک نگهداری می‌شود.</p>
           </div>
         </section>
 
@@ -40,7 +40,7 @@ export default function LoginPage() {
           <div className={styles.authArtHeader}>
             <p>مدیریت روزانهٔ فروشگاه</p>
             <h2>از موجودی کالا تا ارسال سفارش، یک‌جا.</h2>
-            <span>محصولات را ثبت کنید، لینک خرید بسازید و وضعیت پرداخت و ارسال هر سفارش را دنبال کنید.</span>
+            <span>محصولات را ثبت کنید، لینک خرید بسازید و وضعیت پرداخت و ارسال هر سفارش را پیگیری کنید.</span>
           </div>
           <div className={styles.authArt} aria-hidden="true">
             <div className={styles.authArtRoute} />

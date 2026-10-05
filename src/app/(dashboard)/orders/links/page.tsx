@@ -32,8 +32,8 @@ export default async function PurchaseLinksPage() {
         </Link>
         <h1 className="text-2xl font-bold">لینک‌های خرید</h1>
         <p className="text-sm text-neutral-600">
-          لینک را در دایرکت یا تلگرام بفرستید. مشتری بدون ثبت‌نام سفارش می‌دهد و سفارش در فهرست سفارش‌ها
-          ثبت می‌شود.
+          لینک را در دایرکت یا تلگرام بفرستید. مشتری بدون ثبت‌نام سفارش می‌دهد و سفارشش به فهرست سفارش‌های
+          شما اضافه می‌شود.
         </p>
       </div>
 
@@ -53,7 +53,7 @@ export default async function PurchaseLinksPage() {
       ) : (
         <div className="flex flex-col gap-2">
           <p className="text-sm text-neutral-500">
-            آمار هر لینک از ابتدای این ماه ({formatDate(funnel.since)}) است.
+            آمار لینک‌ها از اول این ماه ({formatDate(funnel.since)}) حساب شده است.
           </p>
           <ul className="flex flex-col gap-3">
             {links.map((link) => (

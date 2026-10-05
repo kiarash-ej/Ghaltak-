@@ -25,7 +25,7 @@ const optionalText = (max: number, label: string) =>
   z
     .string()
     .trim()
-    .max(max, { error: `${label} حداکثر ${max} نویسه باشد.` })
+    .max(max, { error: `${label} نباید بیشتر از ${max} نویسه باشد.` })
     .transform((v) => (v === "" ? null : v));
 
 const variantSchema = z.object({
@@ -46,23 +46,23 @@ export const productSchema = z
       .string()
       .trim()
       .min(1, { error: "نام محصول را وارد کنید." })
-      .max(120, { error: "نام محصول حداکثر ۱۲۰ نویسه باشد." }),
+      .max(120, { error: "نام محصول نباید بیشتر از ۱۲۰ نویسه باشد." }),
     price: z
-      .number({ error: "قیمت را به‌صورت عدد (تومان) وارد کنید." })
+      .number({ error: "قیمت را به تومان و با عدد وارد کنید." })
       .int()
       .min(1, { error: "قیمت باید بیشتر از صفر باشد." })
       .max(MAX_PRICE, { error: "قیمت بیش از حد مجاز است." }),
     category: optionalText(60, "دسته‌بندی"),
     isActive: z.boolean(),
     lowStockThreshold: z
-      .number({ error: "آستانهٔ کم‌موجودی را به‌صورت عدد وارد کنید." })
+      .number({ error: "حد هشدار موجودی را به‌صورت عدد وارد کنید." })
       .int()
       .min(0)
       .max(10_000),
     variants: z
       .array(variantSchema)
-      .min(1, { error: "حداقل یک تنوع (رنگ/سایز) لازم است." })
-      .max(MAX_VARIANTS, { error: `حداکثر ${MAX_VARIANTS} تنوع مجاز است.` }),
+      .min(1, { error: "دست‌کم یک تنوع (رنگ/سایز) اضافه کنید." })
+      .max(MAX_VARIANTS, { error: `حداکثر ${MAX_VARIANTS} تنوع می‌توانید اضافه کنید.` }),
   })
   .superRefine((value, ctx) => {
     const combos = new Map<string, number>();

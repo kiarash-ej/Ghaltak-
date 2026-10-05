@@ -18,7 +18,7 @@ export type StoreProfileFormState =
     }
   | undefined;
 
-const GENERIC_ERROR = "خطای غیرمنتظره‌ای رخ داد. دوباره تلاش کنید.";
+const GENERIC_ERROR = "مشکلی پیش آمد. دوباره تلاش کنید.";
 
 /** Saves the store's public profile (/settings, "فروشگاه" tab). */
 export async function updateStoreProfileAction(

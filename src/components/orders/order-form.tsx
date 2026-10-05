@@ -86,7 +86,7 @@ export function OrderForm({
               disabled={m === "existing" && customers.length === 0}
               onClick={() => setMode(m)}
             >
-              {m === "existing" ? "مشتری فعلی" : "مشتری جدید"}
+              {m === "existing" ? "مشتری قبلی" : "مشتری جدید"}
             </Button>
           ))}
         </div>

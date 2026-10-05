@@ -54,19 +54,19 @@ const newCustomerSchema = z.object({
     .string()
     .trim()
     .min(1, { error: "نام مشتری را وارد کنید." })
-    .max(80, { error: "نام مشتری حداکثر ۸۰ نویسه باشد." }),
+    .max(80, { error: "نام مشتری نباید بیشتر از ۸۰ کاراکتر باشد." }),
   phone: z
     .string()
     .transform((v) => normalizeIranMobile(v))
     .refine((v): v is string => v !== null, {
-      error: "شمارهٔ موبایل معتبر نیست. مثال: ۰۹۱۲۱۲۳۴۵۶۷",
+      error: "شمارهٔ موبایل درست نیست؛ باید مثل ۰۹۱۲۱۲۳۴۵۶۷ باشد.",
     }),
 });
 
 const addressSchema = z
   .string()
   .trim()
-  .max(500, { error: "آدرس حداکثر ۵۰۰ نویسه باشد." })
+  .max(500, { error: "آدرس نباید بیشتر از ۵۰۰ کاراکتر باشد." })
   .transform((v) => (v === "" ? null : v));
 
 /**
@@ -96,7 +96,7 @@ export function parseOrderForm(formData: FormData): ParseResult {
   } else {
     const id = text(formData.get("customerId")).trim();
     if (id) customer = { kind: "existing", id };
-    else addError("customerId", "یک مشتری انتخاب کنید یا مشتری جدید بسازید.");
+    else addError("customerId", "مشتری را از فهرست انتخاب کنید یا مشتری جدید اضافه کنید.");
   }
 
   // Address
@@ -126,9 +126,9 @@ export function parseOrderForm(formData: FormData): ParseResult {
   if (items.length === 0 && !Object.keys(errors).some((k) => k.startsWith("items."))) {
     addError("items", "حداقل یک کالا به سفارش اضافه کنید.");
   }
-  if (items.length > MAX_LINES) addError("items", `حداکثر ${MAX_LINES} ردیف کالا مجاز است.`);
+  if (items.length > MAX_LINES) addError("items", `هر سفارش حداکثر ${MAX_LINES} ردیف کالا می‌تواند داشته باشد.`);
   if (items.some((l) => l.quantity > MAX_QUANTITY)) {
-    addError("items", "تعداد یک کالا بیش از حد مجاز است.");
+    addError("items", "جمع تعداد یکی از کالاها بیش از حد مجاز است.");
   }
 
   if (Object.keys(errors).length > 0 || !customer || !address.success) {

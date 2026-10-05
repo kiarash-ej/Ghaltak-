@@ -18,14 +18,14 @@ export function PurchaseLinkForm({ products }: { products: { id: string; name: s
   const errors = state?.errors ?? {};
 
   if (products.length === 0) {
-    return <p className="text-neutral-600">برای ساخت لینک خرید، ابتدا یک محصول فعال ثبت کنید.</p>;
+    return <p className="text-neutral-600">برای ساختن لینک خرید، اول دست‌کم یک محصول فعال اضافه کنید.</p>;
   }
 
   return (
     <form action={action} className="flex flex-col gap-4">
       <div className="flex max-w-md flex-col gap-2">
-        <Label htmlFor="title">عنوان (اختیاری، به مشتری نمایش داده می‌شود)</Label>
-        <Input id="title" name="title" maxLength={80} placeholder="مثلاً: فروش ویژهٔ پاییز" />
+        <Label htmlFor="title">عنوان (اختیاری؛ مشتری آن را می‌بیند)</Label>
+        <Input id="title" name="title" maxLength={80} placeholder="مثلاً فروش ویژهٔ پاییز" />
         {errors.title && <p className="text-sm text-red-600">{errors.title[0]}</p>}
       </div>
 

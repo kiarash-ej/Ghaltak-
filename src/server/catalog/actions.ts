@@ -19,9 +19,9 @@ export type ProductFormState =
   | undefined;
 
 const GENERIC_ERROR = "خطای غیرمنتظره‌ای رخ داد. دوباره تلاش کنید.";
-const SKU_TAKEN = "این کد کالا قبلاً برای تنوع دیگری استفاده شده است.";
+const SKU_TAKEN = "این کد کالا قبلاً برای تنوع دیگری ثبت شده است.";
 const PRODUCT_LIMIT =
-  "به سقف کالاهای فعال پلن خود رسیده‌اید. کالا را غیرفعال ذخیره کنید، کالای دیگری را غیرفعال کنید یا پلن را از «تنظیمات › اشتراک» ارتقا دهید.";
+  "به سقف محصولات فعال پلن‌تان رسیده‌اید. این محصول را غیرفعال ذخیره کنید، یکی دیگر از محصولات را غیرفعال کنید یا از «تنظیمات › اشتراک» پلن‌تان را ارتقا دهید.";
 
 /** Thrown inside the save transaction when the plan has no room for another active product (A9). */
 class ProductLimitError extends Error {}
@@ -170,7 +170,7 @@ export async function updateProductAction(
   if (blocked.length > 0) {
     const labels = blocked.map(variantLabel).join("، ");
     return {
-      message: `این تنوع‌ها در سفارش‌ها استفاده شده‌اند و قابل حذف نیستند: ${labels}`,
+      message: `این تنوع‌ها در سفارش‌ها آمده‌اند و نمی‌توانید حذفشان کنید: ${labels}`,
     };
   }
 

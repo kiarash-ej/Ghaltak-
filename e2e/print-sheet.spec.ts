@@ -65,7 +65,7 @@ test("shipping sheets: one order, ticked orders, and everything ready to ship", 
     await page.goto("/orders");
     await page.getByLabel(`انتخاب سفارش ${first.code} برای چاپ`).check();
     await page.getByLabel(`انتخاب سفارش ${second.code} برای چاپ`).check();
-    await page.getByRole("button", { name: "چاپ برگهٔ ارسال انتخاب‌شده‌ها" }).click();
+    await page.getByRole("button", { name: "چاپ برگهٔ ارسال سفارش‌های انتخاب‌شده" }).click();
     await expect(page).toHaveURL(/\/orders\/print\?id=/);
     await expect(page.getByRole("article")).toHaveCount(2);
 
@@ -80,7 +80,7 @@ test("shipping sheets: one order, ticked orders, and everything ready to ship", 
   await test.step("«ready to ship» prints only paid orders", async () => {
     await page.goto(`/orders/${second.id}`);
     await page.getByRole("button", { name: "تأیید پرداخت" }).click();
-    await expect(page.getByText("کارت به کارت", { exact: true })).toBeVisible();
+    await expect(page.getByText("کارت‌به‌کارت", { exact: true })).toBeVisible();
 
     await page.goto("/orders");
     await page.getByRole("link", { name: "چاپ سفارش‌های آمادهٔ ارسال" }).click();

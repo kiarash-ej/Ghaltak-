@@ -149,7 +149,7 @@ export function SalesChart({ days }: { days: ChartDay[] }) {
 
         {!hasSales && (
           <p className="absolute inset-0 flex items-center justify-center text-sm text-neutral-500" dir="rtl">
-            در این بازه فروشی ثبت نشده است.
+            در این بازه فروشی نداشته‌اید.
           </p>
         )}
       </div>

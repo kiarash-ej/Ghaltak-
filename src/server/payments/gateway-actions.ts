@@ -38,7 +38,7 @@ export async function saveGatewayAction(
   } catch (err) {
     // Never the error object: it could carry the merchant id.
     console.error("gateway save failed:", (err as Error)?.name);
-    return { message: "ذخیره انجام نشد. دوباره تلاش کنید." };
+    return { message: "ذخیره نشد. دوباره تلاش کنید." };
   }
   revalidatePath("/settings/payments");
   return { saved: await getGatewayForSettings(seller.id), savedAt: Date.now() };
@@ -55,10 +55,10 @@ export async function testGatewayAction(
   void _formData;
   const seller = await requireOwner();
   if (!testLimiter.hit(seller.id)) {
-    return { test: { ok: false, text: "چند بار پشت سر هم آزمایش کردید. ده دقیقه دیگر دوباره امتحان کنید." } };
+    return { test: { ok: false, text: "چند بار پشت سر هم آزمایش کرده‌اید. ده دقیقهٔ دیگر دوباره امتحان کنید." } };
   }
   const gateway = await gatewayForSeller(seller.id, { activeOnly: false });
-  if (!gateway) return { test: { ok: false, text: "ابتدا مرچنت کد را ذخیره کنید." } };
+  if (!gateway) return { test: { ok: false, text: "اول مرچنت‌کد را ذخیره کنید." } };
 
   const result = await gateway.request({
     amount: 1_000,
@@ -67,5 +67,5 @@ export async function testGatewayAction(
   });
   return result.ok
     ? { test: { ok: true, text: "اتصال به درگاه برقرار است." } }
-    : { test: { ok: false, text: `درگاه درخواست را نپذیرفت (${result.detail}). مرچنت کد و حالت آزمایشی را بررسی کنید.` } };
+    : { test: { ok: false, text: `درگاه درخواست را رد کرد (${result.detail}). مرچنت‌کد و تیک حالت آزمایشی را بررسی کنید.` } };
 }

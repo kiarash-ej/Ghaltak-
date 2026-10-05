@@ -34,11 +34,11 @@ export function parseGatewayForm(
   const merchant = text(formData.get("merchantId"));
   if (merchant !== "") {
     if (UUID.test(merchant)) data.merchantId = merchant.toLowerCase();
-    else errors.merchantId = ["مرچنت کد زرین‌پال ۳۶ نویسه است، مثل xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx."];
+    else errors.merchantId = ["مرچنت‌کد زرین‌پال ۳۶ کاراکتر است؛ مثل xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"];
   }
 
   if (data.isActive && !fake && !data.merchantId && !ctx.hasSavedMerchant && !errors.merchantId) {
-    errors.merchantId = ["برای فعال کردن پرداخت آنلاین، مرچنت کد را وارد کنید."];
+    errors.merchantId = ["برای فعال کردن پرداخت آنلاین، مرچنت‌کد را وارد کنید."];
   }
 
   if (Object.keys(errors).length > 0) return { success: false, errors };

@@ -25,7 +25,7 @@ It drives the whole Phase 1 buy flow in a real browser, against a real app serve
 
 1. **Seller** (desktop) logs in through the SMS-code form, creates a product with one variant, and makes a purchase link.
 2. **Customer** (Pixel 7 size, no account) opens the link, picks color/size and quantity, orders, and uploads a card-to-card receipt.
-3. **Seller** sees the «رسید دریافت شد» badge and the receipt, confirms payment, prepares and ships with a tracking code.
+3. **Seller** sees the «رسید منتظر بررسی» badge and the receipt, confirms payment, prepares and ships with a tracking code.
 4. **Customer** sees "payment confirmed", the tracking code and the amount due. The page shows no phone numbers.
 5. **Seller**: stock went down by the ordered quantity, and the sales report counts the sale.
 

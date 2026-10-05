@@ -59,15 +59,15 @@ test("card-to-card: settings keep it masked, the customer's order page shows it"
     // The store header (A6's StoreHeader) now sits on the order page too.
     await expect(customer.locator("header").getByText("فروشگاه من")).toBeVisible();
     await expect(customer.getByText(CARD_SPACED)).toBeVisible();
-    await expect(customer.getByText("به نام: سارا احمدی")).toBeVisible();
+    await expect(customer.getByText("به نام سارا احمدی")).toBeVisible();
     await expect(customer.getByText("IR82 0540 1026 8002 0817 9090 02")).toBeVisible();
-    await expect(customer.getByRole("button", { name: "کپی شماره کارت" })).toBeVisible();
+    await expect(customer.getByRole("button", { name: "کپی شمارهٔ کارت" })).toBeVisible();
   });
 
   await test.step("once the seller confirms payment, the card is no longer shown", async () => {
     await seller.goto(`/orders/${order.id}`);
     await seller.getByRole("button", { name: "تأیید پرداخت" }).click();
-    await expect(seller.getByText("کارت به کارت", { exact: true })).toBeVisible();
+    await expect(seller.getByText("کارت‌به‌کارت", { exact: true })).toBeVisible();
 
     await customer.reload();
     await expect(customer.getByText("پرداخت شما تأیید شد.")).toBeVisible();

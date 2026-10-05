@@ -57,7 +57,7 @@ export async function startSubscriptionPayment(
     const effective = effectivePlan(sub, now(), { billingEnabled: true });
     if (effective.nextPlan && effective.nextPlan !== plan) {
       throw new SubscriptionPaymentError(
-        `تغییر به پلن ${PLANS[effective.nextPlan as PaidPlanId].name} از پایان دورهٔ فعلی ثبت شده است. تا آن زمان فقط تمدید همان پلن ممکن است.`,
+        `از پایان دورهٔ فعلی، پلن شما به ${PLANS[effective.nextPlan as PaidPlanId].name} تغییر می‌کند. تا آن موقع فقط می‌توانید پلن ${PLANS[effective.nextPlan as PaidPlanId].name} را تمدید کنید.`,
       );
     }
 

@@ -110,7 +110,7 @@ export async function startOnlinePayment(
   });
 
   if ("wait" in decision) {
-    throw new OnlinePaymentError("درگاه پرداخت در حال آماده شدن است. چند ثانیه دیگر دوباره بزنید.");
+    throw new OnlinePaymentError("درگاه پرداخت هنوز آماده نیست. چند ثانیهٔ دیگر دوباره امتحان کنید.");
   }
   if ("reuse" in decision && decision.reuse) {
     return { redirectUrl: gateway.payUrl(decision.reuse.authority), attemptId: decision.reuse.id };

@@ -37,7 +37,7 @@ export function LoginDialogProvider({ children, signedIn }: { children: React.Re
                 ورود یا ساخت حساب
               </h2>
               <p className={styles.dialogDescription}>
-                شمارهٔ موبایل خود را وارد کنید تا کد تأیید برایتان پیامک شود. اگر حساب ندارید، پس از تأیید شماره ساخته می‌شود.
+                شمارهٔ موبایلتان را وارد کنید تا کد تأیید برایتان پیامک شود. اگر حساب ندارید، بعد از تأیید شماره برایتان ساخته می‌شود.
               </p>
             </div>
             <button

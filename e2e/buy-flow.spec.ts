@@ -146,13 +146,13 @@ test("buy flow: purchase link → receipt → payment → shipping → report", 
   await test.step("seller sees the receipt and confirms payment", async () => {
     await seller.goto("/orders");
     const row = seller.getByRole("row").filter({ hasText: orderCode });
-    await expect(row.getByText("رسید دریافت شد")).toBeVisible();
+    await expect(row.getByText("رسید منتظر بررسی")).toBeVisible();
     await expect(row.getByText("لینک خرید")).toBeVisible();
     await row.getByRole("link", { name: "جزئیات" }).click();
 
     await expect(seller.getByRole("img", { name: "رسید پرداخت" })).toBeVisible();
     await seller.getByRole("button", { name: "تأیید پرداخت" }).click();
-    await expect(seller.getByText("کارت به کارت")).toBeVisible();
+    await expect(seller.getByText("کارت‌به‌کارت")).toBeVisible();
   });
 
   await test.step("seller prepares and ships the order", async () => {

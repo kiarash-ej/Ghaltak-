@@ -28,7 +28,7 @@ export async function changeOrderStatus(sellerId: string, orderId: string, to: O
     });
     if (!order) throw new StatusError("سفارش پیدا نشد.");
     if (!canTransition(order.status, to)) {
-      throw new StatusError(`تغییر وضعیت از «${STATUS_LABELS[order.status]}» به «${STATUS_LABELS[to]}» مجاز نیست.`);
+      throw new StatusError(`وضعیت سفارش را نمی‌توان از «${STATUS_LABELS[order.status]}» به «${STATUS_LABELS[to]}» تغییر داد.`);
     }
 
     const dropReceipt = to === "CANCELED" && order.status === "PENDING_PAYMENT" && order.receiptImageUrl !== null;
@@ -36,7 +36,7 @@ export async function changeOrderStatus(sellerId: string, orderId: string, to: O
       where: { id: orderId, sellerId, status: order.status, receiptImageUrl: order.receiptImageUrl },
       data: { status: to, shippingStatus: shippingStatusFor(to), ...(dropReceipt ? { receiptImageUrl: null } : {}) },
     });
-    if (count !== 1) throw new StatusError("وضعیت سفارش همزمان تغییر کرد. صفحه را تازه کنید.");
+    if (count !== 1) throw new StatusError("وضعیت سفارش در همین فاصله تغییر کرده است. صفحه را تازه کنید.");
 
     if (restoresStock(to)) {
       await returnStock(orderId, to === "RETURNED" ? "ORDER_RETURNED" : "ORDER_CANCELED", tx);

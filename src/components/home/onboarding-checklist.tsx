@@ -30,8 +30,8 @@ export function OnboardingChecklist({ steps }: { steps: OnboardingStep[] }) {
         {/* An h2: it sits right under the page's h1 (C7, heading order). */}
         <h2 className="text-lg font-semibold leading-none">شروع کار</h2>
         <CardDescription>
-          {formatNumber(doneCount)} از {formatNumber(steps.length)} مرحله انجام شده. با انجام همه، این فهرست
-          پنهان می‌شود.
+          {formatNumber(doneCount)} از {formatNumber(steps.length)} مرحله انجام شده. وقتی همهٔ مراحل را انجام دهید،
+          این فهرست پنهان می‌شود.
         </CardDescription>
         <div
           className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-100"

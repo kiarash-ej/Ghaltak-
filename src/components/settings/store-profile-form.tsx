@@ -96,8 +96,8 @@ export function StoreProfileForm({ action, initial }: Props) {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <p className="text-sm text-neutral-600">
-            نام، لوگو و راه‌های تماسی که اینجا وارد می‌کنید روی صفحهٔ خرید مشتری نمایش داده می‌شود. شمارهٔ
-            موبایلی که با آن وارد غلتک می‌شوید نمایش داده نمی‌شود.
+            مشتری نام، لوگو و راه‌های تماسی را که اینجا وارد می‌کنید روی صفحهٔ خرید می‌بیند، اما شمارهٔ موبایلی را
+            که با آن وارد غلتک می‌شوید نمی‌بیند.
           </p>
           <div className="flex flex-col gap-2">
             <Label htmlFor="name">نام فروشگاه</Label>

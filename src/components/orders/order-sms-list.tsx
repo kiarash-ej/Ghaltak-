@@ -31,7 +31,7 @@ export function OrderSmsList({ messages }: { messages: OrderSmsView[] }) {
           <span className="flex items-center gap-2">
             <Badge variant={STATUS[m.status].variant}>{STATUS[m.status].text}</Badge>
             {m.status === "FAILED" && m.attempts > 1 && (
-              <span className="text-xs text-neutral-500">{m.attempts} تلاش</span>
+              <span className="text-xs text-neutral-500">{m.attempts} بار تلاش</span>
             )}
             <span className="text-xs text-neutral-500">{formatDateTime(m.createdAt)}</span>
           </span>

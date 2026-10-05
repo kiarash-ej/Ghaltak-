@@ -10,7 +10,7 @@ export class PaymentError extends Error {
   }
 }
 
-const RECEIPT_CHANGED = "مشتری رسید تازه‌ای فرستاده است. صفحه را تازه کنید و رسید جدید را ببینید.";
+const RECEIPT_CHANGED = "مشتری رسید جدیدی فرستاده است. صفحه را تازه کنید تا آن را ببینید.";
 
 /**
  * The single way an order becomes PAID: manual confirmation by the seller, or
@@ -41,7 +41,7 @@ export async function confirmPaymentInTx(
   });
   if (!order) throw new PaymentError("سفارش پیدا نشد.");
   if (!canTransition(order.status, "PAID")) {
-    throw new PaymentError("فقط سفارش «در انتظار پرداخت» را می‌توان پرداخت‌شده کرد.");
+    throw new PaymentError("فقط سفارش‌های «در انتظار پرداخت» را می‌توانید «پرداخت‌شده» کنید.");
   }
 
   if (input.expectedReceiptKey !== undefined && order.receiptImageUrl !== input.expectedReceiptKey) {
@@ -69,7 +69,7 @@ export async function confirmPaymentInTx(
       select: { status: true },
     });
     throw new PaymentError(
-      now?.status === order.status ? RECEIPT_CHANGED : "وضعیت سفارش همزمان تغییر کرد. صفحه را تازه کنید.",
+      now?.status === order.status ? RECEIPT_CHANGED : "وضعیت سفارش در همین فاصله تغییر کرده است. صفحه را تازه کنید.",
     );
   }
 

@@ -94,17 +94,17 @@ export function parseCardDetailsForm(
   } else if (text(formData.get("sheba")).trim() !== "") {
     const sheba = normalizeSheba(text(formData.get("sheba")));
     if (sheba) data.sheba = sheba;
-    else errors.sheba = ["شمارهٔ شبا معتبر نیست. IR و ۲۴ رقم را وارد کنید."];
+    else errors.sheba = ["شمارهٔ شبا معتبر نیست. IR و ۲۴ رقم بعد از آن را وارد کنید."];
   }
 
   const holder = text(formData.get("cardHolder")).trim().replace(/\s+/g, " ");
-  if (holder.length > 60) errors.cardHolder = ["نام صاحب کارت حداکثر ۶۰ نویسه باشد."];
+  if (holder.length > 60) errors.cardHolder = ["نام صاحب کارت نباید بیشتر از ۶۰ کاراکتر باشد."];
   data.cardHolder = holder === "" ? null : holder;
 
   // Customers need a name to check before they transfer money.
   const willHaveCard = data.cardNumber === undefined ? stored.hasCard : data.cardNumber !== null;
   if (willHaveCard && !data.cardHolder && !errors.cardHolder) {
-    errors.cardHolder = ["نام صاحب کارت را وارد کنید تا مشتری بتواند آن را بررسی کند."];
+    errors.cardHolder = ["نام صاحب کارت را وارد کنید تا مشتری پیش از واریز بتواند آن را چک کند."];
   }
 
   if (Object.keys(errors).length > 0) return { success: false, errors };
