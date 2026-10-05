@@ -2,16 +2,17 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
+// Colours come from the theme roles in globals.css: near-black in the light
+// theme (checkout, login), the fire gradient in the dark dashboard.
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 disabled:pointer-events-none disabled:opacity-50",
+  "gk-btn inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm transition-[background,color,box-shadow,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-neutral-900 text-white hover:bg-neutral-800",
-        outline:
-          "border border-neutral-300 bg-transparent hover:bg-neutral-100",
-        ghost: "hover:bg-neutral-100",
-        destructive: "bg-red-600 text-white hover:bg-red-700",
+        default: "bg-action hover:bg-action-hover",
+        outline: "border border-line-strong bg-transparent text-ink hover:bg-raised-2",
+        ghost: "text-ink hover:bg-raised-2",
+        destructive: "bg-destructive text-white hover:bg-destructive-hover",
       },
       size: {
         default: "h-10 px-4",
@@ -28,12 +29,7 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {}
 
 export function Button({ className, variant, size, ...props }: ButtonProps) {
-  return (
-    <button
-      className={cn(buttonVariants({ variant, size }), className)}
-      {...props}
-    />
-  );
+  return <button className={cn(buttonVariants({ variant, size }), className)} {...props} />;
 }
 
 export { buttonVariants };

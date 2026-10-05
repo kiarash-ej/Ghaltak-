@@ -3,12 +3,90 @@
 /* Only the public shell opts into these variants. */
 @custom-variant public-dark (&:where([data-public-theme="dark"] .public-surface, [data-public-theme="dark"] .public-surface *));
 
-/* App and checkout surfaces remain light. The public pages scope their own
-   light/dark palette and color-scheme in marketing.module.css. */
+/* Customer pages, print pages and the public site stay light. The public
+   pages scope their own light/dark palette in marketing.module.css. */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --gk-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Brand fire, the same in every theme. 1→4: amber, orange, red, magenta. */
+  --gk-brand-1: #ffb000;
+  --gk-brand-2: #ff5a1f;
+  --gk-brand-3: #e8283f;
+  --gk-brand-4: #c2185b;
+}
+
+/* Light: the page root, and any area that must stay light inside the dark
+   dashboard (print pages: paper is always light). */
+:root,
+[data-app-theme="light"] {
   color-scheme: light;
+
+  /* ── Colour roles (docs/superpowers/specs/2026-10-06-ghaltak-ui-finance-design.md §3.1)
+     Pages use the role (bg-raised, text-muted, border-line), never a raw grey.
+     These light values reproduce the original look, so anything outside the
+     dark dashboard (checkout, login, print) is unchanged. */
+  --gk-canvas: #ffffff;
+  --gk-sidebar: #ffffff;
+  --gk-raised: #ffffff;
+  --gk-raised-2: #f5f5f5;
+  --gk-line: #e5e5e5;
+  --gk-line-strong: #d4d4d4;
+  --gk-ink: #171717;
+  --gk-ink-soft: #404040;
+  --gk-muted: #737373;
+  --gk-faint: #a3a3a3; /* light: placeholders only */
+  --gk-success: #166534;
+  --gk-success-bg: #dcfce7;
+  --gk-warning: #92400e;
+  --gk-warning-bg: #fef3c7;
+  --gk-danger: #991b1b;
+  --gk-danger-bg: #fee2e2;
+  --gk-info: #404040;
+  --gk-info-bg: #f5f5f5;
+  --gk-focus: #a3a3a3;
+  /* Primary action. Light: the original near-black button. */
+  --gk-action: #171717;
+  --gk-action-hover: #262626;
+  --gk-action-ink: #ffffff;
+  --gk-destructive: #dc2626;
+  --gk-destructive-hover: #b91c1c;
+  /* Count badges in the nav: white text, ≥ 4.5:1. */
+  --gk-count: #d81f3a;
+  --gk-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --gk-button-weight: 500;
+}
+
+/* The seller dashboard (set on its layout root). Dark navy with the fire. */
+[data-app-theme="dark"] {
+  color-scheme: dark;
+  --gk-canvas: #0b1020;
+  --gk-sidebar: #0e1424;
+  --gk-raised: #121a30;
+  --gk-raised-2: #1a2340;
+  --gk-line: #1d2740;
+  --gk-line-strong: #2a3550;
+  --gk-ink: #e7edf6;
+  --gk-ink-soft: #b5c2d5;
+  --gk-muted: #8a97ae;
+  --gk-faint: #808ca8; /* ≥ 4.5:1 on every surface */
+  --gk-success: #6ee7b7;
+  --gk-success-bg: #0f3a2c;
+  --gk-warning: #ffc069;
+  --gk-warning-bg: #3a2a12;
+  --gk-danger: #ff8fa0;
+  --gk-danger-bg: #3a1621;
+  --gk-info: #b5c2d5;
+  --gk-info-bg: #1e2944;
+  --gk-focus: #ff7a3d;
+  /* White text needs ≥ 4.5:1, so buttons use a deeper fire than the logo. */
+  --gk-action: linear-gradient(90deg, #d2411a, #d81f3a 55%, #b01650);
+  --gk-action-hover: linear-gradient(90deg, #c23a16, #c81b35 55%, #a01449);
+  --gk-action-ink: #ffffff;
+  --gk-destructive: #d81f3a;
+  --gk-destructive-hover: #c81b35;
+  --gk-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  --gk-button-weight: 700;
 }
 
 @theme inline {
@@ -16,10 +94,151 @@
   --color-foreground: var(--foreground);
   --font-sans: "Vazirmatn Variable", system-ui, sans-serif;
   --font-mono: ui-monospace, monospace;
+
+  --color-canvas: var(--gk-canvas);
+  --color-sidebar: var(--gk-sidebar);
+  --color-raised: var(--gk-raised);
+  --color-raised-2: var(--gk-raised-2);
+  --color-line: var(--gk-line);
+  --color-line-strong: var(--gk-line-strong);
+  --color-ink: var(--gk-ink);
+  --color-ink-soft: var(--gk-ink-soft);
+  --color-muted: var(--gk-muted);
+  --color-faint: var(--gk-faint);
+  --color-success: var(--gk-success);
+  --color-success-bg: var(--gk-success-bg);
+  --color-warning: var(--gk-warning);
+  --color-warning-bg: var(--gk-warning-bg);
+  --color-danger: var(--gk-danger);
+  --color-danger-bg: var(--gk-danger-bg);
+  --color-info: var(--gk-info);
+  --color-info-bg: var(--gk-info-bg);
+  --color-focus: var(--gk-focus);
+  --color-action-ink: var(--gk-action-ink);
+  --color-destructive: var(--gk-destructive);
+  --color-destructive-hover: var(--gk-destructive-hover);
+  --color-count: var(--gk-count);
+  --color-brand-1: var(--gk-brand-1);
+  --color-brand-2: var(--gk-brand-2);
+  --color-brand-3: var(--gk-brand-3);
+  --color-brand-4: var(--gk-brand-4);
+}
+
+/* ── Motion (spec §3.5). Every animation fills "both" and hides nothing in
+   the element's own style, so with motion off the final state just shows. */
+@theme {
+  --animate-rise: gk-rise 0.5s var(--gk-ease) both;
+  --animate-grow-y: gk-grow-y 0.7s var(--gk-ease) both;
+  --animate-fade: gk-fade 0.6s ease-out both;
+  --animate-pop: gk-pop 0.4s var(--gk-ease) both;
+  --animate-draw: gk-draw 1.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+  --animate-sheen: gk-sheen 1.6s ease-in-out 0.5s both;
+  --animate-sheet-up: gk-sheet-up 0.35s var(--gk-ease) both;
+  --animate-sheet-down: gk-sheet-down 0.2s ease-in both;
+  --animate-drawer-in: gk-drawer-in 0.35s var(--gk-ease) both;
+  --animate-drawer-out: gk-drawer-out 0.2s ease-in both;
+  --animate-fade-out: gk-fade-out 0.2s ease-in both;
+
+  @keyframes gk-rise {
+    from { opacity: 0; transform: translateY(10px); }
+  }
+  @keyframes gk-grow-y {
+    from { transform: scaleY(0); }
+  }
+  @keyframes gk-fade {
+    from { opacity: 0; }
+  }
+  @keyframes gk-pop {
+    from { opacity: 0; transform: scale(0.6); }
+  }
+  @keyframes gk-draw {
+    from { stroke-dashoffset: var(--gk-path-length, 1000); }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes gk-sheet-up {
+    from { transform: translateY(100%); }
+  }
+  @keyframes gk-sheet-down {
+    to { transform: translateY(100%); }
+  }
+  /* The drawer comes from the inline end: the left edge in Persian. */
+  @keyframes gk-drawer-in {
+    from { transform: translateX(-100%); }
+  }
+  @keyframes gk-drawer-out {
+    to { transform: translateX(-100%); }
+  }
+  @keyframes gk-fade-out {
+    to { opacity: 0; }
+  }
+  @keyframes gk-sheen {
+    from { transform: translateX(120%); }
+    to { transform: translateX(-120%); }
+  }
+}
+
+/* Gradients as utilities. */
+@utility bg-action {
+  background: var(--gk-action);
+  color: var(--gk-action-ink);
+}
+@utility bg-action-hover {
+  background: var(--gk-action-hover);
+}
+/* Decorative fire: bars, indicators, the ➕ button. Never under small text. */
+@utility bg-fire {
+  background-image: linear-gradient(135deg, var(--gk-brand-1), var(--gk-brand-2) 40%, var(--gk-brand-3) 75%, var(--gk-brand-4));
+}
+@utility text-fire {
+  background-image: linear-gradient(90deg, var(--gk-brand-1), var(--gk-brand-2) 55%, #ff6b81);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+/* Hero cards: orange glow from the top corner, magenta from the bottom. */
+@utility bg-glow {
+  background:
+    radial-gradient(120% 160% at 100% 0%, rgb(255 90 31 / 0.3), transparent 55%),
+    radial-gradient(100% 120% at 0% 100%, rgb(194 24 91 / 0.22), transparent 60%),
+    var(--gk-raised);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+[data-app-theme] {
+  background: var(--gk-canvas);
+  color: var(--gk-ink);
+}
+
+.gk-btn {
+  font-weight: var(--gk-button-weight);
+}
+
+/* Count-up numbers (src/components/ui/count-up.tsx): with JavaScript on, a
+   number waits for its animation instead of flashing its final value first.
+   If the script is slow (3G), it shows anyway after a second. */
+.js [data-countup]:not([data-countup-done]) {
+  opacity: 0;
+  animation: gk-reveal 0s 1s forwards;
+}
+@keyframes gk-reveal {
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-app-theme] *,
+  [data-app-theme] *::before,
+  [data-app-theme] *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .js [data-countup] {
+    opacity: 1 !important;
+  }
 }

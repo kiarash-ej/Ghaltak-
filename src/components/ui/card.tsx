@@ -1,10 +1,19 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+type CardProps = React.HTMLAttributes<HTMLDivElement> & {
+  /** `hero`: the brand glow, for the one number that matters most on a page. */
+  variant?: "default" | "hero";
+};
+
+export function Card({ className, variant = "default", ...props }: CardProps) {
   return (
     <div
-      className={cn("rounded-xl border border-neutral-200 bg-white text-neutral-900 shadow-sm", className)}
+      className={cn(
+        "rounded-xl border text-ink shadow-(--gk-shadow)",
+        variant === "hero" ? "relative overflow-hidden border-brand-2/35 bg-glow" : "border-line bg-raised",
+        className,
+      )}
       {...props}
     />
   );
@@ -28,7 +37,7 @@ export function CardTitle({
 }
 
 export function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn("text-sm text-neutral-500", className)} {...props} />;
+  return <p className={cn("text-sm text-muted", className)} {...props} />;
 }
 
 export function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

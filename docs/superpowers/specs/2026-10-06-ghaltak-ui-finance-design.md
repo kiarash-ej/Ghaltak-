@@ -27,7 +27,7 @@ Mockups from the brainstorming session (open in a browser; they use the brand lo
 | Period recaps | Every Jalali month, season (فصل) and year, as a recap on Home and as an archive in finance |
 | Period reports | Printable A4 page per period, saved as PDF from the browser |
 | Motion | Count-ups, staggered rise, self-drawing charts, sliding tab highlight; off under reduced motion |
-| Approach | Design tokens + rebuilt component kit + a hand-finished design pass on every page; Radix primitives only for complex interactive pieces; hand-made SVG charts |
+| Approach | Design tokens + rebuilt component kit + a hand-finished design pass on every page; Radix primitives (Dialog, Popover) only for complex interactive pieces; hand-made SVG charts |
 | Advice engine | Rules over the seller's own data. No runtime AI or foreign service (project rule 7, Iran connectivity) |
 
 ## 2. Out of scope
@@ -74,7 +74,7 @@ Defined once as CSS variables in `src/app/globals.css`, scoped to the dashboard 
 
 ### 3.3 Brand assets
 From the owner's kit (`GHALTAK_brand_assets.zip`), produce web-ready files in `public/brand/` and `src/app/`:
-- Logo symbol at 64, 128 and 256 px (WebP plus PNG fallback), from `logo_symbol_only.png` (1600 px master).
+- Logo symbol at 256 px (trimmed PNG; `next/image` serves WebP/AVIF at the sizes each page asks for), from `logo_symbol_only.png` (1600 px master). `scripts/brand-assets.mjs` regenerates every file from the kit.
 - Logo with name and text-only logo for wide places.
 - Favicons and app icons from `web_icon_*` and `app_icon_dark` / `app_icon_light`; `manifest.ts` uses the dark icon.
 - Masters stay out of the repo (931 KB symbol); only the resized files are committed.
@@ -89,14 +89,14 @@ Rebuilt on the colour roles. Existing names and props are kept where they exist,
 | `Badge` / `Pill` | tones: success, warning, danger, info, brand; count badge for nav |
 | `Input`, `Select`, `Label`, `Field` | dark fields, visible focus ring in brand orange, error text slot |
 | `Stat` | label, value (count-up), unit, delta vs previous period, optional ؟ |
-| `Tabs` | Radix Tabs with the sliding highlight |
+| `NavTabs` | tabs that are pages (finance tabs, products/stock): plain links with the sliding highlight, `aria-current` on the active one |
 | `Explain` (؟) | Radix Popover; text comes from the finance glossary |
 | `Sheet` | Radix Dialog as a bottom sheet (phone) or side panel (desktop): ➕ quick actions, ☰ menu |
 | `Skeleton` | loading placeholders matching each card shape |
 | `EmptyState` | icon, one sentence, one action |
 | `Sparkline`, `BarChart`, `LineChart`, `ProfitBreakdown` | hand-made SVG, server-rendered, animated with CSS |
 
-- New dependencies: the Radix packages for Dialog, Popover and Tabs only. `lucide-react` (already installed) for icons.
+- New dependencies: the Radix packages for Dialog and Popover only (tabs are page links, so they need no Radix). `lucide-react` (already installed) for icons.
 - A dev-only page `/dev/ui` (404 in production, same guard style as the fake gateway) renders every component in every state for review.
 
 ### 3.5 Motion
@@ -358,7 +358,7 @@ Each step is one PR on top of the previous one, with CI green and the touched tr
 1. **Kit:**
    - colour roles, type, motion helpers
    - brand assets resized
-   - the component kit with Radix Dialog / Popover / Tabs
+   - the component kit with Radix Dialog and Popover
    - `/dev/ui`
    - `.superpowers/` added to `.gitignore`
 2. **Shell:** sidebar, phone bottom bar, ➕ sheet, ☰ drawer, bell, badges, products/stock segmented control.
@@ -417,3 +417,4 @@ Each step is one PR on top of the previous one, with CI green and the touched tr
 - **Merge conflicts:** the sweep touches many files; schedule the PR 3 window with A and C and land it fast.
 - **Schema:** one schema PR at a time (project rule); PR 5 is it for this work.
 - **Performance:** server-rendered charts and CSS motion keep the dashboard light on 3G; Radix packages are dashboard-only and never loaded on `/buy`.
+- **Accessible colour (checked while building the kit):** white text on the bright logo orange is only 3.1:1, so buttons use a deeper fire (`#D2411A → #D81F3A → #B01650`, ≥ 4.6:1) and the bright gradient is decoration only; the small-label grey is `#808CA8` (≥ 4.5:1 on every surface).
