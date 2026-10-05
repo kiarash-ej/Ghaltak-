@@ -22,8 +22,8 @@ export default async function DevicesPage() {
       <CardHeader>
         <CardTitle>دستگاه‌های من</CardTitle>
         <CardDescription>
-          دستگاه‌هایی که با شمارهٔ شما در این فروشگاه وارد شده‌اند. اگر گوشی یا رایانه‌ای را نمی‌شناسید یا گم
-          کرده‌اید، از آن خارج شوید.
+          دستگاه‌هایی که با شمارهٔ شما وارد این فروشگاه شده‌اند. اگر گوشی یا رایانه‌ای را نمی‌شناسید یا گمش
+          کرده‌اید، «خروج» کنار آن را بزنید.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -36,7 +36,7 @@ export default async function DevicesPage() {
                   {s.id === me.sessionId && <Badge variant="success">همین دستگاه</Badge>}
                 </div>
                 <div className="text-sm text-neutral-600">
-                  ورود: {formatDateTime(s.createdAt)} · آخرین استفاده: {formatDateTime(s.lastSeenAt)}
+                  ورود: {formatDateTime(s.createdAt)} · آخرین فعالیت: {formatDateTime(s.lastSeenAt)}
                 </div>
               </div>
               {s.id !== me.sessionId && (

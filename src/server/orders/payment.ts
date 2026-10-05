@@ -12,7 +12,7 @@ import type { OrderStatus, PaymentMethod } from "@/generated/prisma/enums";
 export const PAYMENT_METHODS: readonly PaymentMethod[] = ["CARD_TO_CARD", "CASH", "OTHER"];
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
-  CARD_TO_CARD: "کارت به کارت",
+  CARD_TO_CARD: "کارت‌به‌کارت",
   CASH: "نقدی",
   OTHER: "سایر",
   ONLINE: "پرداخت آنلاین",

@@ -27,7 +27,7 @@ function LoginFormFields({ onEditNumber }: { onEditNumber: () => void }) {
       {isCodeStep ? (
         <>
           <input type="hidden" name="mobile" value={state.mobile} />
-          <p className={styles.sentMessage}>کد تأیید به شمارهٔ <span dir="ltr">{state.mobile}</span> ارسال شد.</p>
+          <p className={styles.sentMessage}>کد تأیید به شمارهٔ <span dir="ltr">{state.mobile}</span> پیامک شد.</p>
           <div className={styles.field}>
             <Label htmlFor="code" className={styles.fieldLabel}>کد تأیید</Label>
             <Input
@@ -42,7 +42,7 @@ function LoginFormFields({ onEditNumber }: { onEditNumber: () => void }) {
               autoFocus
               required
             />
-            <p className={styles.fieldHint}>کد شش‌رقمی پیامک‌شده را وارد کنید.</p>
+            <p className={styles.fieldHint}>کد شش‌رقمی پیامک را وارد کنید.</p>
           </div>
           <button type="button" onClick={onEditNumber} className={styles.editNumber}>تغییر شماره یا دریافت کد جدید</button>
         </>
@@ -63,14 +63,14 @@ function LoginFormFields({ onEditNumber }: { onEditNumber: () => void }) {
             autoFocus
             required
           />
-          <p id="mobile-hint" className={styles.fieldHint}>شمارهٔ موبایل را با ۰۹ شروع کنید.</p>
+          <p id="mobile-hint" className={styles.fieldHint}>شماره باید با ۰۹ شروع شود.</p>
         </div>
       )}
 
       {state.error && <p id="auth-error" role="alert" className={styles.formError}>{state.error}</p>}
 
       <Button type="submit" disabled={pending} className={styles.authSubmit}>
-        {pending ? "لطفاً صبر کنید…" : isCodeStep ? "ورود" : "دریافت کد تأیید"}
+        {pending ? "کمی صبر کنید…" : isCodeStep ? "ورود" : "دریافت کد تأیید"}
         {!pending && <ArrowUpLeft size={19} aria-hidden="true" />}
       </Button>
     </form>

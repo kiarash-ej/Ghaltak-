@@ -9,7 +9,7 @@ import styles from "../marketing.module.css";
 
 export const metadata: Metadata = {
   title: "غلتک | مدیریت سفارش و فروش فروشگاه‌های آنلاین",
-  description: "محصول و موجودی را ثبت کنید، لینک خرید بسازید و سفارش‌های فروشگاه اینستاگرامی یا تلگرامی خود را تا پرداخت و ارسال در غلتک پیگیری کنید.",
+  description: "محصول و موجودی را ثبت کنید، لینک خرید بسازید و سفارش‌های فروشگاه اینستاگرامی یا تلگرامی‌تان را تا پرداخت و ارسال در غلتک پیگیری کنید.",
 };
 
 const stepIcons = [Package, Link2, Truck];
@@ -30,7 +30,7 @@ export default function WelcomePage() {
               <LoginButton className={styles.primaryAction}>ساخت حساب <ArrowUpLeft size={20} aria-hidden="true" /></LoginButton>
               <Link href="#how-it-works" className={styles.textAction}>غلتک چطور کار می‌کند؟ <ArrowLeft size={18} aria-hidden="true" /></Link>
             </div>
-            <p className={styles.heroAside}>ورود با کد پیامکی؛ بدون نیاز به رمز عبور</p>
+            <p className={styles.heroAside}>ورود با کد پیامکی، بدون رمز عبور</p>
           </div>
 
           <div className={styles.heroVisual} role="img" aria-label="نمونه‌ای از لینک خرید، ثبت سفارش و آماده‌سازی ارسال در غلتک">
@@ -53,15 +53,15 @@ export default function WelcomePage() {
                 </div>
                 <div className={styles.orderPreview}>
                   <div className={styles.orderPreviewTop}><span>سفارش تازه</span><span className={styles.statusPill}>در انتظار پرداخت</span></div>
-                  <div className={styles.productRow}><span className={styles.productThumb}><Package size={22} aria-hidden="true" /></span><div><strong>کیف دستی، رنگ سرمه‌ای</strong><small>۱ عدد · ثبت‌شده از لینک خرید</small></div></div>
-                  <div className={styles.orderFooter}><span>اطلاعات سفارش ثبت شده است</span><span className={styles.orderProgress}><i /><i /><i /></span></div>
+                  <div className={styles.productRow}><span className={styles.productThumb}><Package size={22} aria-hidden="true" /></span><div><strong>کیف دستی، رنگ سرمه‌ای</strong><small>۱ عدد · از لینک خرید</small></div></div>
+                  <div className={styles.orderFooter}><span>مشخصات سفارش ثبت شد</span><span className={styles.orderProgress}><i /><i /><i /></span></div>
                 </div>
                 <div className={styles.previewMiniRows}><span /><span /><span /></div>
               </div>
             </div>
             <div className={`${styles.floatingNote} ${styles.shipNote}`}>
               <span className={styles.shipIcon}><Check size={17} strokeWidth={3} aria-hidden="true" /></span>
-              <span><strong>آمادهٔ ارسال</strong><small>پرداخت تأیید شده است</small></span>
+              <span><strong>آمادهٔ ارسال</strong><small>پرداخت تأیید شد</small></span>
             </div>
             <div className={styles.visualCaption}>نمونه‌ای از مدیریت سفارش در غلتک</div>
           </div>
@@ -71,7 +71,7 @@ export default function WelcomePage() {
           <div className={styles.sectionIntro}>
             <p className={styles.sectionLabel}>شروع کار با غلتک</p>
             <h2 id="workflow-title">از ثبت محصول تا ارسال سفارش.</h2>
-            <p>سه مرحله برای نظم دادن به کارهای روزانهٔ فروشگاه؛ با اطلاعاتی که برای هر سفارش در دسترس شماست.</p>
+            <p>سه قدم برای نظم دادن به کارهای روزانهٔ فروشگاه؛ اطلاعات هر سفارش را هم همیشه یک‌جا دارید.</p>
           </div>
           <ol className={styles.steps}>
             {HOW_IT_WORKS.map((step, index) => {
@@ -92,7 +92,7 @@ export default function WelcomePage() {
             <div className={styles.sectionIntro}>
               <p className={styles.sectionLabel}>از نگاه مشتری</p>
               <h2 id="customer-title">یک لینک برای خرید، یک صفحه برای پیگیری.</h2>
-              <p>مشتری از همان جایی که با فروشگاه شما آشنا شده، وارد لینک خرید می‌شود. نیازی به نصب برنامه یا ساخت حساب ندارد.</p>
+              <p>مشتری از همان جایی که با فروشگاهتان آشنا شده، لینک خرید را باز می‌کند؛ بدون نصب برنامه و بدون ثبت‌نام.</p>
             </div>
             <ol className={styles.customerSteps}>
               {CUSTOMER_STEPS.map((step, index) => (
@@ -112,11 +112,11 @@ export default function WelcomePage() {
             </div>
             <div className={styles.receiptProduct}><span>کیف دستی سرمه‌ای</span><span>۱ عدد</span></div>
             <ol className={styles.receiptTimeline}>
-              <li><span className={styles.receiptDone}><Check size={16} aria-hidden="true" /></span><div><strong>سفارش ثبت شد</strong><p>اطلاعات خرید و نشانی دریافت شد.</p></div></li>
+              <li><span className={styles.receiptDone}><Check size={16} aria-hidden="true" /></span><div><strong>سفارش ثبت شد</strong><p>مشخصات خرید و نشانی ثبت شد.</p></div></li>
               <li><span className={styles.receiptDone}><Check size={16} aria-hidden="true" /></span><div><strong>پرداخت تأیید شد</strong><p>سفارش برای ارسال آماده می‌شود.</p></div></li>
-              <li><span className={styles.receiptCurrent}><Truck size={16} aria-hidden="true" /></span><div><strong>سفارش ارسال شد</strong><p>کد رهگیری در همین صفحه در دسترس است.</p></div></li>
+              <li><span className={styles.receiptCurrent}><Truck size={16} aria-hidden="true" /></span><div><strong>سفارش ارسال شد</strong><p>کد رهگیری را همین‌جا ببینید.</p></div></li>
             </ol>
-            <figcaption>نمونهٔ نمایشی از مراحل پیگیری سفارش</figcaption>
+            <figcaption>نمونه‌ای از صفحهٔ پیگیری سفارش</figcaption>
           </figure>
         </section>
 
@@ -125,7 +125,7 @@ export default function WelcomePage() {
             <div className={styles.sectionIntro}>
               <p className={styles.sectionLabel}>امکانات غلتک</p>
               <h2 id="features-title">ابزارهای کار روزانهٔ فروشگاهتان.</h2>
-              <p>اطلاعات محصول، مشتری و سفارش کنار هم قرار می‌گیرند تا برای هر کار، بدانید از کجا شروع کنید.</p>
+              <p>اطلاعات محصول، مشتری و سفارش کنار هم است تا برای هر کاری بدانید از کجا شروع کنید.</p>
             </div>
             <div className={styles.featureGrid}>
               {FEATURE_GROUPS.map((group) => (
@@ -141,8 +141,8 @@ export default function WelcomePage() {
 
         <section id="questions" className={styles.faqSection} aria-labelledby="faq-title">
           <div className={styles.sectionIntro}>
-            <h2 id="faq-title">پیش از شروع، بیشتر بدانید.</h2>
-            <p>پاسخ به پرسش‌هایی که ممکن است دربارهٔ کار با غلتک داشته باشید.</p>
+            <h2 id="faq-title">پرسش‌های پیش از شروع</h2>
+            <p>جواب سؤال‌هایی که شاید دربارهٔ کار با غلتک داشته باشید.</p>
             <Link href="/help" className={styles.textAction}>همهٔ راهنماها <ArrowLeft size={18} aria-hidden="true" /></Link>
           </div>
           <div className={styles.faqList}>

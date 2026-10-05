@@ -7,7 +7,7 @@ import { createManualOrder, createProduct, faDigits, logIn, toman, uniqueMobile 
 
 const STEPS = {
   store: "اطلاعات فروشگاه را کامل کنید",
-  product: "اولین محصول را بسازید",
+  product: "اولین محصول را اضافه کنید",
   card: "شمارهٔ کارت را ثبت کنید",
   link: "اولین لینک خرید را بسازید",
   order: "اولین سفارش را ثبت کنید",
@@ -94,8 +94,8 @@ test("a new seller's start checklist ticks step by step, then hides", async ({ p
     await expect(tile("سفارش‌های امروز")).toContainText(`فروش امروز: ${toman(0)}`);
     await expect(tile("رسیدهای منتظر بررسی")).toContainText(faDigits(0));
     // 3 in stock, 1 ordered: 2 left, at or below the threshold of 3.
-    await expect(tile("نیاز به تأمین")).toContainText(faDigits(1));
-    await expect(tile("نیاز به تأمین")).toHaveAttribute("href", "/inventory?filter=low");
+    await expect(tile("نیاز به شارژ")).toContainText(faDigits(1));
+    await expect(tile("نیاز به شارژ")).toHaveAttribute("href", "/inventory?filter=low");
   });
 
   await test.step("the guide opens on a phone without logging in", async () => {

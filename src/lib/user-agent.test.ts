@@ -10,7 +10,7 @@ describe("deviceLabel", () => {
       deviceLabel("Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"),
     ).toBe("سافاری روی آیفون");
     expect(deviceLabel("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36 Edg/129.0")).toBe(
-      "اج روی ویندوز",
+      "مایکروسافت اج روی ویندوز",
     );
     expect(deviceLabel("Mozilla/5.0 (Linux; Android 13) SamsungBrowser/25.0 Chrome/121.0 Mobile Safari/537.36")).toBe(
       "مرورگر سامسونگ روی اندروید",

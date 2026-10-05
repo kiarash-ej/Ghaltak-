@@ -83,7 +83,7 @@ export default async function VariantHistoryPage(props: PageProps<"/inventory/[v
         <>
           {totalMovements > movements.length && (
             <p className="text-sm text-neutral-500">
-              {formatNumber(HISTORY_LIMIT)} تغییر آخر از {formatNumber(totalMovements)} تغییر نمایش داده می‌شود.
+              {formatNumber(HISTORY_LIMIT)} تغییر آخر را از مجموع {formatNumber(totalMovements)} تغییر می‌بینید.
             </p>
           )}
           <div className="overflow-x-auto rounded-xl border border-neutral-200">
@@ -92,7 +92,7 @@ export default async function VariantHistoryPage(props: PageProps<"/inventory/[v
                 <tr>
                   <th className="p-3 text-start font-medium">زمان</th>
                   <th className="p-3 text-start font-medium">تغییر</th>
-                  <th className="p-3 text-start font-medium">علت</th>
+                  <th className="p-3 text-start font-medium">دلیل</th>
                   <th className="p-3 text-start font-medium">توضیح</th>
                 </tr>
               </thead>

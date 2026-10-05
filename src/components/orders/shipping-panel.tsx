@@ -135,7 +135,7 @@ export function ShippingPanel({
             <option value="IN_TRANSIT">{SHIPPING_STATUS_LABELS.IN_TRANSIT}</option>
             <option value="FAILED">{SHIPPING_STATUS_LABELS.FAILED}</option>
           </select>
-          <p className="text-xs text-neutral-500">برای تحویل، وضعیت سفارش را «تحویل‌شده» کنید.</p>
+          <p className="text-xs text-neutral-500">وقتی مرسوله به دست مشتری رسید، وضعیت سفارش را «تحویل‌شده» کنید.</p>
         </div>
       ) : (
         <input type="hidden" name="shippingStatus" value="" />

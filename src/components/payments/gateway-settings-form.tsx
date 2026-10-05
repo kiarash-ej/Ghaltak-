@@ -40,13 +40,14 @@ export function GatewaySettingsForm({
   return (
     <div className="flex max-w-lg flex-col gap-5">
       <p className="text-sm text-neutral-600">
-        با درگاه زرین‌پال خودتان، مشتری می‌تواند روی صفحهٔ سفارشش آنلاین پرداخت کند و پول مستقیم به حساب شما
-        می‌رود. سفارش بعد از تأیید درگاه خودکار «پرداخت‌شده» می‌شود. کارت‌به‌کارت همچنان در دسترس می‌ماند.
+        اگر درگاه زرین‌پال خودتان را اینجا وصل کنید، مشتری می‌تواند از صفحهٔ سفارشش آنلاین پرداخت کند و پول
+        مستقیم به حساب شما می‌رود. وقتی درگاه پرداخت را تأیید کند، سفارش خودکار «پرداخت‌شده» می‌شود.
+        کارت‌به‌کارت هم مثل قبل فعال می‌ماند.
       </p>
 
       <form action={save} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="merchantId">مرچنت کد زرین‌پال</Label>
+          <Label htmlFor="merchantId">مرچنت‌کد زرین‌پال</Label>
           <Input
             id="merchantId"
             name="merchantId"
@@ -58,7 +59,7 @@ export function GatewaySettingsForm({
           />
           {current?.merchantMasked && (
             <p className="text-xs text-neutral-500">
-              مرچنت کد ذخیره‌شده: <span dir="ltr">{current.merchantMasked}</span>. برای تغییر، کد جدید را وارد کنید.
+              مرچنت‌کد ذخیره‌شده: <span dir="ltr">{current.merchantMasked}</span>. برای تغییر، کد جدید را وارد کنید.
             </p>
           )}
           {errors.merchantId && (
@@ -70,12 +71,12 @@ export function GatewaySettingsForm({
 
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="sandbox" checked={sandbox} onChange={(e) => setSandbox(e.target.checked)} />
-          حالت آزمایشی زرین‌پال (sandbox)، بدون پرداخت واقعی
+          حالت آزمایشی زرین‌پال (sandbox)؛ پرداخت واقعی انجام نمی‌شود
         </label>
         {fakeAllowed && (
           <label className="flex items-center gap-2 text-sm text-amber-800">
             <input type="checkbox" name="fake" checked={fake} onChange={(e) => setFake(e.target.checked)} />
-            درگاه آزمایشی داخلی (فقط برای آزمایش خودکار؛ روی پروداکشن وجود ندارد)
+            درگاه آزمایشی داخلی (فقط برای تست خودکار؛ در نسخهٔ اصلی سایت نیست)
           </label>
         )}
         <label className="flex items-center gap-2 text-sm font-medium">

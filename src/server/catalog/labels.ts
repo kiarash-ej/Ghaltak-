@@ -2,7 +2,7 @@ import type { StockMovementReason } from "@/generated/prisma/client";
 
 export const STOCK_REASON_LABELS: Record<StockMovementReason, string> = {
   INITIAL: "موجودی اولیه",
-  MANUAL_ADJUSTMENT: "تنظیم دستی",
+  MANUAL_ADJUSTMENT: "تغییر دستی",
   ORDER_PLACED: "ثبت سفارش",
   ORDER_CANCELED: "لغو سفارش",
   ORDER_RETURNED: "مرجوعی",

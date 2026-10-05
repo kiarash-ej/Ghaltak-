@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 const RETURN_MESSAGES: Record<string, { text: string; tone: "good" | "info" | "bad" }> = {
   paid: { text: "پرداخت آنلاین شما انجام شد.", tone: "good" },
   pending: {
-    text: "پرداخت شما در حال بررسی است. چند دقیقه دیگر همین صفحه را تازه کنید. اگر مبلغی از حسابتان کم شده، یا سفارش پرداخت‌شده می‌شود یا مبلغ خودکار برمی‌گردد.",
+    text: "پرداخت شما در حال بررسی است. چند دقیقه دیگر همین صفحه را تازه کنید. اگر مبلغی از حسابتان کم شده باشد، یا پرداخت سفارش ثبت می‌شود یا مبلغ خودکار به حسابتان برمی‌گردد.",
     tone: "info",
   },
   canceled: {
@@ -41,11 +41,11 @@ const RETURN_MESSAGES: Record<string, { text: string; tone: "good" | "info" | "b
     tone: "bad",
   },
   mismatch: {
-    text: "پرداخت شما دریافت شد، اما با مبلغ فعلی سفارش یکی نبود. فروشنده بررسی می‌کند و با شما تماس می‌گیرد.",
+    text: "پرداخت شما دریافت شد، اما مبلغش با مبلغ فعلی سفارش فرق دارد. فروشنده موضوع را بررسی می‌کند و با شما تماس می‌گیرد.",
     tone: "bad",
   },
   late: {
-    text: "پرداخت شما دریافت شد، اما سفارش پیش از آن لغو شده بود. فروشنده با شما تماس می‌گیرد.",
+    text: "پرداخت شما دریافت شد، اما سفارش قبل از پرداخت لغو شده بود. فروشنده با شما تماس می‌گیرد.",
     tone: "bad",
   },
 };
@@ -87,7 +87,7 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
         <p className="text-sm">این کد را نگه دارید. فروشنده برای هماهنگی پرداخت و ارسال با شما تماس می‌گیرد.</p>
         {order.status === "PENDING_PAYMENT" && (
           <p className="text-sm">
-            سفارشی که تا {formatNumber(UNPAID_ORDER_TTL_HOURS)} ساعت پرداخت نشود، خودکار لغو می‌شود.
+            اگر سفارش تا {formatNumber(UNPAID_ORDER_TTL_HOURS)} ساعت پرداخت نشود، خودکار لغو می‌شود.
           </p>
         )}
       </div>
@@ -111,7 +111,7 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
                 action={startOnlinePaymentAction.bind(null, token)}
                 amountText={formatToman(order.amountDue)}
               />
-              <p className="text-center text-xs text-neutral-500">یا کارت‌به‌کارت:</p>
+              <p className="text-center text-xs text-neutral-500">یا کارت‌به‌کارت کنید:</p>
             </>
           )}
           {order.payment === "RECEIPT_SUBMITTED" ? (
@@ -127,9 +127,9 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
                   <span dir="ltr" className="font-mono text-lg font-bold tracking-wide">
                     {card.cardNumber}
                   </span>
-                  <CopyTextButton text={card.cardNumber.replace(/\s/g, "")} label="کپی شماره کارت" />
+                  <CopyTextButton text={card.cardNumber.replace(/\s/g, "")} label="کپی شمارهٔ کارت" />
                 </div>
-                <p className="text-sm">به نام: {card.cardHolder}</p>
+                <p className="text-sm">به نام {card.cardHolder}</p>
                 {card.sheba && (
                   <p className="text-xs text-neutral-600">
                     شبا (برای انتقال بانکی): <span dir="ltr" className="font-mono">{card.sheba}</span>
@@ -139,7 +139,7 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
             </div>
           ) : (
             <p className="text-sm text-neutral-600">
-              اگر مبلغ را کارت به کارت واریز کرده‌اید، تصویر رسید را اینجا بفرستید.
+              اگر مبلغ را کارت‌به‌کارت کرده‌اید، تصویر رسید را همین‌جا بفرستید.
             </p>
           )}
           <ReceiptUpload
@@ -198,7 +198,7 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
       )}
 
       <p className="text-xs text-neutral-500">
-        برای پیگیری وضعیت سفارش، همین صفحه را نگه دارید یا دوباره باز کنید.
+        برای پیگیری سفارش، لینک همین صفحه را نگه دارید و هر وقت خواستید دوباره بازش کنید.
       </p>
     </main>
   );

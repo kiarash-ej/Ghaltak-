@@ -23,11 +23,14 @@ function valueImports(source: string): string[] {
   return specs;
 }
 
-/** Our own file for a specifier, or null for a package. */
+/**
+ * Our own file for a specifier, or null for a package. POSIX paths on every
+ * OS, so the expected paths below also match on Windows.
+ */
 function resolveLocal(spec: string, from: string): string | null {
   let base: string;
-  if (spec.startsWith("@/")) base = path.join("src", spec.slice(2));
-  else if (spec.startsWith(".")) base = path.join(path.dirname(from), spec);
+  if (spec.startsWith("@/")) base = path.posix.join("src", spec.slice(2));
+  else if (spec.startsWith(".")) base = path.posix.join(path.posix.dirname(from), spec);
   else return null;
   for (const ext of [".ts", ".tsx", "/index.ts", "/index.tsx"]) {
     if (existsSync(base + ext)) return base + ext;

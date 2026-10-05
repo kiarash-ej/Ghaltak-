@@ -48,14 +48,14 @@ export function TodaySummary({ summary, showMoney = true }: { summary: TodaySumm
           href="/orders?status=PENDING_PAYMENT"
           label="رسیدهای منتظر بررسی"
           value={summary.pendingReceipts}
-          note={summary.pendingReceipts > 0 ? "رسید را ببینید و پرداخت را تأیید یا رد کنید." : "رسیدی منتظر شما نیست."}
+          note={summary.pendingReceipts > 0 ? "رسید را ببینید و پرداخت را تأیید یا رد کنید." : "رسید بررسی‌نشده‌ای ندارید."}
           attention={summary.pendingReceipts > 0}
         />
         <Tile
           href="/inventory?filter=low"
-          label="نیاز به تأمین"
+          label="نیاز به شارژ"
           value={summary.needsRestock}
-          note={summary.needsRestock > 0 ? "تنوع‌هایی که موجودی‌شان کم یا تمام است." : "موجودی همهٔ محصولات فعال کافی است."}
+          note={summary.needsRestock > 0 ? "تنوع‌هایی که موجودی‌شان رو به اتمام است یا تمام شده." : "موجودی همهٔ محصولات فعال کافی است."}
           attention={summary.needsRestock > 0}
         />
       </div>

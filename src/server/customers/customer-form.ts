@@ -17,7 +17,7 @@ const optionalText = (max: number, label: string) =>
   z
     .string()
     .trim()
-    .max(max, { error: `${label} حداکثر ${max.toLocaleString("fa-IR")} نویسه باشد.` })
+    .max(max, { error: `${label} نباید بیشتر از ${max.toLocaleString("fa-IR")} نویسه باشد.` })
     .transform((v) => (v === "" ? null : v));
 
 const schema = z.object({

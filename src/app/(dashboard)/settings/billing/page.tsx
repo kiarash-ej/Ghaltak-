@@ -29,11 +29,11 @@ const STATE_LABEL: Record<EffectiveState, { text: string; variant: "success" | "
 };
 
 const PAYMENT_MESSAGE: Record<string, { text: string; ok: boolean }> = {
-  paid: { text: "پرداخت انجام شد و اشتراک شما تمدید شد.", ok: true },
-  pending: { text: "نتیجهٔ پرداخت هنوز مشخص نیست. چند دقیقه دیگر این صفحه را دوباره باز کنید؛ اگر پولی کم شده باشد، ثبت می‌شود.", ok: false },
-  canceled: { text: "پرداخت لغو شد. چیزی تغییر نکرد.", ok: false },
-  failed: { text: "پرداخت انجام نشد. اگر مبلغی کم شده، بانک آن را برمی‌گرداند.", ok: false },
-  mismatch: { text: "مبلغ پرداخت با فاکتور یکی نبود و اشتراک تمدید نشد. با پشتیبانی تماس بگیرید.", ok: false },
+  paid: { text: "پرداخت موفق بود و اشتراک شما تمدید شد.", ok: true },
+  pending: { text: "نتیجهٔ پرداخت هنوز معلوم نیست. چند دقیقهٔ دیگر این صفحه را دوباره باز کنید؛ اگر مبلغی از حسابتان کم شده باشد، پرداخت ثبت می‌شود.", ok: false },
+  canceled: { text: "پرداخت لغو شد و اشتراک شما تغییری نکرد.", ok: false },
+  failed: { text: "پرداخت ناموفق بود. اگر مبلغی از حسابتان کم شده، بانک آن را برمی‌گرداند.", ok: false },
+  mismatch: { text: "مبلغ پرداختی با مبلغ فاکتور یکی نبود، برای همین اشتراک تمدید نشد. با پشتیبانی تماس بگیرید.", ok: false },
 };
 
 function planName(plan: PlanId): string {
@@ -82,12 +82,12 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
         </CardHeader>
         <CardContent className="flex flex-col gap-2 text-sm text-neutral-700">
           {effective.periodEnd && effective.state !== "PAST_DUE" && (
-            <p>پایان دوره: {formatDate(effective.periodEnd)}</p>
+            <p>اعتبار تا {formatDate(effective.periodEnd)}</p>
           )}
           {effective.state === "PAST_DUE" && effective.graceEndsAt && (
             <p className="text-red-700">
-              دوره {formatDate(effective.periodEnd!)} تمام شد. تا {formatDate(effective.graceEndsAt)} تمدید کنید، وگرنه
-              فروشگاه به سقف‌های پلن رایگان برمی‌گردد.
+              دورهٔ اشتراک شما {formatDate(effective.periodEnd!)} تمام شد. اگر تا {formatDate(effective.graceEndsAt)} تمدید
+              نکنید، فروشگاه به محدودیت‌های پلن رایگان برمی‌گردد.
             </p>
           )}
           {effective.nextPlan && effective.nextPlanFrom && (
@@ -95,7 +95,7 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
               از {formatDate(effective.nextPlanFrom)} پلن شما {planName(effective.nextPlan)} می‌شود.
             </p>
           )}
-          {!enabled && <p className="text-neutral-500">پرداخت اشتراک هنوز فعال نشده است و فعلاً هیچ محدودیتی اعمال نمی‌شود.</p>}
+          {!enabled && <p className="text-neutral-500">پرداخت اشتراک هنوز فعال نشده است؛ فعلاً هیچ محدودیتی ندارید.</p>}
           <p className="text-neutral-500">سفارش گرفتن در هیچ پلنی محدود یا قطع نمی‌شود.</p>
         </CardContent>
       </Card>
@@ -106,10 +106,10 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <UsageItem label="سفارش" quota={{ used: usage.orders, limit: null }} />
+            <UsageItem label="سفارش‌ها" quota={{ used: usage.orders, limit: null }} />
             <UsageItem label="پیامک سفارش" quota={usage.sms} />
-            <UsageItem label="کالای فعال" quota={usage.products} />
-            <UsageItem label="اعضا" quota={usage.members} />
+            <UsageItem label="محصول فعال" quota={usage.products} />
+            <UsageItem label="افراد تیم" quota={usage.members} />
           </dl>
         </CardContent>
       </Card>
@@ -133,20 +133,20 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
                     {plan.monthlyPrice === 0 ? "رایگان" : `${formatToman(plan.monthlyPrice)} در ماه`}
                   </p>
                   <ul className="flex flex-col gap-1 text-neutral-700">
-                    <li>{limitText(plan.limits.products)} کالای فعال</li>
+                    <li>{limitText(plan.limits.products)} محصول فعال</li>
                     <li>{limitText(plan.limits.sms)} پیامک سفارش در ماه</li>
-                    <li>{plan.limits.members === 1 ? "فقط خودتان" : `${limitText(plan.limits.members)} عضو`}</li>
+                    <li>{plan.limits.members === 1 ? "فقط خودتان" : `${limitText(plan.limits.members)} نفر در تیم`}</li>
                     <li>
                       {id === "FREE"
                         ? "۱ دستگاه"
-                        : `${limitText(plan.limits.devicesPerMember)} دستگاه برای هر عضو`}
+                        : `${limitText(plan.limits.devicesPerMember)} دستگاه برای هر نفر`}
                     </li>
                   </ul>
                   {enabled && id !== "FREE" && (
                     <PlanPayButton
                       action={startSubscriptionPaymentAction}
                       plan={id}
-                      label={renewing && effective.plan === id ? "تمدید یک ماه" : "انتخاب و پرداخت"}
+                      label={renewing && effective.plan === id ? "تمدید یک‌ماهه" : "انتخاب و پرداخت"}
                       variant={current ? "default" : "outline"}
                     />
                   )}
@@ -156,8 +156,8 @@ export default async function BillingSettingsPage(props: PageProps<"/settings/bi
           })}
         </div>
         <p className="text-xs text-neutral-500">
-          دورهٔ آزمایشی ۱۴ روز با امکانات پلن پایه است. تمدید زودتر از پایان دوره چیزی را از دست نمی‌دهد و ماه بعد
-          از پایان دورهٔ فعلی شروع می‌شود؛ تغییر پلن هم از همان زمان اعمال می‌شود.
+          دورهٔ آزمایشی ۱۴ روزه است و امکانات پلن پایه را دارد. اگر پیش از پایان دوره تمدید کنید، چیزی از دست
+          نمی‌دهید: ماه جدید از پایان دورهٔ فعلی شروع می‌شود. تغییر پلن هم از همان موقع اعمال می‌شود.
         </p>
       </section>
 

@@ -22,7 +22,7 @@ export async function startOnlinePaymentAction(
   void _formData;
   if (!isWellFormedToken(publicToken)) return { message: "سفارش پیدا نشد." };
   if (!startLimiter.hit(clientIp(await headers()))) {
-    return { message: "تعداد تلاش‌ها زیاد است. چند دقیقه دیگر دوباره تلاش کنید." };
+    return { message: "چند بار پشت سر هم تلاش کردید. چند دقیقهٔ دیگر دوباره امتحان کنید." };
   }
 
   let redirectUrl: string;
@@ -32,7 +32,7 @@ export async function startOnlinePaymentAction(
     if (err instanceof OnlinePaymentError) return { message: err.message };
     const e = err as { name?: string; code?: string };
     console.error("[online payment] start failed", { name: e?.name, code: e?.code });
-    return { message: "خطایی رخ داد. لطفاً دوباره تلاش کنید." };
+    return { message: "مشکلی پیش آمد. دوباره تلاش کنید." };
   }
   redirect(redirectUrl);
 }

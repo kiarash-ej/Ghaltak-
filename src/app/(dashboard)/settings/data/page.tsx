@@ -27,8 +27,9 @@ export default async function DataExportPage(props: PageProps<"/settings/data">)
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm leading-7 text-neutral-600">
-        از داده‌های فروشگاهتان فایل CSV بگیرید. فایل‌ها در اکسل با حروف فارسی درست باز می‌شوند. مبلغ‌ها به تومان و
-        تاریخ‌ها شمسی و به وقت ایران است. شمارهٔ کارت، شبا و اطلاعات درگاه هرگز در این فایل‌ها نمی‌آید. بیشتر در{" "}
+        از اطلاعات فروشگاهتان فایل CSV بگیرید. این فایل‌ها در اکسل با حروف فارسی درست باز می‌شوند. مبلغ‌ها به تومان و
+        تاریخ‌ها شمسی و به وقت ایران‌اند. شمارهٔ کارت، شبا و اطلاعات درگاه هیچ‌وقت در این فایل‌ها نمی‌آید. توضیح بیشتر
+        در صفحهٔ{" "}
         <Link href="/privacy" className="font-medium text-neutral-900 underline underline-offset-4">
           حریم خصوصی
         </Link>
@@ -38,7 +39,7 @@ export default async function DataExportPage(props: PageProps<"/settings/data">)
       <Card>
         <CardHeader>
           <CardTitle>محصولات و موجودی</CardTitle>
-          <CardDescription>هر تنوع یک ردیف: قیمت، رنگ و سایز، کد کالا، موجودی و وضعیت آن، همان عدد صفحهٔ موجودی.</CardDescription>
+          <CardDescription>برای هر تنوع یک ردیف، با قیمت، رنگ و سایز، کد کالا، موجودی و وضعیت موجودی؛ همان اعدادی که در صفحهٔ موجودی می‌بینید.</CardDescription>
         </CardHeader>
         <CardContent>
           <a href="/settings/data/export/products" className={cn(buttonVariants({ variant: "outline" }))} download>
@@ -51,8 +52,8 @@ export default async function DataExportPage(props: PageProps<"/settings/data">)
         <CardHeader>
           <CardTitle>مشتریان</CardTitle>
           <CardDescription>
-            نام، موبایل، آدرس، برچسب، و آمار خرید هر مشتری، همان اعداد صفحهٔ مشتری. موبایل‌ها با فاصله نوشته شده‌اند تا اکسل
-            صفر اولشان را حذف نکند.
+            نام، موبایل، آدرس، برچسب و آمار خرید هر مشتری؛ همان اعدادی که در صفحهٔ مشتری می‌بینید. شمارهٔ موبایل‌ها با
+            فاصله نوشته شده تا اکسل صفر اولشان را حذف نکند.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -66,8 +67,8 @@ export default async function DataExportPage(props: PageProps<"/settings/data">)
         <CardHeader>
           <CardTitle>سفارش‌ها</CardTitle>
           <CardDescription>
-            هر سفارش یک ردیف، با کالاها، مبلغ، پرداخت و ارسال. ستون «فروش» همان تعریف گزارش فروش است. تاریخ‌ها را خالی
-            بگذارید تا همهٔ سفارش‌ها بیاید.
+            برای هر سفارش یک ردیف، با محصولات، مبلغ، پرداخت و ارسال. ستون «جزو فروش» با همان تعریف گزارش فروش پر
+            می‌شود. برای گرفتن همهٔ سفارش‌ها، تاریخ‌ها را خالی بگذارید.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -83,7 +84,7 @@ export default async function DataExportPage(props: PageProps<"/settings/data">)
                 <Input id="from" name="from" placeholder="۱۴۰۵/۰۷/۰۱" inputMode="numeric" dir="ltr" className="text-end" />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="to">تا تاریخ (خود این روز هم می‌آید)</Label>
+                <Label htmlFor="to">تا تاریخ (خود این روز هم حساب می‌شود)</Label>
                 <Input id="to" name="to" placeholder="۱۴۰۵/۰۷/۳۰" inputMode="numeric" dir="ltr" className="text-end" />
               </div>
               <div className="flex flex-col gap-2">

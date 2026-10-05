@@ -191,7 +191,7 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="lowStockThreshold">آستانهٔ هشدار کم‌موجودی</Label>
+              <Label htmlFor="lowStockThreshold">حد هشدار موجودی</Label>
               <Input
                 id="lowStockThreshold"
                 name="lowStockThreshold"
@@ -211,7 +211,7 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
                 onChange={(e) => setIsActive(e.target.checked)}
                 className="size-4"
               />
-              محصول فعال است (قابل فروش)
+              این محصول فعال است و فروخته می‌شود
             </label>
           </div>
         </CardContent>
@@ -261,7 +261,7 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
         <CardContent className="flex flex-col gap-4">
           {initial && (
             <p className="text-xs text-neutral-500">
-              موجودی تنوع‌های ثبت‌شده در این فرم تغییر نمی‌کند تا هر تغییر موجودی ثبت و پیگیری شود.
+              موجودی تنوع‌های فعلی را اینجا نمی‌شود تغییر داد تا سابقهٔ همهٔ تغییرها ثبت بماند.
               {inventoryHref && (
                 <>
                   {" "}

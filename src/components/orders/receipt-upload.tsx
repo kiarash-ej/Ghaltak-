@@ -29,7 +29,7 @@ export function ReceiptUpload({
       className="flex flex-col gap-3"
     >
       <Label htmlFor="receipt">
-        {hasReceipt ? "ارسال رسید جدید (جایگزین رسید قبلی)" : "تصویر رسید کارت به کارت"}
+        {hasReceipt ? "رسید جدید (جای رسید قبلی را می‌گیرد)" : "تصویر رسید کارت‌به‌کارت"}
       </Label>
       <Input
         id="receipt"
@@ -45,7 +45,7 @@ export function ReceiptUpload({
         }}
       />
       <Button type="submit" disabled={!file || pending || shrinking}>
-        {shrinking ? "در حال آماده‌سازی تصویر…" : pending ? "در حال ارسال…" : "ارسال رسید"}
+        {shrinking ? "در حال آماده کردن تصویر…" : pending ? "در حال ارسال…" : "ارسال رسید"}
       </Button>
       {state?.message && (
         <p role="alert" className="text-sm text-red-600">

@@ -33,10 +33,10 @@ export function purchaseQuotaProblem(counts: {
   linkOrdersLastHour: number;
 }): string | null {
   if (counts.openOrdersForPhone >= MAX_OPEN_ORDERS_PER_PHONE) {
-    return "با این شماره چند سفارش پرداخت‌نشده دارید. ابتدا آن‌ها را پرداخت کنید یا با فروشنده تماس بگیرید.";
+    return "با این شماره چند سفارش پرداخت‌نشده دارید. اول آن‌ها را پرداخت کنید یا با فروشنده تماس بگیرید.";
   }
   if (counts.linkOrdersLastHour >= MAX_LINK_ORDERS_PER_HOUR) {
-    return "این لینک در حال حاضر سفارش زیادی دریافت کرده است. کمی بعد دوباره تلاش کنید.";
+    return "این لینک الان سفارش‌های زیادی گرفته است. کمی بعد دوباره تلاش کنید.";
   }
   return null;
 }

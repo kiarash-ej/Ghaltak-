@@ -77,8 +77,8 @@ test("online payment: cancel at the gateway, then pay; the order becomes paid on
     await expect(seller.getByText("پرداخت آنلاین", { exact: true })).toBeVisible();
     await expect(seller.getByText(/کد پیگیری درگاه: FAKE-\d+/)).toBeVisible();
     // One verified and one canceled attempt, nothing needing review.
-    await expect(seller.getByText("لغو توسط مشتری")).toHaveCount(1);
-    await expect(seller.getByText("مبلغ به حساب شما آمد", { exact: false })).toHaveCount(0);
+    await expect(seller.getByText("مشتری لغو کرد")).toHaveCount(1);
+    await expect(seller.getByText("پول به حساب شما واریز شد", { exact: false })).toHaveCount(0);
   });
 
   await test.step("an unknown fake-gateway page doesn't exist", async () => {

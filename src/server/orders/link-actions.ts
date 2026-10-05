@@ -17,12 +17,12 @@ const linkSchema = z.object({
   title: z
     .string()
     .trim()
-    .max(80, { error: "عنوان حداکثر ۸۰ نویسه باشد." })
+    .max(80, { error: "عنوان نباید بیشتر از ۸۰ کاراکتر باشد." })
     .transform((v) => (v === "" ? null : v)),
   productIds: z
     .array(z.string().min(1).max(64))
     .min(1, { error: "حداقل یک محصول انتخاب کنید." })
-    .max(MAX_PRODUCTS_PER_LINK, { error: `حداکثر ${MAX_PRODUCTS_PER_LINK} محصول در هر لینک.` }),
+    .max(MAX_PRODUCTS_PER_LINK, { error: `هر لینک حداکثر ${MAX_PRODUCTS_PER_LINK} محصول می‌تواند داشته باشد.` }),
 });
 
 export async function createPurchaseLinkAction(

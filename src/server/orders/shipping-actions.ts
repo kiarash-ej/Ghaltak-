@@ -37,7 +37,7 @@ export async function saveShippingAction(
   }
   if (ship) {
     if (!canTransition(order.status, "SHIPPED")) {
-      return { message: "فقط سفارش «در حال آماده‌سازی» را می‌توان ارسال کرد." };
+      return { message: "فقط سفارش‌های «در حال آماده‌سازی» را می‌توانید ارسال کنید." };
     }
     const blocker = shipBlocker({ shippingMethod: input.method });
     if (blocker) return { message: blocker };
@@ -61,7 +61,7 @@ export async function saveShippingAction(
           : {}),
     },
   });
-  if (count !== 1) return { message: "وضعیت سفارش همزمان تغییر کرد. صفحه را تازه کنید." };
+  if (count !== 1) return { message: "وضعیت سفارش در همین فاصله تغییر کرده است. صفحه را تازه کنید." };
 
   if (ship) await scheduleCustomerSms("ORDER_SHIPPED", orderId);
   revalidatePath("/orders");

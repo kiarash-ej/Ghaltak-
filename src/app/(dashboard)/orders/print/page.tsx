@@ -24,7 +24,7 @@ export default async function OrdersPrintPage(props: PageProps<"/orders/print">)
   // «ready» prints the oldest MAX_PRINT_ORDERS; say so when more are waiting.
   const notice =
     readyCount > orders.length
-      ? `${formatNumber(readyCount)} سفارش آمادهٔ ارسال است و فقط ${formatNumber(MAX_PRINT_ORDERS)} سفارش قدیمی‌تر اینجاست. بعد از ارسال این‌ها، دوباره این صفحه را باز کنید یا بقیه را از فهرست سفارش‌ها انتخاب کنید.`
+      ? `${formatNumber(readyCount)} سفارش آمادهٔ ارسال دارید، ولی اینجا فقط ${formatNumber(MAX_PRINT_ORDERS)} سفارش قدیمی‌تر آمده است. بعد از ارسال این‌ها، دوباره همین صفحه را باز کنید یا بقیه را از فهرست سفارش‌ها انتخاب کنید.`
       : undefined;
 
   const sizeHref = (s: string) => {
@@ -45,8 +45,8 @@ export default async function OrdersPrintPage(props: PageProps<"/orders/print">)
       notice={notice}
       empty={
         selection.kind === "ready"
-          ? "سفارشی در انتظار ارسال نیست. سفارش‌های پرداخت‌شده و در حال آماده‌سازی اینجا می‌آیند."
-          : "سفارشی برای چاپ انتخاب نشده است. در فهرست سفارش‌ها سفارش‌ها را علامت بزنید."
+          ? "سفارشی منتظر ارسال نیست. سفارش‌های «پرداخت‌شده» و «در حال آماده‌سازی» اینجا می‌آیند."
+          : "سفارشی برای چاپ انتخاب نکرده‌اید. در فهرست سفارش‌ها، سفارش‌هایی را که می‌خواهید چاپ کنید تیک بزنید."
       }
     />
   );

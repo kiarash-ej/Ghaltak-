@@ -16,7 +16,7 @@ export function subscriptionBanner(storedPlan: PlanId, effective: EffectivePlan,
     case "PAST_DUE":
       return {
         tone: "danger",
-        text: `اشتراک شما تمام شده است. تا ${formatDate(effective.graceEndsAt!)} تمدید کنید، وگرنه فروشگاه به سقف‌های پلن رایگان برمی‌گردد. سفارش گرفتن قطع نمی‌شود.`,
+        text: `اشتراک شما تمام شده است. اگر تا ${formatDate(effective.graceEndsAt!)} تمدید نکنید، فروشگاه به محدودیت‌های پلن رایگان برمی‌گردد. سفارش گرفتن قطع نمی‌شود.`,
       };
     case "FREE":
       if (storedPlan === "FREE") return null;
@@ -24,8 +24,8 @@ export function subscriptionBanner(storedPlan: PlanId, effective: EffectivePlan,
         tone: "danger",
         text:
           storedPlan === "TRIAL"
-            ? "دورهٔ آزمایشی تمام شد و فروشگاه روی پلن رایگان است. سفارش‌ها ادامه دارند، ولی افزودن کالا و پیامک محدود شده است."
-            : "اشتراک تمدید نشد و فروشگاه روی پلن رایگان است. سفارش‌ها ادامه دارند، ولی افزودن کالا و پیامک محدود شده است.",
+            ? "دورهٔ آزمایشی تمام شد و فروشگاه به پلن رایگان رفت. همچنان سفارش می‌گیرید، اما برای افزودن محصول و ارسال پیامک محدودیت دارید."
+            : "اشتراک تمدید نشد و فروشگاه به پلن رایگان رفت. همچنان سفارش می‌گیرید، اما برای افزودن محصول و ارسال پیامک محدودیت دارید.",
       };
     case "TRIAL":
     case "ACTIVE": {

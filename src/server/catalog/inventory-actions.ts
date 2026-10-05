@@ -70,7 +70,7 @@ export async function adjustStockAction(
       return {
         ok: false,
         currentStock: err.currentStock,
-        error: `موجودی در این فاصله تغییر کرده و اکنون ${formatNumber(err.currentStock)} است. دوباره بررسی کنید.`,
+        error: `موجودی همین چند لحظه پیش تغییر کرده و الان ${formatNumber(err.currentStock)} است. دوباره بررسی کنید.`,
       };
     }
     if (err instanceof VariantNotFoundError) {

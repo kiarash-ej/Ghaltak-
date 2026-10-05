@@ -7,9 +7,9 @@ import type { SmsSettingsState } from "@/server/notifications/settings-actions";
 type Switches = { smsOnOrderPlaced: boolean; smsOnPaid: boolean; smsOnShipped: boolean };
 
 const ROWS: { name: keyof Switches; label: string; hint: string }[] = [
-  { name: "smsOnOrderPlaced", label: "ثبت سفارش", hint: "کد سفارش و لینک پیگیری و پرداخت؛ یادآوری پرداخت هم با همین روشن است." },
-  { name: "smsOnPaid", label: "تأیید پرداخت", hint: "وقتی پرداخت را تأیید می‌کنید یا پرداخت آنلاین انجام می‌شود." },
-  { name: "smsOnShipped", label: "ارسال", hint: "با کد رهگیری، وقتی سفارش را ارسال می‌کنید." },
+  { name: "smsOnOrderPlaced", label: "ثبت سفارش", hint: "کد سفارش و لینک پیگیری و پرداخت. یادآوری پرداخت هم با همین گزینه روشن یا خاموش می‌شود." },
+  { name: "smsOnPaid", label: "تأیید پرداخت", hint: "وقتی پرداختی را تأیید می‌کنید یا مشتری آنلاین پرداخت می‌کند." },
+  { name: "smsOnShipped", label: "ارسال", hint: "وقتی سفارش را ارسال می‌کنید، همراه با کد رهگیری." },
 ];
 
 export function SmsSettingsForm({
@@ -25,12 +25,12 @@ export function SmsSettingsForm({
   return (
     <form action={action} className="flex max-w-lg flex-col gap-4">
       <p className="text-sm text-neutral-600">
-        پیامک‌ها خودکار به موبایل مشتری فرستاده می‌شوند، هر رویداد حداکثر یک بار برای هر سفارش.
+        پیامک‌ها خودکار به موبایل مشتری می‌روند و هر کدام برای هر سفارش حداکثر یک بار فرستاده می‌شود.
       </p>
       {quotaReached && (
         <p role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-          سهمیهٔ پیامک پلن شما در این ماه تمام شده است و پیامک‌های مشتری فعلاً ارسال نمی‌شوند. سفارش‌ها مثل قبل ثبت
-          می‌شوند.
+          سهمیهٔ پیامک پلن شما برای این ماه تمام شده و فعلاً برای مشتری‌ها پیامکی فرستاده نمی‌شود. ثبت سفارش مثل
+          قبل ادامه دارد.
         </p>
       )}
       {ROWS.map((row) => (

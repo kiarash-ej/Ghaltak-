@@ -15,7 +15,7 @@ import { OutOfStockError } from "./stock";
 export type OrderFormState = { errors?: FieldErrors; message?: string } | undefined;
 export type StatusChangeState = { message?: string } | undefined;
 
-const GENERIC_ERROR = "خطای غیرمنتظره‌ای رخ داد. دوباره تلاش کنید.";
+const GENERIC_ERROR = "مشکلی پیش آمد. دوباره تلاش کنید.";
 
 /** A rejected status change; the message is shown to the seller. */
 export async function createOrderAction(
@@ -57,7 +57,7 @@ export async function changeOrderStatusAction(
 
   const to = formData.get("to");
   if (!isOrderStatus(to)) return { message: "وضعیت نامعتبر است." };
-  if (detailsRequiredFor(to)) return { message: "این تغییر وضعیت از فرم مخصوص خودش انجام می‌شود." };
+  if (detailsRequiredFor(to)) return { message: "این تغییر وضعیت را از فرم مخصوص خودش انجام دهید." };
 
   try {
     await changeOrderStatus(seller.id, orderId, to);

@@ -26,7 +26,7 @@ test("link funnel: views, orders and paid orders per link", async ({ page: selle
   let linkPath = "";
   await test.step("a new link has no views yet", async () => {
     await seller.goto("/orders/links");
-    await seller.getByLabel("عنوان (اختیاری، به مشتری نمایش داده می‌شود)").fill(title);
+    await seller.getByLabel("عنوان (اختیاری؛ مشتری آن را می‌بیند)").fill(title);
     await seller.getByLabel(productName).check();
     await seller.getByRole("button", { name: "ساخت لینک خرید" }).click();
     await expect(seller.getByText("لینک ساخته شد.")).toBeVisible();
@@ -63,7 +63,7 @@ test("link funnel: views, orders and paid orders per link", async ({ page: selle
     await seller.goto("/orders");
     await seller.getByRole("row").filter({ hasText: "مشتری قیف" }).getByRole("link", { name: "جزئیات" }).click();
     await seller.getByRole("button", { name: "تأیید پرداخت" }).click();
-    await expect(seller.getByText("کارت به کارت", { exact: true })).toBeVisible();
+    await expect(seller.getByText("کارت‌به‌کارت", { exact: true })).toBeVisible();
     await expectLinkStats(seller, title, [2, 1, 1, `${faDigits(50)}٪`]);
   });
 

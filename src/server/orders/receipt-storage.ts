@@ -36,7 +36,7 @@ export async function saveReceipt(file: File): Promise<SaveReceiptResult> {
     await storage().put(BUCKET, key, bytes, CONTENT_TYPES[ext]);
   } catch (err) {
     console.error("receipt save failed:", (err as Error)?.name);
-    return { ok: false, error: "ذخیرهٔ تصویر رسید انجام نشد. کمی بعد دوباره تلاش کنید." };
+    return { ok: false, error: "تصویر رسید ذخیره نشد. کمی بعد دوباره تلاش کنید." };
   }
   return { ok: true, key };
 }

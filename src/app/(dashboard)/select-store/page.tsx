@@ -16,7 +16,7 @@ export default async function SelectStorePage() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-4">
       <h1 className="text-2xl font-bold">انتخاب فروشگاه</h1>
-      <p className="text-neutral-600">شما عضو چند فروشگاه هستید. در کدام کار می‌کنید؟</p>
+      <p className="text-neutral-600">شما عضو چند فروشگاه هستید. می‌خواهید وارد کدام شوید؟</p>
       <div className="flex flex-col gap-2">
         {stores.map((s) => (
           <SwitchStoreButton

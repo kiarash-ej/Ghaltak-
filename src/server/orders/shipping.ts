@@ -34,7 +34,7 @@ export function shippingMethodLabel(value: string | null): string | null {
 
 /** Why an order can't be marked SHIPPED yet, or null when it can. */
 export function shipBlocker(order: { shippingMethod: string | null }): string | null {
-  return order.shippingMethod ? null : "برای ارسال، ابتدا روش ارسال را ثبت کنید.";
+  return order.shippingMethod ? null : "برای ارسال سفارش، اول روش ارسال را مشخص کنید.";
 }
 
 /**
@@ -64,14 +64,14 @@ const schema = z.object({
   cost: z
     .string()
     .transform((v) => toEnglishDigits(v).replace(/[,٬،\s]/g, ""))
-    .refine((v) => v === "" || /^\d{1,9}$/.test(v), { error: "هزینه را به‌صورت عدد (تومان) وارد کنید." })
+    .refine((v) => v === "" || /^\d{1,9}$/.test(v), { error: "هزینه را فقط با عدد و به تومان وارد کنید." })
     .transform((v) => (v === "" ? null : Number(v)))
     .refine((v) => v === null || v <= MAX_SHIPPING_COST, { error: "هزینهٔ ارسال بیش از حد مجاز است." }),
   trackingCode: z
     .string()
     .transform((v) => toEnglishDigits(v).trim().toUpperCase())
     .refine((v) => v === "" || /^[A-Z0-9-]{4,40}$/.test(v), {
-      error: "کد رهگیری فقط شامل عدد و حروف انگلیسی باشد (۴ تا ۴۰ نویسه).",
+      error: "کد رهگیری باید ۴ تا ۴۰ کاراکتر و فقط شامل عدد و حروف انگلیسی باشد.",
     })
     .transform((v) => (v === "" ? null : v)),
   shippingStatus: z

@@ -10,7 +10,7 @@ export const SETTINGS_TABS: SettingsTab[] = [
   { href: "/settings", label: "فروشگاه", ownerOnly: true }, // A6
   { href: "/settings/payments", label: "پرداخت", ownerOnly: true }, // B6, B7 (Track B)
   { href: "/settings/billing", label: "اشتراک", ownerOnly: true }, // A9
-  { href: "/settings/team", label: "اعضا", ownerOnly: true }, // A10
+  { href: "/settings/team", label: "همکاران", ownerOnly: true }, // A10
   { href: "/settings/data", label: "خروجی داده", ownerOnly: true }, // C6 (Track C)
   { href: "/settings/devices", label: "دستگاه‌های من", ownerOnly: false }, // A10
 ];

@@ -71,7 +71,7 @@ export default async function InventoryPage(props: PageProps<"/inventory">) {
 
   const tabs: { value: InventoryFilter; label: string; count: number }[] = [
     { value: "all", label: "همه", count: summary.total },
-    { value: "low", label: "نیاز به تأمین", count: summary.low },
+    { value: "low", label: "نیاز به شارژ", count: summary.low },
     { value: "out", label: "ناموجود", count: summary.out },
   ];
 
@@ -80,13 +80,13 @@ export default async function InventoryPage(props: PageProps<"/inventory">) {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">موجودی</h1>
         <p className="text-sm text-neutral-600">
-          «نیاز به تأمین» یعنی محصولات فعالی که موجودی‌شان به آستانهٔ هشدار یا کمتر رسیده است.
+          «نیاز به شارژ» یعنی تنوع‌هایی از محصولات فعال که موجودی‌شان به حد هشدار رسیده یا از آن کمتر شده است.
         </p>
       </div>
 
       {product && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="rounded-full bg-neutral-100 px-3 py-1">فقط محصول: {product.name}</span>
+          <span className="rounded-full bg-neutral-100 px-3 py-1">فقط تنوع‌های «{product.name}»</span>
           <Link href="/inventory" className="text-neutral-600 underline">
             نمایش همهٔ محصولات
           </Link>
@@ -134,7 +134,7 @@ export default async function InventoryPage(props: PageProps<"/inventory">) {
           ))}
         </select>
         <Button type="submit" variant="outline">
-          اعمال
+          جستجو
         </Button>
       </form>
 
@@ -148,7 +148,7 @@ export default async function InventoryPage(props: PageProps<"/inventory">) {
               </Link>
             </div>
           ) : filter !== "all" && !q ? (
-            <p>موردی در این دسته نیست. همه‌چیز موجود است.</p>
+            <p>چیزی در این فهرست نیست؛ همهٔ تنوع‌ها موجودند.</p>
           ) : (
             <p>موردی با این جستجو پیدا نشد.</p>
           )}

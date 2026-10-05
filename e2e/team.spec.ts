@@ -18,9 +18,9 @@ test("owner invites an operator, the operator works, then is removed", async ({ 
 
   await test.step("the owner invites the operator", async () => {
     await owner.goto("/settings/team");
-    await owner.getByLabel("شمارهٔ موبایل عضو جدید").fill(operatorMobile);
+    await owner.getByLabel("شمارهٔ موبایل همکار").fill(operatorMobile);
     await owner.getByRole("button", { name: "افزودن" }).click();
-    await expect(owner.getByText("عضو اضافه شد")).toBeVisible();
+    await expect(owner.getByText("همکار اضافه شد")).toBeVisible();
     await expect(owner.getByText(operatorMobile)).toBeVisible();
     await expect(owner.getByText("اپراتور", { exact: true })).toBeVisible();
   });
@@ -65,7 +65,7 @@ test("owner invites an operator, the operator works, then is removed", async ({ 
 
   await test.step("the owner removes the operator: their next request goes to login", async () => {
     await owner.goto("/settings/team");
-    await owner.getByRole("button", { name: "حذف عضو" }).click();
+    await owner.getByRole("button", { name: "حذف همکار" }).click();
     await expect(owner.getByText(operatorMobile)).toHaveCount(0);
 
     await operator.goto("/orders");

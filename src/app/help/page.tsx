@@ -10,7 +10,7 @@ export default function HelpIndexPage() {
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold">راهنمای غلتک</h1>
         <p className="text-neutral-600 public-dark:text-[var(--muted)]">
-          راهنماهای کوتاه برای کار روزانه با غلتک: از ساخت اولین محصول تا ارسال سفارش و دیدن گزارش فروش.
+          راهنماهای کوتاه برای کار روزانه با غلتک؛ از ساخت اولین محصول تا ارسال سفارش و دیدن گزارش فروش.
         </p>
       </div>
 

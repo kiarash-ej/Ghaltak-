@@ -21,7 +21,7 @@ export type BuyFormState = { errors?: FieldErrors; message?: string } | undefine
 // Generous on purpose: many Iranian mobile users share an IP (carrier NAT).
 const orderLimiter = createRateLimiter({ limit: 10, windowMs: 10 * 60 * 1000 });
 
-const GENERIC_ERROR = "خطایی رخ داد. لطفاً دوباره تلاش کنید.";
+const GENERIC_ERROR = "مشکلی پیش آمد. دوباره تلاش کنید.";
 
 export async function submitPurchaseAction(
   token: string,
@@ -32,7 +32,7 @@ export async function submitPurchaseAction(
   if (!parsed.success) return { errors: parsed.errors };
 
   if (!orderLimiter.hit(clientIp(await headers()))) {
-    return { message: "تعداد سفارش‌ها از این اتصال زیاد است. چند دقیقه دیگر دوباره تلاش کنید." };
+    return { message: "از این شبکه در مدت کوتاهی سفارش‌های زیادی ثبت شده است. چند دقیقه دیگر دوباره تلاش کنید." };
   }
 
   const link = await getPublicLink(token);
@@ -46,7 +46,7 @@ export async function submitPurchaseAction(
     if (err instanceof QuotaError) return { message: err.message };
     if (err instanceof OrderError) return { errors: { items: [err.message] } };
     if (err instanceof OutOfStockError) {
-      return { errors: { items: ["موجودی یکی از کالاها کافی نیست."] } };
+      return { errors: { items: ["موجودی یکی از محصولات کافی نیست."] } };
     }
     console.error("purchase-link order failed", errorSummary(err));
     return { message: GENERIC_ERROR };

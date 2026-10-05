@@ -20,23 +20,23 @@ const STATUS: Record<OnlineAttemptView["status"], { text: string; variant: "succ
   PENDING: { text: "در حال پرداخت", variant: "warning" },
   VERIFIED: { text: "پرداخت‌شده", variant: "success" },
   FAILED: { text: "ناموفق", variant: "danger" },
-  CANCELED: { text: "لغو توسط مشتری", variant: "neutral" },
+  CANCELED: { text: "مشتری لغو کرد", variant: "neutral" },
 };
 
 /** A verified payment that needs the seller, by its failureDetail (online-payment.ts). */
 function reviewNote(a: OnlineAttemptView): string | null {
   if (a.status !== "VERIFIED" || !a.failureDetail) return null;
   if (a.failureDetail === "NOT_APPLIED") {
-    return "درگاه این پرداخت را تأیید کرده، اما هنوز روی سفارش ثبت نشده است (مثلاً سفارش هم‌زمان تغییر کرد). اگر مشتری صفحه‌اش را تازه کند خودکار ثبت می‌شود؛ وگرنه پرداخت را دستی تأیید کنید.";
+    return "درگاه این پرداخت را تأیید کرده، اما هنوز روی سفارش ثبت نشده است (مثلاً چون سفارش همان لحظه تغییر کرد). اگر مشتری صفحه‌اش را تازه کند، خودکار ثبت می‌شود؛ وگرنه پرداخت را دستی تأیید کنید.";
   }
   if (a.failureDetail === "ORDER_AMOUNT_CHANGED") {
-    return "مبلغ به حساب شما آمد، اما مبلغ سفارش در این فاصله تغییر کرده بود. سفارش خودکار پرداخت‌شده نشد: مبلغ را بررسی و در صورت نیاز پرداخت را دستی تأیید یا مابه‌التفاوت را برگردانید.";
+    return "پول به حساب شما واریز شد، اما مبلغ سفارش در این فاصله تغییر کرده بود و سفارش خودکار «پرداخت‌شده» نشد. مبلغ را بررسی کنید و در صورت نیاز، پرداخت را دستی تأیید کنید یا مابه‌التفاوت را برگردانید.";
   }
   if (a.failureDetail.startsWith("ORDER_WAS_") && a.failureDetail !== "ORDER_WAS_CANCELED") {
     // PAID, PREPARING, SHIPPED, DELIVERED, RETURNED: the order had already been paid.
-    return "این سفارش پیش از این پرداخت شده بود؛ این پرداخت اضافه است و باید به مشتری برگردانده شود.";
+    return "این سفارش قبلاً پرداخت شده بود؛ این پرداخت اضافه است و باید پولش را به مشتری برگردانید.";
   }
-  return "مبلغ به حساب شما آمد، اما سفارش دیگر منتظر پرداخت نبود (مثلاً لغو شده بود). سفارش خودکار باز نشد: پول را برگردانید یا سفارش را دستی دوباره ثبت کنید.";
+  return "پول به حساب شما واریز شد، اما سفارش دیگر منتظر پرداخت نبود (مثلاً لغو شده بود) و خودکار دوباره باز نشد. پول را به مشتری برگردانید یا سفارش را دستی دوباره ثبت کنید.";
 }
 
 export function OnlinePaymentsList({ attempts }: { attempts: OnlineAttemptView[] }) {
@@ -62,7 +62,7 @@ export function OnlinePaymentsList({ attempts }: { attempts: OnlineAttemptView[]
               </div>
             )}
             {a.status === "FAILED" && a.failureReason === "AMOUNT_MISMATCH" && (
-              <div className="text-red-700">درگاه مبلغ را با مبلغ ثبت‌شده یکی ندانست؛ پرداخت تأیید نشد.</div>
+              <div className="text-red-700">مبلغی که درگاه گزارش داد با مبلغ ثبت‌شده یکی نبود؛ پرداخت تأیید نشد.</div>
             )}
             {note && (
               <p role="alert" className="rounded-lg bg-red-50 p-2 text-red-800">

@@ -57,7 +57,7 @@ export default async function CustomerPage(props: PageProps<"/customers/[id]">) 
           {customer.phone}
         </a>
         <p>{customer.address ?? "آدرسی ثبت نشده."}</p>
-        <p className="text-neutral-500">مشتری از {formatDate(customer.createdAt)}</p>
+        <p className="text-neutral-500">مشتری شما از {formatDate(customer.createdAt)}</p>
       </div>
 
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -92,14 +92,14 @@ export default async function CustomerPage(props: PageProps<"/customers/[id]">) 
         </form>
         <p className="text-neutral-700">
           پیشنهاد: <strong>{TAG_LABELS[suggestion.tag]}</strong>. {suggestion.reason}
-          {suggestion.tag === customer.tag && <span className="text-neutral-500"> (همین برچسب فعلی است)</span>}
+          {suggestion.tag === customer.tag && <span className="text-neutral-500"> (برچسب فعلی هم همین است)</span>}
         </p>
       </section>
 
       <Card>
         <CardHeader>
           <CardTitle>
-            سوابق سفارش ({formatNumber(totalOrders)})
+            سفارش‌های این مشتری ({formatNumber(totalOrders)})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -109,7 +109,7 @@ export default async function CustomerPage(props: PageProps<"/customers/[id]">) 
             <>
               {totalOrders > orders.length && (
                 <p className="mb-2 text-xs text-neutral-500">
-                  {formatNumber(PROFILE_ORDER_LIMIT)} سفارش آخر نمایش داده می‌شود.
+                  فقط {formatNumber(PROFILE_ORDER_LIMIT)} سفارش آخر را می‌بینید.
                 </p>
               )}
               <ul className="flex flex-col divide-y divide-neutral-200">

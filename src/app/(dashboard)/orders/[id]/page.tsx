@@ -42,7 +42,7 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
           </Link>
         </div>
         <p className="text-sm text-neutral-500">
-          ثبت در {formatDateTime(order.createdAt)}
+          ثبت‌شده در {formatDateTime(order.createdAt)}
           {order.source === "PURCHASE_LINK" ? " · از لینک خرید" : " · ثبت دستی"}
         </p>
       </div>

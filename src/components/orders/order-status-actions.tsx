@@ -36,7 +36,7 @@ export function OrderStatusActions({
       onSubmit={(e) => {
         const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
         const to = submitter?.value as OrderStatus | undefined;
-        if (to && restoresStock(to) && !confirm(`سفارش «${STATUS_LABELS[to]}» شود؟ کالاها به موجودی برمی‌گردند.`)) {
+        if (to && restoresStock(to) && !confirm(`وضعیت سفارش به «${STATUS_LABELS[to]}» تغییر کند؟ کالاهای این سفارش به موجودی برمی‌گردند.`)) {
           e.preventDefault();
         }
       }}

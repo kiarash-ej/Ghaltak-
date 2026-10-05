@@ -30,19 +30,19 @@ const customerSchema = z.object({
     .string()
     .trim()
     .min(2, { error: "نام و نام خانوادگی را وارد کنید." })
-    .max(80, { error: "نام حداکثر ۸۰ نویسه باشد." }),
+    .max(80, { error: "نام نباید بیشتر از ۸۰ حرف باشد." }),
   phone: z
     .string()
     .max(30)
     .transform((v) => normalizeIranMobile(v))
     .refine((v): v is string => v !== null, {
-      error: "شمارهٔ موبایل معتبر نیست. مثال: ۰۹۱۲۱۲۳۴۵۶۷",
+      error: "شمارهٔ موبایل معتبر نیست؛ آن را مثل ۰۹۱۲۱۲۳۴۵۶۷ بنویسید.",
     }),
   address: z
     .string()
     .trim()
     .min(10, { error: "آدرس کامل را وارد کنید." })
-    .max(500, { error: "آدرس حداکثر ۵۰۰ نویسه باشد." }),
+    .max(500, { error: "آدرس نباید بیشتر از ۵۰۰ حرف باشد." }),
 });
 
 const idSchema = z.string().trim().max(64).regex(/^[A-Za-z0-9_-]*$/);
@@ -88,7 +88,7 @@ export function parseBuyForm(formData: FormData): BuyParseResult {
       continue;
     }
     if (quantity > MAX_BUY_QUANTITY) {
-      addError(`items.${i}.quantity`, `از هر کالا حداکثر ${MAX_BUY_QUANTITY_FA} عدد.`);
+      addError(`items.${i}.quantity`, `از هر محصول حداکثر ${MAX_BUY_QUANTITY_FA} عدد می‌توانید سفارش دهید.`);
       continue;
     }
     if (quantity === 0) continue;
@@ -105,11 +105,11 @@ export function parseBuyForm(formData: FormData): BuyParseResult {
 
   const items = mergeLines(lines);
   if (items.length === 0 && !Object.keys(errors).some((k) => k.startsWith("items."))) {
-    addError("items", "حداقل یک کالا انتخاب کنید.");
+    addError("items", "دست‌کم یک محصول انتخاب کنید.");
   }
   // The same variant can appear on two lines; the cap applies to the total.
   if (items.some((l) => l.quantity > MAX_BUY_QUANTITY)) {
-    addError("items", `از هر کالا حداکثر ${MAX_BUY_QUANTITY_FA} عدد.`);
+    addError("items", `از هر محصول حداکثر ${MAX_BUY_QUANTITY_FA} عدد می‌توانید سفارش دهید.`);
   }
 
   if (Object.keys(errors).length > 0 || !customer.success) return { success: false, errors };

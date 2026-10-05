@@ -79,18 +79,18 @@ export function PaymentPanel({
       {payment === "RECEIPT_SUBMITTED" ? (
         <div className="flex flex-col gap-3">
           <Badge variant="warning" className="w-fit">
-            رسید مشتری در انتظار بررسی
+            مشتری رسید فرستاده؛ منتظر بررسی شماست
           </Badge>
           {receiptLink}
           <form action={rejectAction}>
             <Button type="submit" variant="ghost" size="sm" disabled={rejecting}>
-              رد رسید (مشتری می‌تواند رسید دیگری بفرستد)
+              رد رسید (مشتری می‌تواند دوباره رسید بفرستد)
             </Button>
             {rejectState?.message && <p className="text-sm text-red-600">{rejectState.message}</p>}
           </form>
         </div>
       ) : (
-        <p className="text-sm text-neutral-600">منتظر پرداخت مشتری.</p>
+        <p className="text-sm text-neutral-600">مشتری هنوز پرداخت نکرده است.</p>
       )}
 
       <form

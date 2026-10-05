@@ -36,7 +36,7 @@ export function publicImages(folder: PublicImageFolder) {
       const bytes = new Uint8Array(await file.arrayBuffer());
       const ext = sniffImageType(bytes);
       if (!ext) {
-        return { ok: false, error: "فقط تصویر JPG، PNG یا WebP مجاز است." };
+        return { ok: false, error: "فقط تصویرهای JPG، PNG یا WebP را می‌توانید بارگذاری کنید." };
       }
 
       const name = `${randomUUID()}.${ext}`;
@@ -44,7 +44,7 @@ export function publicImages(folder: PublicImageFolder) {
         await storage().put("public", `${folder}/${name}`, bytes, CONTENT_TYPES[ext]);
       } catch (err) {
         console.error(`[public-images] saving to ${folder} failed`, errorSummary(err));
-        return { ok: false, error: "ذخیرهٔ تصویر انجام نشد. لطفاً دوباره تلاش کنید." };
+        return { ok: false, error: "تصویر ذخیره نشد. دوباره تلاش کنید." };
       }
       return { ok: true, url: `${urlPrefix}${name}` };
     },

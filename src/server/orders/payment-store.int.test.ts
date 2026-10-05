@@ -59,11 +59,11 @@ describe.skipIf(!hasTestDatabase)("confirmPaymentInTx (database)", () => {
 
   it("refuses when the customer sent a new receipt since the seller looked", async () => {
     const swapped = await newOrder({ receiptImageUrl: "receipts/b.png" });
-    await expect(confirm(swapped.id, { expectedReceiptKey: "receipts/a.png" })).rejects.toThrow(/رسید تازه/);
+    await expect(confirm(swapped.id, { expectedReceiptKey: "receipts/a.png" })).rejects.toThrow(/رسید جدیدی/);
 
     // A receipt arrived after the seller opened an order that had none.
     const arrived = await newOrder({ receiptImageUrl: "receipts/c.png" });
-    await expect(confirm(arrived.id, { expectedReceiptKey: null })).rejects.toThrow(/رسید تازه/);
+    await expect(confirm(arrived.id, { expectedReceiptKey: null })).rejects.toThrow(/رسید جدیدی/);
 
     for (const id of [swapped.id, arrived.id]) {
       expect((await prisma.order.findUniqueOrThrow({ where: { id } })).status).toBe("PENDING_PAYMENT");
