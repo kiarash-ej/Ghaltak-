@@ -55,7 +55,8 @@ test("buy flow: purchase link → receipt → payment → shipping → report", 
     await expect(seller.getByLabel("آیدی اینستاگرام")).toHaveValue("test.shop");
 
     await seller.goto("/");
-    await expect(seller.getByRole("heading", { name: `خوش آمدید، ${storeName}` })).toBeVisible();
+    // Home greets by the Tehran time of day: «صبح بخیر، …», «شب بخیر، …».
+    await expect(seller.getByRole("heading", { level: 1, name: new RegExp(`بخیر، ${storeName}$`) })).toBeVisible();
     await expect(storeStep).toContainText("انجام شد");
   });
 

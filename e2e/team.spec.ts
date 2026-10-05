@@ -30,9 +30,10 @@ test("owner invites an operator, the operator works, then is removed", async ({ 
 
   await test.step("the operator signs into the owner's store, not a new one", async () => {
     await logIn(operator, operatorMobile);
-    await expect(operator.getByRole("heading", { name: /خوش آمدید/ })).toBeVisible();
+    await expect(operator.getByRole("heading", { level: 1, name: /بخیر، / })).toBeVisible();
     // An owner's-only setup checklist and today's sales in tomans are not shown.
-    await expect(operator.getByText(/فروش امروز:/)).toHaveCount(0);
+    await expect(operator.getByText("فروش امروز")).toHaveCount(0);
+    await expect(operator.locator("main").getByText(/تومان/)).toHaveCount(0);
   });
 
   await test.step("the operator enters an order", async () => {
