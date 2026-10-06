@@ -7,26 +7,16 @@ import { CountUp } from "@/components/ui/count-up";
 import { SparkBars } from "@/components/ui/spark-bars";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { BriefDelta, Compact } from "@/server/dashboard/brief-text";
+import type { BriefView } from "@/server/dashboard/brief-view";
 
-export type BriefView = {
-  weekday: string;
-  sales: Compact;
-  orders: number;
-  delta: BriefDelta | null;
-  week: number[];
-  /** The 7 days ending yesterday, for a quiet day's sentence. */
-  weekTotal: Compact;
-  /** Today's to-dos as short pills. */
-  todos: { text: string; tone: "warning" | "danger" }[];
-  /** Operators see counts only (A10). */
-  showMoney: boolean;
-};
+export type { BriefView };
 
 const TONE = { warning: "bg-warning-bg text-warning", danger: "bg-danger-bg text-danger" } as const;
 
 /**
- * Yesterday at a glance, on the first visit of the day (spec §7.1). × folds it
+ * Yesterday at a glance, on the first visit of the day (spec §7.1). Money is
+ * shown only when the server put it in `view.money` (owners; buildBriefView
+ * leaves it out for operators, so it never reaches their browser). × folds it
  * into a one-line pill for the rest of the day (a cookie set by `dismiss`);
  * the pill opens it again. Folding animates the height, never covers anything.
  */
@@ -41,9 +31,9 @@ export function DailyBrief({
 }) {
   const [open, setOpen] = useState(!initiallyFolded);
   const [, startTransition] = useTransition();
-  const salesText = `${formatNumber(view.sales.value)} ${view.sales.unit}`;
-  const pillText = view.showMoney
-    ? `دیروز: ${salesText} فروش · ${formatNumber(view.orders)} سفارش`
+  const { money } = view;
+  const pillText = money
+    ? `دیروز: ${formatNumber(money.sales.value)} ${money.sales.unit} فروش · ${formatNumber(view.orders)} سفارش`
     : `دیروز: ${formatNumber(view.orders)} سفارش`;
 
   return (
@@ -77,12 +67,12 @@ export function DailyBrief({
             <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
                 <p className="text-lg leading-8 font-black sm:text-xl">
-                  {view.showMoney ? (
-                    view.sales.value > 0 ? (
+                  {money ? (
+                    money.sales.value > 0 ? (
                       <>
                         دیروز{" "}
                         <span className="text-fire">
-                          <CountUp value={view.sales.value} decimals={view.sales.decimals} /> {view.sales.unit}
+                          <CountUp value={money.sales.value} decimals={money.sales.decimals} /> {money.sales.unit}
                         </span>{" "}
                         فروختید.
                       </>
@@ -96,27 +86,30 @@ export function DailyBrief({
                   )}
                 </p>
                 <p className="mt-1 text-sm text-ink-soft">
-                  {view.showMoney && view.sales.value === 0 ? (
-                    view.weekTotal.value > 0 ? (
-                      <>در ۷ روز گذشته {formatNumber(view.weekTotal.value)} {view.weekTotal.unit} فروختید.</>
+                  {money &&
+                    (money.sales.value === 0 ? (
+                      money.weekTotal.value > 0 ? (
+                        <>در ۷ روز گذشته {formatNumber(money.weekTotal.value)} {money.weekTotal.unit} فروختید.</>
+                      ) : (
+                        "این هفته هنوز فروشی ثبت نشده؛ لینک خرید را در دایرکت‌ها بفرستید."
+                      )
                     ) : (
-                      "این هفته هنوز فروشی ثبت نشده؛ لینک خرید را در دایرکت‌ها بفرستید."
-                    )
-                  ) : (
-                    view.showMoney && <>{formatNumber(view.orders)} سفارش</>
-                  )}
-                  {view.showMoney && view.delta && " · "}
-                  {view.delta && (
-                    <span className={cn("font-bold", view.delta.tone === "up" ? "text-success" : view.delta.tone === "down" ? "text-danger" : "text-muted")}>
-                      {view.delta.text}
-                    </span>
+                      <>{formatNumber(view.orders)} سفارش</>
+                    ))}
+                  {money?.delta && (
+                    <>
+                      {" · "}
+                      <span className={cn("font-bold", money.delta.tone === "up" ? "text-success" : money.delta.tone === "down" ? "text-danger" : "text-muted")}>
+                        {money.delta.text}
+                      </span>
+                    </>
                   )}
                 </p>
               </div>
-              {view.showMoney && <SparkBars values={view.week} className="w-full shrink-0 sm:w-48" />}
+              {money && <SparkBars values={money.week} className="w-full shrink-0 sm:w-48" />}
             </div>
 
-            {(view.todos.length > 0 || view.showMoney) && (
+            {(view.todos.length > 0 || money) && (
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 {view.todos.map((t, i) => (
                   <span
@@ -127,7 +120,7 @@ export function DailyBrief({
                     {t.text}
                   </span>
                 ))}
-                {view.showMoney && (
+                {money && (
                   <Link href="/reports" className="ms-auto text-sm font-bold text-[#ff8a5b] hover:underline">
                     گزارش کامل ←
                   </Link>

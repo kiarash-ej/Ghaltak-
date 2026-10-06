@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { AttentionList, attentionRows } from "@/components/dashboard/attention-list";
-import { DailyBrief, type BriefView } from "@/components/home/daily-brief";
+import { DailyBrief } from "@/components/home/daily-brief";
 import { OnboardingChecklist } from "@/components/home/onboarding-checklist";
 import { TodaySummary } from "@/components/home/today-summary";
 import { formatDate, formatNumber } from "@/lib/format";
@@ -9,7 +9,8 @@ import { requireMember } from "@/server/auth";
 import { getAttention } from "@/server/dashboard/attention";
 import { getDailyBrief } from "@/server/dashboard/brief";
 import { dismissBriefAction } from "@/server/dashboard/brief-actions";
-import { BRIEF_COOKIE, briefDelta, compactToman, greeting } from "@/server/dashboard/brief-text";
+import { BRIEF_COOKIE, greeting } from "@/server/dashboard/brief-text";
+import { buildBriefView } from "@/server/dashboard/brief-view";
 import { isOnboardingComplete, onboardingSteps } from "@/server/home/onboarding";
 import { getOnboardingFacts, getTodaySummary } from "@/server/home/queries";
 import { reportPeriods } from "@/server/reports/periods";
@@ -36,20 +37,9 @@ export default async function DashboardHome() {
   const showChecklist = isOwner && !isOnboardingComplete(steps);
   const waiting = attentionRows(attention).length;
 
-  const view: BriefView = {
-    weekday: brief.yesterdayWeekday,
-    sales: compactToman(brief.sales),
-    orders: brief.orders,
-    // A quiet day gets the week's total instead of "down 100%".
-    delta: isOwner && brief.sales > 0 ? briefDelta(brief.sales, brief.lastWeekSales, brief.yesterdayWeekday) : null,
-    week: brief.week.map((d) => d.total),
-    weekTotal: compactToman(brief.week.reduce((sum, d) => sum + d.total, 0)),
-    todos: [
-      ...(attention.receipts > 0 ? [{ text: `${formatNumber(attention.receipts)} رسید منتظر تأیید`, tone: "warning" as const }] : []),
-      ...(attention.readyToShip > 0 ? [{ text: `${formatNumber(attention.readyToShip)} سفارش آمادهٔ ارسال`, tone: "danger" as const }] : []),
-    ],
-    showMoney: isOwner,
-  };
+  // Built on the server per role: an operator's copy carries no money at all,
+  // because the brief is a client component and its props reach the browser.
+  const view = buildBriefView(brief, attention, seller.role);
 
   return (
     <div className="flex flex-col gap-6">
