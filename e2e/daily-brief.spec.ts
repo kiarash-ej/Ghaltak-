@@ -30,6 +30,20 @@ async function moveToYesterday(orderId: string) {
   }
 }
 
+/**
+ * The period recap Home would show today instead of the brief (finance spec
+ * §7.2): on the 1st of a month, yesterday's sale is in the month that just
+ * ended. This test is about the brief, so that recap is closed in advance.
+ */
+function recapKeyToday(now = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US-u-ca-persian-nu-latn", { timeZone: "Asia/Tehran", year: "numeric", month: "numeric" }).formatToParts(now);
+  const year = Number(parts.find((p) => p.type === "year")!.value);
+  const month = Number(parts.find((p) => p.type === "month")!.value);
+  if (month === 1) return String(year - 1);
+  if ((month - 1) % 3 === 0) return `${year}-s${(month - 1) / 3}`;
+  return `${year}-${String(month - 1).padStart(2, "0")}`;
+}
+
 test("daily brief: yesterday's sales, folds to a pill, comes back the next day", async ({ page: seller, context, browser }) => {
   const mobile = uniqueMobile("0917");
   const productName = `محصول خلاصه ${mobile.slice(-5)}`;
@@ -61,6 +75,7 @@ test("daily brief: yesterday's sales, folds to a pill, comes back the next day",
       customerPhone: uniqueMobile("0938"),
     });
     await moveToYesterday(order.id);
+    await context.addCookies([{ name: "gk_recap", value: recapKeyToday(), url: new URL(seller.url()).origin }]);
   });
 
   const brief = seller.getByRole("region", { name: "خلاصهٔ دیروز" });

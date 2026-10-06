@@ -53,7 +53,7 @@ export default async function ExpensesPage(props: PageProps<"/finance/expenses">
 
   return (
     <div className="flex flex-col gap-6">
-      <FinanceHeader basePath="/finance/expenses" range={range} error={error} isOwner />
+      <FinanceHeader isOwner period={{ basePath: "/finance/expenses", range, error }} />
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr] lg:items-start">
         <Card className="min-w-0">

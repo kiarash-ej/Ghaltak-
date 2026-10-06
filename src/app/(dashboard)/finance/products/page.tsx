@@ -67,7 +67,7 @@ export default async function ProductProfitPage(props: PageProps<"/finance/produ
 
   return (
     <div className="flex flex-col gap-6">
-      <FinanceHeader basePath="/finance/products" range={range} error={error} isOwner />
+      <FinanceHeader isOwner period={{ basePath: "/finance/products", range, error }} />
 
       <Card className="min-w-0">
         <CardHeader>

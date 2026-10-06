@@ -42,7 +42,7 @@ export default async function SalesPage(props: PageProps<"/finance/sales">) {
     getLinkFunnel(member.id, now, range),
   ]);
   const activeLinks = funnel.links.filter((l) => l.views > 0 || l.orders > 0);
-  const header = <FinanceHeader basePath="/finance/sales" range={range} error={error} isOwner={isOwner} />;
+  const header = <FinanceHeader isOwner={isOwner} period={{ basePath: "/finance/sales", range, error }} />;
 
   const productsCard = (
     <Card className="min-w-0">

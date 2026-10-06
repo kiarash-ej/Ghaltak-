@@ -4,6 +4,8 @@ import { APP_TIME_ZONE, formatNumber } from "@/lib/format";
 
 /** Holds the Tehran day the daily brief was folded away (brief-actions.ts). */
 export const BRIEF_COOKIE = "gk_brief";
+/** Holds the key of the period recap that was closed («1405-07»), finance spec §7.2. */
+export const RECAP_COOKIE = "gk_recap";
 
 export type Compact = { value: number; decimals: 0 | 1; unit: string };
 

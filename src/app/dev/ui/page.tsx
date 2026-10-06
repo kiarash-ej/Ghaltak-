@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PackageOpen, Plus } from "lucide-react";
 import { InsightList } from "@/components/finance/insight-list";
+import { RecapCard, type RecapData } from "@/components/home/recap-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,11 +15,37 @@ import { Sheet } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Stat } from "@/components/ui/stat";
 import type { Insight } from "@/server/finance/insights";
+import { parseReportKey } from "@/server/finance/report-periods";
+import type { FinanceTotals } from "@/server/finance/summary";
 
 // Every component of the kit in both themes, for reviewing the design
 // (spec §3.4). Development only: a 404 on a production build.
 
 export const metadata: Metadata = { title: "UI kit | غلتک", robots: { index: false } };
+
+const sampleTotals = (sales: number, netProfit: number): FinanceTotals => ({
+  sales,
+  saleOrders: 64,
+  cogs: 0,
+  coverage: 1,
+  grossProfit: 0,
+  expenses: 0,
+  netProfit,
+  margin: netProfit / sales,
+  averageOrder: Math.round(sales / 64),
+  ordersPlaced: 70,
+  returnedOrders: 2,
+  returnRate: 0.03,
+  cancelRate: 0.05,
+});
+const SAMPLE_RECAP: RecapData = {
+  period: parseReportKey("1405-s2")!,
+  alsoEnded: [parseReportKey("1405-06")!],
+  previous: parseReportKey("1405-s1")!,
+  current: sampleTotals(148_600_000, 52_200_000),
+  before: sampleTotals(121_000_000, 40_000_000),
+  bestProduct: "مانتو کتان",
+};
 
 const SAMPLE_INSIGHTS: Insight[] = [
   {
@@ -125,6 +152,8 @@ function Kit({ theme }: { theme: "light" | "dark" }) {
           <InsightList insights={SAMPLE_INSIGHTS} />
         </CardContent>
       </Card>
+
+      <RecapCard recap={SAMPLE_RECAP} />
 
       <Card variant="hero" className="p-5">
         <p className="text-sm font-bold text-muted">کارت hero</p>

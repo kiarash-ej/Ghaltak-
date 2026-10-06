@@ -57,7 +57,9 @@ test("owner invites an operator, the operator works, then is removed", async ({ 
   });
 
   await test.step("owner pages are a 404 for the operator; «تنظیمات» opens their devices", async () => {
-    for (const url of ["/settings/billing", "/settings/team", "/settings/payments", "/finance/products", "/finance/expenses"]) {
+    const ownerOnly = ["/settings/billing", "/settings/team", "/settings/payments"];
+    const finance = ["/finance/products", "/finance/expenses", "/finance/reports", "/finance/reports/1405-01", "/finance/reports/1405-01/print"];
+    for (const url of [...ownerOnly, ...finance]) {
       const res = await operator.goto(url);
       expect(res?.status(), url).toBe(404);
     }

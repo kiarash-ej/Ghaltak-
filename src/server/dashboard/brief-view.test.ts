@@ -29,12 +29,28 @@ describe("buildBriefView", () => {
     const view = buildBriefView(brief, attention, "OWNER");
     expect(view.money).toEqual({
       sales: { value: 6.4, decimals: 1, unit: "میلیون تومان" },
+      net: null,
+      loss: false,
       delta: { text: "▲ ۲۱٪ نسبت به دوشنبهٔ قبل", tone: "up" },
       week: [1_111_111, 0, 2_222_222, 0, 3_333_333, 0, 6_437_500],
       weekTotal: { value: 13.1, decimals: 1, unit: "میلیون تومان" },
     });
     expect(view.orders).toBe(9);
     expect(view.todos.map((t) => t.text)).toEqual(["۳ رسید منتظر تأیید", "۵ سفارش آمادهٔ ارسال"]);
+  });
+
+  it("adds yesterday's net profit when most sales have a cost price, a loss as a loss", () => {
+    expect(buildBriefView(brief, attention, "OWNER", { netProfit: 2_300_000, coverage: 0.95 }).money).toMatchObject({
+      net: { value: 2.3, decimals: 1, unit: "میلیون تومان" },
+      loss: false,
+    });
+    expect(buildBriefView(brief, attention, "OWNER", { netProfit: -400_000, coverage: 1 }).money).toMatchObject({
+      net: { value: 400, decimals: 0, unit: "هزار تومان" },
+      loss: true,
+    });
+    // Under 90% of sales with a cost: the profit isn't known, so it isn't said.
+    expect(buildBriefView(brief, attention, "OWNER", { netProfit: 2_300_000, coverage: 0.89 }).money?.net).toBeNull();
+    expect(buildBriefView(brief, attention, "OPERATOR", { netProfit: 2_300_000, coverage: 1 }).money).toBeNull();
   });
 
   it("an operator's copy has counts and to-dos but no money, in any form", () => {

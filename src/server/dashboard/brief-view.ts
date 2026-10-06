@@ -12,6 +12,9 @@ import { briefDelta, compactToman, type BriefDelta, type Compact } from "./brief
 /** Owner only. */
 export type BriefMoney = {
   sales: Compact;
+  /** Yesterday's net profit (or loss), when at least 90% of its sales have a cost price; else null. */
+  net: Compact | null;
+  loss: boolean;
   /** Yesterday vs the same weekday last week; null without a base or on a quiet day. */
   delta: BriefDelta | null;
   /** The 7 days ending yesterday, oldest first, in tomans. */
@@ -28,7 +31,10 @@ export type BriefView = {
   money: BriefMoney | null;
 };
 
-export function buildBriefView(brief: DailyBrief, attention: Attention, role: MemberRole): BriefView {
+/** Yesterday's profit facts (finance spec §7.1), owner only. */
+export type BriefProfit = { netProfit: number; coverage: number | null };
+
+export function buildBriefView(brief: DailyBrief, attention: Attention, role: MemberRole, profit?: BriefProfit | null): BriefView {
   const todos: BriefView["todos"] = [
     ...(attention.receipts > 0 ? [{ text: `${formatNumber(attention.receipts)} رسید منتظر تأیید`, tone: "warning" as const }] : []),
     ...(attention.readyToShip > 0 ? [{ text: `${formatNumber(attention.readyToShip)} سفارش آمادهٔ ارسال`, tone: "danger" as const }] : []),
@@ -36,10 +42,14 @@ export function buildBriefView(brief: DailyBrief, attention: Attention, role: Me
   const view: BriefView = { weekday: brief.yesterdayWeekday, orders: brief.orders, todos, money: null };
   if (role !== "OWNER") return view;
 
+  // Profit is only said when it can be: most of the day's sales have a cost.
+  const knownProfit = profit && brief.sales > 0 && profit.coverage !== null && profit.coverage >= 0.9;
   return {
     ...view,
     money: {
       sales: compactToman(brief.sales),
+      net: knownProfit ? compactToman(Math.abs(profit.netProfit)) : null,
+      loss: knownProfit ? profit.netProfit < 0 : false,
       // A quiet day gets the week's total instead of "down 100%".
       delta: brief.sales > 0 ? briefDelta(brief.sales, brief.lastWeekSales, brief.yesterdayWeekday) : null,
       week: brief.week.map((d) => d.total),

@@ -41,6 +41,12 @@ function Tile({
   );
 }
 
+/** «سود خالص: ۲٫۳ میلیون تومان» under this month's sales. */
+function netNote(net: number) {
+  const c = compactToman(Math.abs(net));
+  return `${net < 0 ? "زیان" : "سود خالص"}: ${formatNumber(c.value)} ${c.unit}`;
+}
+
 function Money({ amount }: { amount: number }) {
   const c = compactToman(amount);
   return (
@@ -59,11 +65,14 @@ export function TodaySummary({
   summary,
   showMoney = true,
   salesMonth = 0,
+  netMonth = null,
   readyToShip = 0,
 }: {
   summary: TodaySummaryData;
   showMoney?: boolean;
   salesMonth?: number;
+  /** This month's net profit, when most sales have a cost price (finance). */
+  netMonth?: number | null;
   readyToShip?: number;
 }) {
   return (
@@ -80,7 +89,7 @@ export function TodaySummary({
             <Tile index={1} href="/orders" label="سفارش‌های امروز" note="همهٔ سفارش‌های ثبت‌شدهٔ امروز">
               <CountUp value={summary.ordersToday} />
             </Tile>
-            <Tile index={2} href="/finance" label="فروش این ماه" note="از اول ماه تا همین حالا">
+            <Tile index={2} href="/finance" label="فروش این ماه" note={netMonth === null ? "از اول ماه تا همین حالا" : netNote(netMonth)}>
               <Money amount={salesMonth} />
             </Tile>
           </>
