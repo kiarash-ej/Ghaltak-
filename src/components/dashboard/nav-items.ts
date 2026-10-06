@@ -31,7 +31,7 @@ export const PRIMARY_NAV: NavItem[] = [
 ];
 
 export const BUSINESS_NAV: NavItem[] = [
-  { key: "finance", href: "/reports", label: "مالی و گزارش", match: ["/reports", "/finance"] },
+  { key: "finance", href: "/finance", label: "مالی و گزارش", match: ["/reports", "/finance"] },
   { key: "customers", href: "/customers", label: "مشتریان", match: ["/customers"] },
   { key: "settings", href: "/settings", label: "تنظیمات", match: ["/settings"] },
 ];

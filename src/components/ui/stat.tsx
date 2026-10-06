@@ -42,6 +42,8 @@ export function Stat({
 }) {
   return (
     <div
+      role="group"
+      aria-label={label}
       className={cn(
         "relative flex animate-rise flex-col gap-1 overflow-hidden rounded-2xl border p-4 shadow-(--gk-shadow)",
         hero ? "border-brand-2/35 bg-glow" : "border-line bg-raised",
