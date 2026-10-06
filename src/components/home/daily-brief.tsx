@@ -33,7 +33,8 @@ export function DailyBrief({
   const [, startTransition] = useTransition();
   const { money } = view;
   const pillText = money
-    ? `دیروز: ${formatNumber(money.sales.value)} ${money.sales.unit} فروش · ${formatNumber(view.orders)} سفارش`
+    ? `دیروز: ${formatNumber(money.sales.value)} ${money.sales.unit} فروش · ` +
+      (money.net ? `${formatNumber(money.net.value)} ${money.net.unit} ${money.loss ? "زیان" : "سود"}` : `${formatNumber(view.orders)} سفارش`)
     : `دیروز: ${formatNumber(view.orders)} سفارش`;
 
   return (
@@ -74,7 +75,18 @@ export function DailyBrief({
                         <span className="text-fire">
                           <CountUp value={money.sales.value} decimals={money.sales.decimals} /> {money.sales.unit}
                         </span>{" "}
-                        فروختید.
+                        فروختید
+                        {money.net ? (
+                          <>
+                            {" "}و{" "}
+                            <span className={money.loss ? "text-danger" : "text-fire"}>
+                              <CountUp value={money.net.value} decimals={money.net.decimals} /> {money.net.unit}
+                            </span>{" "}
+                            {money.loss ? "زیان دادید." : "سود خالص بردید."}
+                          </>
+                        ) : (
+                          "."
+                        )}
                       </>
                     ) : (
                       "دیروز فروشی ثبت نشد."

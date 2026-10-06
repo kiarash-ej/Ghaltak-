@@ -41,7 +41,7 @@ export default async function FinancePage(props: PageProps<"/finance">) {
   ]);
   const against = range.compareLabel;
 
-  const header = <FinanceHeader basePath="/finance" range={range} error={error} isOwner={isOwner} />;
+  const header = <FinanceHeader isOwner={isOwner} period={{ basePath: "/finance", range, error }} />;
 
   if (!isOwner) {
     return (

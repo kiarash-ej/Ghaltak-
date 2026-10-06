@@ -4,23 +4,24 @@ import type { FinanceRange, PeriodError } from "@/server/finance/periods";
 import { financeTabs } from "./finance-tabs";
 import { PeriodBar } from "./period-bar";
 
-/** The top of every finance tab: title, the tabs, the period chips (spec §6.4). */
+/** The top of every finance tab: title, the tabs, and (with a range) the period chips (spec §6.4). */
 export function FinanceHeader({
-  basePath,
-  range,
-  error,
   isOwner,
+  period,
+  description,
 }: {
-  basePath: string;
-  range: FinanceRange;
-  error?: PeriodError;
   isOwner: boolean;
+  period?: { basePath: string; range: FinanceRange; error?: PeriodError };
+  description?: string;
 }) {
   return (
     <>
-      <PageHeader title="مالی و گزارش" description={`${range.label} · مقایسه با ${range.compareLabel}`} />
+      <PageHeader
+        title="مالی و گزارش"
+        description={description ?? (period && `${period.range.label} · مقایسه با ${period.range.compareLabel}`)}
+      />
       <NavTabs label="بخش‌های مالی" tabs={financeTabs(isOwner)} />
-      <PeriodBar basePath={basePath} range={range} error={error} />
+      {period && <PeriodBar basePath={period.basePath} range={period.range} error={period.error} />}
     </>
   );
 }
