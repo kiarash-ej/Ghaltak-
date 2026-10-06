@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dueMonths, gregorianKey, monthKey, monthLength, nextMonth, parseMonthKey, previousMonth } from "./months";
+import { dueMonths, gregorianKey, monthKey, monthLength, nextMonth, parseMonthKey, previousMonth, stopRepeat } from "./months";
 
 describe("month keys", () => {
   it("round-trips and steps across the year end", () => {
@@ -57,5 +57,26 @@ describe("dueMonths", () => {
       "1406-01",
       "1406-02",
     ]);
+  });
+});
+
+describe("stopRepeat", () => {
+  const today = { year: 1405, month: 7, day: 3 };
+
+  it("ends with this month once its row exists, else with last month", () => {
+    expect(stopRepeat({ startMonth: "1405-03" }, today, { thisMonth: true, any: true })).toEqual({ endMonth: "1405-07" });
+    expect(stopRepeat({ startMonth: "1405-03" }, today, { thisMonth: false, any: true })).toEqual({ endMonth: "1405-06" });
+  });
+
+  it("is deleted only if it never made a row (stopped before its first month)", () => {
+    expect(stopRepeat({ startMonth: "1405-07" }, today, { thisMonth: false, any: false })).toEqual({ delete: true });
+  });
+
+  it("after «ادامه» this month, stopping before its day keeps it (and its past months)", () => {
+    // Resumed on 2 Mehr: start 1405-07, day 5 not reached; months up to 1405-04 exist.
+    const stop = stopRepeat({ startMonth: "1405-07" }, today, { thisMonth: false, any: true });
+    expect(stop).toEqual({ endMonth: "1405-06" });
+    // Ending before its start: nothing more is ever due.
+    expect(dueMonths({ startMonth: "1405-07", endMonth: "1405-06", dayOfMonth: 5 }, { year: 1405, month: 9, day: 30 })).toEqual([]);
   });
 });

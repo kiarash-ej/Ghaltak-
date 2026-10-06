@@ -1,14 +1,13 @@
 import { APP_TIME_ZONE, formatToman } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { DaySales } from "@/server/finance/breakdowns";
-import { tehranDateKey } from "@/server/reports/periods";
+import { tehranDayKeys } from "@/server/reports/periods";
 
 // The sales trend on «فروش» (spec §6.4): one bar per day, or per week when
 // the period is longer than two months. Bars grow in one after another; time
 // runs right to left like the text, so the newest bar is at the left. Every
 // value is also in a table for screen readers.
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const dayLabel = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { timeZone: APP_TIME_ZONE, day: "numeric", month: "long" });
 const label = (key: string) => dayLabel.format(new Date(`${key}T08:30:00Z`)); // noon in Tehran
 
@@ -16,8 +15,7 @@ type Bucket = { key: string; label: string; sales: number };
 
 export function bucketSales(days: DaySales[], from: Date, to: Date): { unit: "day" | "week"; buckets: Bucket[] } {
   const byDay = new Map(days.map((d) => [d.key, d.sales]));
-  const keys: string[] = [];
-  for (let t = from.getTime() + DAY_MS / 2; t < to.getTime(); t += DAY_MS) keys.push(tehranDateKey(new Date(t)));
+  const keys = tehranDayKeys(from, to);
   if (keys.length <= 62) return { unit: "day", buckets: keys.map((k) => ({ key: k, label: label(k), sales: byDay.get(k) ?? 0 })) };
   const buckets: Bucket[] = [];
   for (let i = 0; i < keys.length; i += 7) {

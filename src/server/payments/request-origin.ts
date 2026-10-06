@@ -19,3 +19,14 @@ export async function requestOrigin(env: Record<string, string | undefined> = pr
   const host = h.get("x-forwarded-host")?.split(",")[0]?.trim() || h.get("host") || "localhost:3000";
   return `${proto}://${host}`;
 }
+
+/**
+ * An absolute URL in the app, for a redirect from a route handler. On APP_URL
+ * when it is set: behind a reverse proxy the request's own URL can carry an
+ * internal address the browser can't reach. Otherwise (development) on the
+ * request's URL, so a route never fails just because APP_URL is missing.
+ */
+export function appUrl(path: string, requestUrl: string, env: Record<string, string | undefined> = process.env): URL {
+  const configured = env.APP_URL?.replace(/\/+$/, "");
+  return new URL(path, configured ? `${configured}/` : requestUrl);
+}

@@ -69,22 +69,22 @@ export async function verifyOtp(
   if (!record || record.expiresAt.getTime() < Date.now()) {
     return { ok: false, error: "EXPIRED" };
   }
-  if (record.attempts >= MAX_ATTEMPTS) {
-    return { ok: false, error: "INVALID" };
-  }
+
+  // Take one of the code's tries BEFORE comparing, in a single conditional
+  // update: requests sent at the same moment can't all read "0 tries used"
+  // and each get a guess, so a code gets MAX_ATTEMPTS guesses in total.
+  const counted = await prisma.otpCode.updateMany({
+    where: { id: record.id, consumed: false, attempts: { lt: MAX_ATTEMPTS } },
+    data: { attempts: { increment: 1 } },
+  });
+  if (counted.count === 0) return { ok: false, error: "INVALID" };
 
   const expected = Buffer.from(record.codeHash, "hex");
   const actual = Buffer.from(hashCode(mobile, code), "hex");
   const matches =
     expected.length === actual.length && timingSafeEqual(expected, actual);
 
-  if (!matches) {
-    await prisma.otpCode.update({
-      where: { id: record.id },
-      data: { attempts: { increment: 1 } },
-    });
-    return { ok: false, error: "INVALID" };
-  }
+  if (!matches) return { ok: false, error: "INVALID" };
 
   // Mark consumed first so a code can never be used twice.
   const claimed = await prisma.otpCode.updateMany({

@@ -24,7 +24,10 @@ export type FinanceRange = {
   custom?: { from: string; to: string };
 };
 
-export type PeriodError = "from" | "to" | "range";
+export type PeriodError = "from" | "to" | "range" | "long";
+
+/** A custom range covers two years at most: longer ones would build a page of tens of thousands of days. */
+export const MAX_CUSTOM_DAYS = 731;
 
 export const MONTH_NAMES = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
 export const SEASON_NAMES = ["بهار", "تابستان", "پاییز", "زمستان"];
@@ -125,6 +128,7 @@ export function resolvePeriod(params: Params, now: Date): FinanceRange | { error
       const from = jalaliDayStart(fromDay);
       const to = jalaliDayEnd(toDay);
       if (from >= to) return { error: "range" };
+      if (to.getTime() - from.getTime() > MAX_CUSTOM_DAYS * DAY_MS) return { error: "long" };
       const length = to.getTime() - from.getTime();
       return {
         preset,

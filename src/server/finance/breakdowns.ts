@@ -40,7 +40,7 @@ export type SalesBreakdown = {
 export async function getSalesBreakdown(sellerId: string, from: Date, to: Date, rankBy: "sales" | "units"): Promise<SalesBreakdown> {
   const inRange = Prisma.sql`o."sellerId" = ${sellerId} AND ${isSale} AND o."createdAt" >= ${from} AND o."createdAt" < ${to}`;
   const productOrder = rankBy === "sales" ? Prisma.sql`sales DESC, units DESC` : Prisma.sql`units DESC, sales DESC`;
-  const [weekdays, payment, source, customers, products] = await Promise.all([
+  const [weekdays, payment, source, customers, products, [units]] = await Promise.all([
     prisma.$queryRaw<{ dow: number; orders: bigint; sales: bigint }[]>`
       SELECT EXTRACT(DOW FROM ${tehranDay})::int AS dow, COUNT(*) AS orders, SUM(o."totalPrice") AS sales
       FROM "Order" o WHERE ${inRange} GROUP BY 1`,
@@ -62,21 +62,25 @@ export async function getSalesBreakdown(sellerId: string, from: Date, to: Date, 
       FROM "OrderItem" i JOIN "Order" o ON o."id" = i."orderId" JOIN "Product" p ON p."id" = i."productId" AND p."sellerId" = ${sellerId}
       WHERE ${inRange}
       GROUP BY p."id", p."name"
-      ORDER BY ${productOrder}, p."name"`,
+      ORDER BY ${productOrder}, p."name"
+      LIMIT 10`,
+    prisma.$queryRaw<{ units: bigint }[]>`
+      SELECT COALESCE(SUM(i."quantity"), 0) AS units
+      FROM "OrderItem" i JOIN "Order" o ON o."id" = i."orderId"
+      WHERE ${inRange}`,
   ]);
 
   const byWeekday = Array.from({ length: 7 }, () => ({ orders: 0, sales: 0 }));
   // Postgres counts from Sunday (0); the Iranian week starts on Saturday.
   for (const w of weekdays) byWeekday[(w.dow + 1) % 7] = { orders: Number(w.orders), sales: Number(w.sales) };
   const split = <K>(rows: { key: K; orders: bigint; sales: bigint }[]) => rows.map((r) => ({ key: r.key, orders: Number(r.orders), sales: Number(r.sales) }));
-  const allProducts = products.map((p) => ({ productId: p.productId, name: p.name, units: Number(p.units), sales: Number(p.sales) }));
   return {
     byWeekday,
     payment: split(payment),
     source: split(source),
     topCustomers: customers.map((c) => ({ ...c, orders: Number(c.orders), sales: Number(c.sales) })),
-    topProducts: allProducts.slice(0, 10),
-    units: allProducts.reduce((s, p) => s + p.units, 0),
+    topProducts: products.map((p) => ({ productId: p.productId, name: p.name, units: Number(p.units), sales: Number(p.sales) })),
+    units: Number(units.units),
   };
 }
 

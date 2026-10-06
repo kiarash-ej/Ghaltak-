@@ -8,7 +8,7 @@ import { parseWholeNumber, MAX_PRICE } from "@/server/catalog/product-form";
 import { isExpenseCategory } from "./expense-categories";
 import { parseExpenseForm, type ExpenseFormState } from "./expense-form";
 import { ensureRecurringExpenses } from "./expenses";
-import { gregorianKey, monthKey, previousMonth } from "./months";
+import { gregorianKey, monthKey, stopRepeat } from "./months";
 import { jalaliOfInstant } from "./periods";
 
 // Expenses and monthly repeats (spec §6.1, §6.4). The owner's only: every
@@ -97,16 +97,15 @@ export async function stopRepeatAction(id: string): Promise<void> {
   if (!repeat) return;
   await ensureRecurringExpenses(owner.id);
   const today = jalaliOfInstant(new Date());
-  const made = await prisma.expense.findFirst({
-    where: { recurringExpenseId: id, sellerId: owner.id, monthKey: monthKey(today) },
-    select: { id: true },
-  });
-  const endMonth = monthKey(made ? today : previousMonth(today));
-  if (endMonth < repeat.startMonth) {
-    // Stopped before its first month: nothing was ever made, so nothing to keep.
+  const [thisMonth, any] = await Promise.all([
+    prisma.expense.count({ where: { recurringExpenseId: id, sellerId: owner.id, monthKey: monthKey(today) } }),
+    prisma.expense.count({ where: { recurringExpenseId: id, sellerId: owner.id } }),
+  ]);
+  const stop = stopRepeat(repeat, today, { thisMonth: thisMonth > 0, any: any > 0 });
+  if ("delete" in stop) {
     await prisma.recurringExpense.deleteMany({ where: { id, sellerId: owner.id } });
   } else {
-    await prisma.recurringExpense.updateMany({ where: { id, sellerId: owner.id }, data: { endMonth } });
+    await prisma.recurringExpense.updateMany({ where: { id, sellerId: owner.id }, data: { endMonth: stop.endMonth } });
   }
   refresh();
 }

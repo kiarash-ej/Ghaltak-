@@ -82,6 +82,9 @@ describe("resolvePeriod", () => {
     expect(resolvePeriod({ period: "custom", from: "1405/07/40", to: "1405/07/10" }, NOW)).toEqual({ error: "from" });
     expect(resolvePeriod({ period: "custom", from: "1405/07/10", to: "" }, NOW)).toEqual({ error: "to" });
     expect(resolvePeriod({ period: "custom", from: "1405/07/10", to: "1405/07/01" }, NOW)).toEqual({ error: "range" });
+    // At most two years: 1403/07/01 to 1405/06/31 is fine, a century is not.
+    expect(resolvePeriod({ period: "custom", from: "1403/07/01", to: "1405/06/31" }, NOW)).not.toHaveProperty("error");
+    expect(resolvePeriod({ period: "custom", from: "1300/01/01", to: "1500/12/29" }, NOW)).toEqual({ error: "long" });
   });
 
   it("handles the end of the year: last month in Farvardin is Esfand of the year before", () => {

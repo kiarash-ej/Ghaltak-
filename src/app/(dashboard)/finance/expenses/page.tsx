@@ -154,7 +154,8 @@ export default async function ExpensesPage(props: PageProps<"/finance/expenses">
                       </span>
                       <span className="text-xs text-muted">
                         هر ماه روز {formatNumber(r.dayOfMonth)} · از {monthName(r.startMonth)}
-                        {r.endMonth !== null && <> تا {monthName(r.endMonth)}</>}
+                        {/* Stopped again right after «ادامه», before its new first month: no range to show. */}
+                        {r.endMonth !== null && r.endMonth >= r.startMonth && <> تا {monthName(r.endMonth)}</>}
                       </span>
                     </div>
                     <span className="whitespace-nowrap font-bold tabular-nums">{formatToman(r.amount)}</span>

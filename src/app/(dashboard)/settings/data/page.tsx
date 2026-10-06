@@ -18,7 +18,8 @@ const ERRORS: Record<OrderFilterError, string> = {
   status: "وضعیت انتخاب‌شده درست نیست.",
 };
 
-const isFilterError = (v: unknown): v is OrderFilterError => typeof v === "string" && v in ERRORS;
+// Own keys only: `in` would also accept "toString" or "constructor" from the URL.
+const isFilterError = (v: unknown): v is OrderFilterError => typeof v === "string" && Object.hasOwn(ERRORS, v);
 
 export default async function DataExportPage(props: PageProps<"/settings/data">) {
   await requireOwner(); // an operator gets a 404 (A10)

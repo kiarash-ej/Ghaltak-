@@ -11,6 +11,10 @@ import type { InsightFacts } from "./types";
 
 // What the advice rules look at (spec §6.5), gathered in a few SQL queries,
 // all scoped by the seller. Owner only (money); the caller checks the role.
+//
+// Scope "period" (a finished period's report) skips what is about today, not
+// the period: stale unpaid orders, stock, this month's links, recent weekdays.
+// Those facts come back empty, so their rules stay quiet.
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const saleStatusSql = Prisma.join(SALE_STATUSES.map((s) => Prisma.sql`${s}::"OrderStatus"`));
@@ -21,7 +25,9 @@ export async function loadInsightFacts(
   range: FinanceRange,
   totals: { current: FinanceTotals; previous: FinanceTotals },
   now = new Date(),
+  scope: "all" | "period" = "all",
 ): Promise<InsightFacts> {
+  const today = <T>(load: () => Promise<T>, none: T): Promise<T> => (scope === "all" ? load() : Promise.resolve(none));
   const inPeriod = Prisma.sql`(o."createdAt" >= ${range.from} AND o."createdAt" < ${range.to})`;
   const inPrevious = Prisma.sql`(o."createdAt" >= ${range.previous.from} AND o."createdAt" < ${range.previous.to})`;
   const days = dayKeys(range.from, range.to);
@@ -53,17 +59,21 @@ export async function loadInsightFacts(
       FROM "Expense" e
       WHERE e."sellerId" = ${sellerId} AND e."voidedAt" IS NULL AND e."category" = 'ADS'
         AND e."spentOn" >= ${days.first}::date AND e."spentOn" <= ${days.last}::date`,
-    prisma.$queryRaw<{ orders: bigint; amount: bigint; with_receipt: bigint }[]>`
+    today(
+      () => prisma.$queryRaw<{ orders: bigint; amount: bigint; with_receipt: bigint }[]>`
       SELECT COUNT(*) AS orders,
              COALESCE(SUM(o."totalPrice" + COALESCE(o."shippingCost", 0)), 0) AS amount,
              COUNT(*) FILTER (WHERE o."receiptImageUrl" IS NOT NULL) AS with_receipt
       FROM "Order" o
       WHERE o."sellerId" = ${sellerId} AND o."status" = 'PENDING_PAYMENT'
         AND o."createdAt" < ${new Date(now.getTime() - 2 * DAY_MS)}`,
+      [{ orders: BigInt(0), amount: BigInt(0), with_receipt: BigInt(0) }],
+    ),
     // Each variant of the five products that sold the most units in 30 days.
-    prisma.$queryRaw<
-      { variantId: string; productId: string; name: string; color: string | null; size: string | null; stock: number; units: bigint; product_units: bigint }[]
-    >`
+    today(
+      () => prisma.$queryRaw<
+        { variantId: string; productId: string; name: string; color: string | null; size: string | null; stock: number; units: bigint; product_units: bigint }[]
+      >`
       WITH sold AS (
         SELECT i."productId", i."productVariantId", i."quantity"
         FROM "OrderItem" i JOIN "Order" o ON o."id" = i."orderId"
@@ -82,7 +92,9 @@ export async function loadInsightFacts(
       FROM top
       JOIN "Product" p ON p."id" = top."productId"
       JOIN "ProductVariant" v ON v."productId" = p."id" AND v."sellerId" = ${sellerId}`,
-    getLinkFunnel(sellerId, now),
+      [],
+    ),
+    today(() => getLinkFunnel(sellerId, now), null),
     // Buyers in the period; "returning" if their first sale was before it.
     prisma.$queryRaw<{ buyers: bigint; returning: bigint; returning_sales: bigint }[]>`
       SELECT COUNT(*) AS buyers,
@@ -97,7 +109,8 @@ export async function loadInsightFacts(
         GROUP BY o."customerId"
         HAVING COUNT(*) FILTER (WHERE ${inPeriod}) > 0
       ) b`,
-    prisma.$queryRaw<{ dow: number; sales: bigint; orders: bigint }[]>`
+    today(
+      () => prisma.$queryRaw<{ dow: number; sales: bigint; orders: bigint }[]>`
       SELECT EXTRACT(DOW FROM (o."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${APP_TIME_ZONE}))::int AS dow,
              SUM(o."totalPrice") AS sales,
              COUNT(*) AS orders
@@ -105,8 +118,13 @@ export async function loadInsightFacts(
       WHERE o."sellerId" = ${sellerId} AND ${isSale}
         AND o."createdAt" >= ${weeksFrom} AND o."createdAt" < ${weeksTo}
       GROUP BY 1`,
-    prisma.$queryRaw<{ first: Date | null }[]>`
+      [],
+    ),
+    today(
+      () => prisma.$queryRaw<{ first: Date | null }[]>`
       SELECT MIN(o."createdAt") AS first FROM "Order" o WHERE o."sellerId" = ${sellerId} AND ${isSale}`,
+      [{ first: null }],
+    ),
   ]);
 
   // Postgres counts weekdays from Sunday (0); the Iranian week starts on Saturday.
@@ -140,7 +158,7 @@ export async function loadInsightFacts(
       units30: Number(s.units),
       productUnits30: Number(s.product_units),
     })),
-    links: funnel.links.filter((l) => l.isActive).map((l) => ({ linkId: l.linkId, title: l.title, views: l.views, paid: l.paid })),
+    links: (funnel?.links ?? []).filter((l) => l.isActive).map((l) => ({ linkId: l.linkId, title: l.title, views: l.views, paid: l.paid })),
     customers: {
       buyers: Number(customers.buyers),
       returningBuyers: Number(customers.returning),

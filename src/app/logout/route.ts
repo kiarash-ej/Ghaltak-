@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { appUrl } from "@/server/payments/request-origin";
 import { SESSION_COOKIE, decryptSession } from "@/server/session-token";
 import { revokeSession } from "@/server/sessions";
 
@@ -11,7 +12,7 @@ import { revokeSession } from "@/server/sessions";
 export async function GET(request: NextRequest) {
   const session = await decryptSession(request.cookies.get(SESSION_COOKIE)?.value);
   if (session) await revokeSession(session.sid);
-  const response = NextResponse.redirect(new URL("/login", request.url));
+  const response = NextResponse.redirect(appUrl("/login", request.url));
   response.cookies.delete(SESSION_COOKIE);
   return response;
 }

@@ -50,3 +50,20 @@ export function dueMonths(repeat: { startMonth: string; endMonth: string | null;
   }
   return due;
 }
+
+/**
+ * What «توقف» does to a monthly repeat: it ends with the last month already
+ * made (this month if its row exists, else last month). It is deleted only
+ * if it never made a single row, i.e. stopped before its first month. After
+ * «ادامه» its start is the month it resumed, while older months exist: then
+ * it is ended even if that start is still ahead, never deleted.
+ */
+export function stopRepeat(
+  repeat: { startMonth: string },
+  today: JalaliDate,
+  made: { thisMonth: boolean; any: boolean },
+): { delete: true } | { endMonth: string } {
+  const endMonth = monthKey(made.thisMonth ? today : previousMonth(today));
+  if (endMonth < repeat.startMonth && !made.any) return { delete: true };
+  return { endMonth };
+}

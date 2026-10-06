@@ -47,7 +47,9 @@ export async function getReportArchive(sellerId: string, now = new Date()): Prom
 
 const seasonOfKey = (month: string) => `${month.slice(0, 4)}-s${Math.ceil(Number(month.slice(5)) / 3)}`;
 
-// The advice that is about the period itself, not about today (stock, open orders, this month's links).
+// The advice that is about the period itself, not about today (stock, open
+// orders, this month's links). The facts for those aren't even loaded for a
+// report (scope "period"); the filter keeps any future rule of that kind out.
 const PERIOD_ADVICE = new Set(["sales-trend", "growth-driver", "thin-margin", "missing-costs", "returns-jump", "smaller-orders", "costs-outpacing", "repeat-customers"]);
 
 export type PeriodReport = {
@@ -69,7 +71,7 @@ export async function getPeriodReport(sellerId: string, period: ReportPeriod, no
     getProductProfit(sellerId, period.from, period.to),
     listExpenses(sellerId, period.from, period.to),
   ]);
-  const facts = await loadInsightFacts(sellerId, range, { current, previous: before }, now);
+  const facts = await loadInsightFacts(sellerId, range, { current, previous: before }, now, "period");
   const expenses = EXPENSE_CATEGORIES.map((c) => {
     const rows = expenseRows.filter((e) => e.category === c);
     return { key: c, label: CATEGORY_LABELS[c], amount: rows.reduce((s, e) => s + e.amount, 0), count: rows.length };
