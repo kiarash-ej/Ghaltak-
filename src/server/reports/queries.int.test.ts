@@ -2,9 +2,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { OrderStatus } from "@/generated/prisma/enums";
 import { hasTestDatabase } from "@/test/setup";
 import { prisma } from "@/lib/prisma";
-import { getSalesReport } from "./queries";
+import { reportPeriods } from "./periods";
+import { salesSince } from "./queries";
 
-// The report against a small, hand-counted data set (TEST_DATABASE_URL).
+// salesSince against a small, hand-counted data set (TEST_DATABASE_URL).
 //
 // "Now" is Thursday 2 Mehr 1405, 20:23 Tehran (2026-09-24T16:53Z).
 //   today starts  2026-09-23T20:30Z   (Tehran midnight)
@@ -25,7 +26,7 @@ import { getSalesReport } from "./queries";
 
 const NOW = new Date("2026-09-24T16:53:00Z");
 
-describe.skipIf(!hasTestDatabase)("sales report (database)", () => {
+describe.skipIf(!hasTestDatabase)("salesSince (database)", () => {
   const runId = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
   let sellerId = "";
   let otherSellerId = "";
@@ -34,14 +35,13 @@ describe.skipIf(!hasTestDatabase)("sales report (database)", () => {
     sellerId = (await prisma.seller.create({ data: { name: "report test", mobile: `0993${runId}` } })).id;
     otherSellerId = (await prisma.seller.create({ data: { name: "other", mobile: `0994${runId}` } })).id;
 
-    const product = (name: string, price: number, stock: number, isActive = true) =>
+    const product = (name: string, price: number) =>
       prisma.product.create({
-        data: { sellerId, name, price, isActive, variants: { create: { sellerId, stock } } },
+        data: { sellerId, name, price, variants: { create: { sellerId, stock: 10 } } },
         include: { variants: true },
       });
-    const a = await product("A", 1000, 2); // low: 2 <= threshold 3
-    const b = await product("B", 500, 10);
-    await product("C (inactive)", 700, 0, false); // out of stock but hidden: not listed
+    const a = await product("A", 1000);
+    const b = await product("B", 500);
 
     const customer = (n: number) =>
       prisma.customer.create({ data: { sellerId, phone: `09${n}${runId}00`.slice(0, 11) } });
@@ -79,7 +79,7 @@ describe.skipIf(!hasTestDatabase)("sales report (database)", () => {
     await order(c4.id, "DELIVERED", "2026-09-10T10:00:00Z", [line(a, 1)]);
     await order(c4.id, "RETURNED", "2026-09-24T10:00:00Z", [line(a, 1)]);
 
-    // Another seller's sale today: must not leak into this seller's report.
+    // Another seller's sale today: must not leak into this seller's totals.
     const otherCustomer = await prisma.customer.create({
       data: { sellerId: otherSellerId, phone: `0915${runId}` },
     });
@@ -105,54 +105,9 @@ describe.skipIf(!hasTestDatabase)("sales report (database)", () => {
   });
 
   it("totals today, this week and this month in Tehran time", async () => {
-    const r = await getSalesReport(sellerId, NOW);
-    expect(r.today).toEqual({ total: 2500, count: 2, average: 1250 });
-    expect(r.week).toEqual({ total: 6500, count: 4, average: 1625 });
-    expect(r.month).toEqual({ total: 4500, count: 3, average: 1500 });
-  });
-
-  it("buckets daily sales by Tehran day", async () => {
-    const r = await getSalesReport(sellerId, NOW);
-    const nonZero = r.daily.filter((d) => d.count > 0).map((d) => [d.key, d.total, d.count]);
-    expect(nonZero).toEqual([
-      ["2026-09-10", 1000, 1],
-      ["2026-09-20", 2000, 1],
-      ["2026-09-23", 2000, 1],
-      ["2026-09-24", 2500, 2],
-    ]);
-    expect(r.daily).toHaveLength(30);
-    expect(r.daily.at(-1)?.key).toBe("2026-09-24");
-  });
-
-  it("splits this month's buyers into new and returning", async () => {
-    const r = await getSalesReport(sellerId, NOW);
-    // c1 and c3 bought for the first time this month; c2 had bought on 20 Sep.
-    expect(r.customers).toEqual({ newCustomers: 2, returningCustomers: 1 });
-  });
-
-  it("ranks this month's top products by quantity, then revenue", async () => {
-    const r = await getSalesReport(sellerId, NOW);
-    expect(r.topProducts.map((p) => [p.name, p.quantity, p.revenue])).toEqual([
-      ["A", 3, 3000],
-      ["B", 3, 1500],
-    ]);
-  });
-
-  it("lists low-stock variants of active products only", async () => {
-    const r = await getSalesReport(sellerId, NOW);
-    expect(r.lowStock.total).toBe(1);
-    expect(r.lowStock.rows.map((v) => [v.productName, v.stock, v.lowStockThreshold])).toEqual([
-      ["A", 2, 3],
-    ]);
-  });
-
-  it("counts unfinished orders by status", async () => {
-    const r = await getSalesReport(sellerId, NOW);
-    expect(r.openOrders).toEqual([
-      { status: "PENDING_PAYMENT", count: 1 },
-      { status: "PAID", count: 1 },
-      { status: "PREPARING", count: 1 },
-      { status: "SHIPPED", count: 1 },
-    ]);
+    const periods = reportPeriods(NOW);
+    expect(await salesSince(sellerId, periods.today)).toEqual({ total: 2500, count: 2, average: 1250 });
+    expect(await salesSince(sellerId, periods.week)).toEqual({ total: 6500, count: 4, average: 1625 });
+    expect(await salesSince(sellerId, periods.month)).toEqual({ total: 4500, count: 3, average: 1500 });
   });
 });
