@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PackageOpen, Plus } from "lucide-react";
+import { InsightList } from "@/components/finance/insight-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,11 +13,34 @@ import { NavTabs } from "@/components/ui/nav-tabs";
 import { Sheet } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Stat } from "@/components/ui/stat";
+import type { Insight } from "@/server/finance/insights";
 
 // Every component of the kit in both themes, for reviewing the design
 // (spec §3.4). Development only: a 404 on a production build.
 
 export const metadata: Metadata = { title: "UI kit | غلتک", robots: { index: false } };
+
+const SAMPLE_INSIGHTS: Insight[] = [
+  {
+    id: "missing-costs",
+    rule: 4,
+    tone: "warn",
+    title: "قیمت خرید بعضی محصولات ثبت نشده",
+    body: "فقط ۷۸٪ فروش‌های این بازه قیمت خرید دارند؛ ۳ محصول فروش‌رفته قیمت خرید ندارد.",
+    action: { label: "ثبت قیمت خرید", href: "/products" },
+  },
+  {
+    id: "stale-unpaid",
+    rule: 5,
+    tone: "warn",
+    title: "۵ سفارش بیش از ۲ روز منتظر پرداخت است",
+    body: "روی هم حدود ۳٫۲ میلیون تومان. یک پیام کوتاه یادآوری معمولاً کار را تمام می‌کند.",
+    action: { label: "سفارش‌های منتظر پرداخت", href: "/orders?status=PENDING_PAYMENT" },
+  },
+  { id: "smaller-orders", rule: 7, tone: "tip", title: "میانگین هر سفارش ۱۲٪ کمتر شد", body: "پیشنهاد یک کالای مکمل کنار خرید، سبد را بزرگ‌تر می‌کند." },
+  { id: "best-weekday", rule: 12, tone: "tip", title: "پنجشنبه‌ها پرفروش‌ترین روز شماست", body: "حدود ۱٫۸ برابر یک روز معمولی." },
+  { id: "sales-trend", rule: 1, tone: "good", title: "فروش ۲۳٪ بیشتر شد", body: "ببینید چه چیزی جواب داده تا تکرارش کنید." },
+];
 
 function Kit({ theme }: { theme: "light" | "dark" }) {
   return (
@@ -90,6 +114,15 @@ function Kit({ theme }: { theme: "light" | "dark" }) {
             <Input id={`err-${theme}`} aria-invalid defaultValue="abc" />
             <p className="text-sm text-danger">قیمت را با عدد بنویسید.</p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>پیشنهادهای غلتک</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <InsightList insights={SAMPLE_INSIGHTS} />
         </CardContent>
       </Card>
 

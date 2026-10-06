@@ -13,6 +13,7 @@ const totals: FinanceTotals = {
   margin: 18_200_000 / 48_600_000,
   averageOrder: 759_375,
   ordersPlaced: 70,
+  returnedOrders: 3,
   returnRate: 0.04,
   cancelRate: 0.05,
 };

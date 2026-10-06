@@ -68,10 +68,11 @@ export async function publicTokenOf(orderId: string): Promise<string> {
 }
 
 /** Creates a product with one "مشکی / M" variant; returns that variant's id. */
-export async function createProduct(page: Page, p: { name: string; price: number; stock: number }) {
+export async function createProduct(page: Page, p: { name: string; price: number; stock: number; cost?: number }) {
   await page.goto("/products/new");
   await page.getByLabel("نام محصول").fill(p.name);
   await page.getByLabel("قیمت (تومان)").fill(String(p.price));
+  if (p.cost !== undefined) await page.getByLabel("قیمت خرید (تومان، اختیاری)").fill(String(p.cost));
   await page.locator("#color-0").fill("مشکی");
   await page.locator("#size-0").fill("M");
   await page.locator("#stock-0").fill(String(p.stock));

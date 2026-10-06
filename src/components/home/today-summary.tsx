@@ -74,13 +74,13 @@ export function TodaySummary({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {showMoney ? (
           <>
-            <Tile hero wide index={0} href="/reports" label="فروش امروز" note={`از ${formatNumber(summary.salesToday.count)} سفارش پرداخت‌شده`}>
+            <Tile hero wide index={0} href="/finance?period=today" label="فروش امروز" note={`از ${formatNumber(summary.salesToday.count)} سفارش پرداخت‌شده`}>
               <Money amount={summary.salesToday.total} />
             </Tile>
             <Tile index={1} href="/orders" label="سفارش‌های امروز" note="همهٔ سفارش‌های ثبت‌شدهٔ امروز">
               <CountUp value={summary.ordersToday} />
             </Tile>
-            <Tile index={2} href="/reports" label="فروش این ماه" note="از اول ماه تا همین حالا">
+            <Tile index={2} href="/finance" label="فروش این ماه" note="از اول ماه تا همین حالا">
               <Money amount={salesMonth} />
             </Tile>
           </>
