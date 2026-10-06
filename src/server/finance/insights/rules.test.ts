@@ -146,7 +146,7 @@ describe("4. missing costs", () => {
         products: [product({ name: "a", sales: 600, costedSales: 600 }), product({ name: "b", sales: 400, costedSales: 180 }), product({ name: "c", previousSales: 5 })],
       }),
     );
-    expect(insight).toMatchObject({ id: "missing-costs", tone: "warn" });
+    expect(insight).toMatchObject({ id: "missing-costs", tone: "warn", action: { href: "/finance/products?missing=1" } });
     expect(insight!.body).toContain("فقط ۷۸٪ فروش‌های این بازه قیمت خرید دارند؛ ۱ محصول فروش‌رفته قیمت خرید ندارد");
   });
   it("not at 90%, not without sales", () => {

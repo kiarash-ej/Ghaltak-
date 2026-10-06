@@ -24,12 +24,13 @@ import {
 const PRICE = 100_000;
 const START_STOCK = 10;
 
-/** The "sales today" tile on /reports: its amount and its order-count line. */
+/** Today on «فروش» (/finance/sales): the paid-order count, and the product's row with the exact amount. */
 async function expectSalesToday(page: Page, amount: number, orders: number) {
-  await page.goto("/reports");
-  const tile = page.getByText("فروش امروز", { exact: true }).locator("..");
-  await expect(tile.getByText(toman(amount), { exact: true })).toBeVisible();
-  await expect(tile.getByText(new RegExp(`^${faDigits(orders)} سفارش`))).toBeVisible();
+  await page.goto("/finance/sales?period=today");
+  await expect(page.getByRole("group", { name: "سفارش‌های پرداخت‌شده", exact: true }).locator("[data-countup]")).toHaveText(faDigits(orders));
+  const products = page.getByRole("table").filter({ has: page.getByRole("columnheader", { name: "محصول" }) });
+  if (amount > 0) await expect(products.getByRole("row").filter({ hasText: toman(amount) })).toHaveCount(1);
+  else await expect(page.getByText("در این بازه فروشی نبوده است.").first()).toBeVisible();
 }
 
 /** The stock-history row for this order with this reason (e.g. «مرجوعی»). */

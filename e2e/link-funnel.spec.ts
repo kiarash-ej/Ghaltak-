@@ -3,7 +3,7 @@ import { createProduct, faDigits, logIn, uniqueMobile } from "./helpers";
 
 // B8, the purchase-link funnel. A customer opens the link twice and orders
 // once; the seller and a Telegram link preview open it too, but aren't customers. The link's
-// card in /orders/links and the table in /reports show views → orders → paid.
+// card in /orders/links and the table on «فروش» (/finance/sales) show views → orders → paid.
 
 /** Views are counted after the response (after()), so reload until they show. */
 async function expectLinkStats(page: Page, title: string, stats: [views: number, orders: number, paid: number, rate: string]) {
@@ -68,9 +68,9 @@ test("link funnel: views, orders and paid orders per link", async ({ page: selle
   });
 
   await test.step("the sales report shows the same numbers", async () => {
-    await seller.goto("/reports");
+    await seller.goto("/finance/sales");
     const row = seller
-      .getByRole("heading", { name: "قیف لینک‌های خرید این ماه" })
+      .getByRole("heading", { name: "قیف لینک‌های خرید" })
       .locator("../..")
       .getByRole("row")
       .filter({ hasText: title });

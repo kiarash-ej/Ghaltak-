@@ -15,6 +15,10 @@ const OWNER_ONLY = [
   "src/app/(dashboard)/settings/payments/page.tsx",
   "src/app/(dashboard)/settings/billing/page.tsx",
   "src/app/(dashboard)/settings/team/page.tsx",
+  "src/server/finance/expense-actions.ts",
+  "src/server/finance/cost-actions.ts",
+  "src/app/(dashboard)/finance/products/page.tsx",
+  "src/app/(dashboard)/finance/expenses/page.tsx",
 ];
 
 describe("owner-only entry points", () => {

@@ -46,14 +46,18 @@ test("owner invites an operator, the operator works, then is removed", async ({ 
   });
 
   await test.step("the operator sees sales as counts, without tomans", async () => {
-    await operator.goto("/reports");
-    await expect(operator.getByText("فروش این ماه")).toBeVisible();
-    await expect(operator.getByText("فروش روزانه")).toHaveCount(0);
+    await operator.goto("/reports"); // old links land on finance
+    await expect(operator).toHaveURL(/\/finance$/);
+    await operator.goto("/finance/sales");
+    await expect(operator.getByRole("group", { name: "سفارش‌های پرداخت‌شده", exact: true })).toBeVisible();
+    await expect(operator.getByText("روند فروش")).toHaveCount(0);
     await expect(operator.locator("main").getByText(/تومان/)).toHaveCount(0);
+    // Product profit and Expenses are the owner's: not even a tab.
+    await expect(operator.getByRole("link", { name: "هزینه‌ها" })).toHaveCount(0);
   });
 
   await test.step("owner pages are a 404 for the operator; «تنظیمات» opens their devices", async () => {
-    for (const url of ["/settings/billing", "/settings/team", "/settings/payments"]) {
+    for (const url of ["/settings/billing", "/settings/team", "/settings/payments", "/finance/products", "/finance/expenses"]) {
       const res = await operator.goto(url);
       expect(res?.status(), url).toBe(404);
     }

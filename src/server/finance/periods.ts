@@ -138,3 +138,10 @@ export function resolvePeriod(params: Params, now: Date): FinanceRange | { error
     }
   }
 }
+
+/** The asked period, or this month with the error to show when the custom dates are wrong. */
+export function resolveFinanceRange(params: Params, now: Date): { range: FinanceRange; error?: PeriodError } {
+  const resolved = resolvePeriod(params, now);
+  if (!("error" in resolved)) return { range: resolved };
+  return { range: resolvePeriod({}, now) as FinanceRange, error: resolved.error };
+}

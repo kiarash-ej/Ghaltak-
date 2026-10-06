@@ -246,8 +246,8 @@ test("re-take the /help screenshots", async ({ browser }) => {
   await shot(customer, "shipping-customer.jpg", customer.getByRole("heading", { name: "ارسال" }), 190);
 
   // reports: the sale is counted today.
-  await seller.goto("/reports");
-  await shot(seller, "reports.jpg", seller.getByRole("heading", { name: "گزارش فروش" }), 700);
+  await seller.goto("/finance/sales");
+  await shot(seller, "reports.jpg", seller.getByRole("heading", { name: "مالی و گزارش" }), 700);
 
   await seller.context().close();
   await customer.context().close();

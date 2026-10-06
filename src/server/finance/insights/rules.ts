@@ -106,7 +106,7 @@ export function missingCosts(f: InsightFacts): Insight | null {
       `فقط ${pct(coverage)} فروش‌های این بازه قیمت خرید دارند` +
       (missing > 0 ? `؛ ${formatNumber(missing)} محصول فروش‌رفته قیمت خرید ندارد` : "") +
       ". تا ثبتش نکنید سود واقعی معلوم نیست و سودها بیشتر از واقع نشان داده می‌شوند. هنگام ثبت می‌توانید آن را برای فروش‌های قبلی هم به کار ببرید.",
-    action: { label: "ثبت قیمت خرید", href: "/products" },
+    action: { label: "ثبت قیمت خرید", href: "/finance/products?missing=1" },
   };
 }
 

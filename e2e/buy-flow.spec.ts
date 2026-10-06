@@ -181,14 +181,10 @@ test("buy flow: purchase link → receipt → payment → shipping → report", 
   });
 
   await test.step("the sales report counts the sale", async () => {
-    await seller.goto("/reports");
-    // The "sales today" tile: the label's parent holds the amount and the count.
-    const today = seller.getByText("فروش امروز", { exact: true }).locator("..");
-    await expect(today.getByText(toman(PRICE * QUANTITY), { exact: true })).toBeVisible();
-    await expect(today.getByText(`${faDigits(1)} سفارش · میانگین ${toman(PRICE * QUANTITY)}`)).toBeVisible();
-
+    await seller.goto("/finance/sales?period=today");
+    await expect(seller.getByRole("group", { name: "سفارش‌های پرداخت‌شده", exact: true }).locator("[data-countup]")).toHaveText(faDigits(1));
     const top = seller.getByRole("row").filter({ hasText: productName });
-    await expect(top.getByText(faDigits(QUANTITY), { exact: true })).toBeVisible();
+    await expect(top.getByRole("cell")).toHaveText([productName, faDigits(QUANTITY), toman(PRICE * QUANTITY)]);
   });
 
   await customerContext.close();

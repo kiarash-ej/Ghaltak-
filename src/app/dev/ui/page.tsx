@@ -27,7 +27,7 @@ const SAMPLE_INSIGHTS: Insight[] = [
     tone: "warn",
     title: "قیمت خرید بعضی محصولات ثبت نشده",
     body: "فقط ۷۸٪ فروش‌های این بازه قیمت خرید دارند؛ ۳ محصول فروش‌رفته قیمت خرید ندارد.",
-    action: { label: "ثبت قیمت خرید", href: "/products" },
+    action: { label: "ثبت قیمت خرید", href: "/finance/products?missing=1" },
   },
   {
     id: "stale-unpaid",
