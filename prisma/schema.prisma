@@ -43,18 +43,20 @@ model Seller {
   smsOnPaid        Boolean @default(true)
   smsOnShipped     Boolean @default(true)
 
-  products        Product[]
-  variants        ProductVariant[]
-  customers       Customer[]
-  orders          Order[]
-  purchaseLinks   PurchaseLink[]
-  memberships     Membership[]
-  sessions        Session[]
-  subscription    Subscription?
-  invoices        Invoice[]
-  gateway         SellerGateway?
-  paymentAttempts PaymentAttempt[]
-  smsMessages     SmsMessage[]
+  products          Product[]
+  variants          ProductVariant[]
+  customers         Customer[]
+  orders            Order[]
+  purchaseLinks     PurchaseLink[]
+  memberships       Membership[]
+  expenses          Expense[]
+  recurringExpenses RecurringExpense[]
+  sessions          Session[]
+  subscription      Subscription?
+  invoices          Invoice[]
+  gateway           SellerGateway?
+  paymentAttempts   PaymentAttempt[]
+  smsMessages       SmsMessage[]
 }
 
 // One-time SMS login codes. The code itself is never stored, only its hash.
@@ -80,15 +82,17 @@ model Product {
   seller            Seller   @relation(fields: [sellerId], references: [id])
   name              String
   price             Int // tomans
+  /// What one unit costs the seller, in tomans (finance; optional, never guessed).
+  costPrice         Int?
   imageUrl          String?
   category          String?
   isActive          Boolean  @default(true)
   lowStockThreshold Int      @default(3)
   createdAt         DateTime @default(now())
 
-  variants       ProductVariant[]
-  orderItems     OrderItem[]
-  purchaseLinks  PurchaseLink[]
+  variants      ProductVariant[]
+  orderItems    OrderItem[]
+  purchaseLinks PurchaseLink[]
 
   @@index([sellerId])
 }
@@ -206,9 +210,9 @@ model Order {
   publicToken String? @unique
 
   // Payment
-  paymentMethod    PaymentMethod?
-  paidAt           DateTime?
-  receiptImageUrl  String?
+  paymentMethod   PaymentMethod?
+  paidAt          DateTime?
+  receiptImageUrl String?
 
   // Shipping
   shippingAddress String?
@@ -241,17 +245,20 @@ model OrderItem {
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
   quantity         Int
   unitPrice        Int // tomans, snapshot at order time
+  /// Product.costPrice copied when the order is placed, so a later cost change
+  /// never rewrites past profit. Null: the product had no cost then.
+  unitCost         Int?
 }
 
 // Public purchase link: /buy/[token]. Shows only the attached products.
 model PurchaseLink {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   sellerId  String
-  seller    Seller    @relation(fields: [sellerId], references: [id])
-  token     String    @unique
+  seller    Seller   @relation(fields: [sellerId], references: [id])
+  token     String   @unique
   title     String?
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 
   products   Product[]
   orders     Order[]
@@ -490,4 +497,60 @@ model LinkDailyView {
   views          Int          @default(0)
 
   @@id([purchaseLinkId, day])
+}
+
+// ---------------------------------------------------------------------------
+// Finance (docs/superpowers/specs/2026-10-06-ghaltak-ui-finance-design.md §6.1):
+// expenses for net profit. Amounts in tomans; days are Tehran days.
+// ---------------------------------------------------------------------------
+
+enum ExpenseCategory {
+  ADS
+  PACKAGING
+  SHIPPING
+  RENT
+  SALARY
+  SERVICES
+  OTHER
+}
+
+model Expense {
+  id                 String            @id @default(cuid())
+  sellerId           String
+  seller             Seller            @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  category           ExpenseCategory
+  amount             Int // tomans, > 0
+  spentOn            DateTime          @db.Date // Tehran calendar day
+  note               String?
+  /// Set on the rows a monthly repeat creates, one per Jalali month.
+  recurringExpenseId String?
+  recurringExpense   RecurringExpense? @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
+  /// "1405-07" on a repeat's row; with recurringExpenseId, unique: a month is never counted twice.
+  monthKey           String?
+  /// A repeat's month the seller removed: counts as 0 and is never created again.
+  voidedAt           DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@unique([recurringExpenseId, monthKey])
+  @@index([sellerId, spentOn])
+}
+
+model RecurringExpense {
+  id         String          @id @default(cuid())
+  sellerId   String
+  seller     Seller          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  category   ExpenseCategory
+  amount     Int // tomans, > 0
+  note       String?
+  /// 1..31, clamped to the month's length (Esfand has 29 or 30 days).
+  dayOfMonth Int
+  /// First Jalali month counted, "1405-07"; endMonth is the last one (null: until stopped).
+  startMonth String
+  endMonth   String?
+  createdAt  DateTime        @default(now())
+
+  expenses Expense[]
+
+  @@index([sellerId])
 }
