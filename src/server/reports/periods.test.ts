@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastDays, reportPeriods, tehranDateKey, tehranMidnight } from "./periods";
+import { lastDays, reportPeriods, tehranDateKey, tehranDayKeys, tehranMidnight } from "./periods";
 
 // 2026-09-24T16:53Z is Thursday 2 Mehr 1405, 20:23 in Tehran (UTC+3:30).
 const now = new Date("2026-09-24T16:53:00Z");
@@ -14,6 +14,22 @@ describe("tehranMidnight", () => {
     expect(tehranMidnight(new Date("2026-09-24T21:00:00Z")).toISOString()).toBe(
       "2026-09-24T20:30:00.000Z",
     );
+  });
+});
+
+describe("tehranDayKeys", () => {
+  const mehr1 = new Date("2026-09-22T20:30:00Z"); // 1 Mehr 00:00 Tehran
+
+  it("includes today as soon as it starts, not only from noon", () => {
+    // 2 Mehr at 09:00 Tehran: 1 and 2 Mehr.
+    expect(tehranDayKeys(mehr1, new Date("2026-09-24T05:30:00Z"))).toEqual(["2026-09-23", "2026-09-24"]);
+    // 1 Mehr at 00:05: just today.
+    expect(tehranDayKeys(mehr1, new Date("2026-09-22T20:35:00Z"))).toEqual(["2026-09-23"]);
+  });
+
+  it("stops before the day the range ends at (exclusive), and is empty for an empty range", () => {
+    expect(tehranDayKeys(mehr1, new Date("2026-09-24T20:30:00Z"))).toEqual(["2026-09-23", "2026-09-24"]);
+    expect(tehranDayKeys(mehr1, mehr1)).toEqual([]);
   });
 });
 

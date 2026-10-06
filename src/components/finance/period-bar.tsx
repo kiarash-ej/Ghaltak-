@@ -20,6 +20,7 @@ const ERRORS: Record<PeriodError, string> = {
   from: "تاریخ «از» درست نیست. مثلاً ۱۴۰۵/۰۷/۰۱ بنویسید.",
   to: "تاریخ «تا» درست نیست. مثلاً ۱۴۰۵/۰۷/۳۰ بنویسید.",
   range: "تاریخ «از» باید پیش از تاریخ «تا» باشد.",
+  long: "بازهٔ دلخواه حداکثر دو سال می‌تواند باشد.",
 };
 
 export function PeriodBar({ basePath, range, error }: { basePath: string; range: FinanceRange; error?: PeriodError }) {

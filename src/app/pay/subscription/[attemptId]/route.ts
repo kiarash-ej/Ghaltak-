@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { handleSubscriptionReturn, type SubscriptionReturnOutcome } from "@/server/billing/subscription-payment";
+import { appUrl } from "@/server/payments/request-origin";
 
 // Where the platform's gateway sends a seller back after paying for a
 // subscription (A9). Public like /pay/callback: a lost session must not lose a
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/pay/subscription
   }
 
   if (outcome === "invalid") return new NextResponse("Not found", { status: 404 });
-  const back = new URL("/settings/billing", req.url);
+  const back = appUrl("/settings/billing", req.url);
   back.searchParams.set("payment", outcome);
   return NextResponse.redirect(back, 303);
 }

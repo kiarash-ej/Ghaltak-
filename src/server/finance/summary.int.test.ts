@@ -117,6 +117,11 @@ describe.skipIf(!hasTestDatabase)("finance numbers (database)", () => {
     ]);
   });
 
+  it("counts today from its first minute: a range ending at 09:00 includes it", async () => {
+    const morning = new Date("2026-09-24T05:30:00Z"); // 2 Mehr, 09:00 Tehran
+    expect((await getFinanceSeries(sellerId, FROM, morning)).map((p) => p.key)).toEqual(["2026-09-23", "2026-09-24"]);
+  });
+
   it("has no rates without a base, never a division by zero", async () => {
     const empty = await getFinanceTotals(sellerId, new Date("2020-01-01T00:00:00Z"), new Date("2020-01-02T00:00:00Z"));
     expect(empty).toMatchObject({ sales: 0, coverage: null, margin: null, averageOrder: null, returnRate: null, cancelRate: null });

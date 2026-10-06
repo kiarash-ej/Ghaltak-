@@ -41,7 +41,17 @@ test("period reports: last month in the archive, its story, one A4 page to print
     const client = new pg.Client({ connectionString: process.env.E2E_DATABASE_URL });
     await client.connect();
     try {
-      await client.query(`UPDATE "Order" SET "createdAt" = $2 WHERE id = $1`, [order.id, lastMonth]);
+      // Noon (Tehran) on last month's last day: today's Tehran midnight, minus
+      // today's day of the month in days, plus 12 hours. Computed in SQL and
+      // stored as UTC, like the column; a JS Date would be written in the test
+      // machine's local time and land in this month late in the evening.
+      await client.query(
+        `UPDATE "Order"
+         SET "createdAt" = ((date_trunc('day', now() AT TIME ZONE 'Asia/Tehran') - make_interval(days => $2::int) + interval '12 hours')
+                            AT TIME ZONE 'Asia/Tehran') AT TIME ZONE 'UTC'
+         WHERE id = $1`,
+        [order.id, jalaliDay(new Date())],
+      );
     } finally {
       await client.end();
     }

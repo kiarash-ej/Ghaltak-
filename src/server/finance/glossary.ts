@@ -56,12 +56,19 @@ export function explain(metric: Metric, t: FinanceTotals): { title: string; body
         body: "جمع مبلغ کالاهای سفارش‌هایی که پرداخت شده‌اند و لغو یا مرجوع نشده‌اند، بدون هزینهٔ ارسال. هر سفارش در روزی حساب می‌شود که ثبت شده است.",
       };
     case "netProfit": {
-      const per100k = t.margin !== null && t.sales > 0 ? Math.round(t.margin * 100) : null;
+      const per100k = t.margin !== null && t.sales > 0 ? Math.round(t.margin * 100) : 0;
+      // A loss is said as a loss, never as a negative amount "left for you".
+      const perSale =
+        per100k > 0
+          ? ` در این بازه از هر ۱۰۰ هزار تومان فروش، حدود ${formatNumber(per100k)} هزار تومان برای شما ماند.`
+          : per100k < 0
+            ? ` در این بازه به‌ازای هر ۱۰۰ هزار تومان فروش، حدود ${formatNumber(-per100k)} هزار تومان زیان کردید.`
+            : "";
       return {
         title: "سود خالص یعنی چه؟",
         body:
           "پولی که بعد از کم کردن قیمت خرید کالاها و همهٔ هزینه‌ها (تبلیغ، بسته‌بندی، پیک، اجاره…) برای شما می‌ماند." +
-          (per100k !== null ? ` در این بازه از هر ۱۰۰ هزار تومان فروش، حدود ${formatNumber(per100k)} هزار تومان برای شما ماند.` : "") +
+          perSale +
           coverageNote(t),
       };
     }

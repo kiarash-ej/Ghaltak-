@@ -52,7 +52,8 @@ export default async function DashboardHome() {
   // Built on the server per role: an operator's copy carries no money at all,
   // because the brief is a client component and its props reach the browser.
   const view = buildBriefView(brief, attention, seller.role, yesterday);
-  const ended = isOwner && brief.hasSales ? recapFor(now) : null;
+  // The recap takes the brief's place, so it isn't loaded while the checklist holds that place.
+  const ended = isOwner && !showChecklist && brief.hasSales ? recapFor(now) : null;
   const recap = ended && cookieStore.get(RECAP_COOKIE)?.value !== ended.period.key ? await getRecap(seller.id, ended) : null;
 
   return (

@@ -2,7 +2,7 @@ import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { APP_TIME_ZONE } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
-import { tehranDateKey } from "@/server/reports/periods";
+import { tehranDateKey, tehranDayKeys } from "@/server/reports/periods";
 import { SALE_STATUSES } from "@/server/reports/queries";
 
 // The finance numbers (spec §6.2). Aggregated in SQL, scoped by the seller,
@@ -16,7 +16,6 @@ import { SALE_STATUSES } from "@/server/reports/queries";
 // - Expenses: non-voided Expense rows dated in the period.
 // - Net profit = sales − cost of goods − expenses; margin = net ÷ sales.
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const saleStatusSql = Prisma.join(SALE_STATUSES.map((s) => Prisma.sql`${s}::"OrderStatus"`));
 const orderDay = Prisma.sql`to_char((o."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${APP_TIME_ZONE})::date, 'YYYY-MM-DD')`;
 
@@ -127,14 +126,11 @@ export async function getFinanceSeries(sellerId: string, from: Date, to: Date): 
   const c = map(cogs);
   const e = map(expenses);
 
-  const points: FinancePoint[] = [];
-  // Noon of each Tehran day, so the key is right whatever the offset.
-  for (let t = from.getTime() + DAY_MS / 2; t < to.getTime(); t += DAY_MS) {
-    const key = tehranDateKey(new Date(t));
+  // Today counts from its first minute: a range ending now at 09:00 includes it.
+  return tehranDayKeys(from, to).map((key) => {
     const daySales = s.get(key) ?? 0;
-    points.push({ key, sales: daySales, net: daySales - (c.get(key) ?? 0) - (e.get(key) ?? 0) });
-  }
-  return points;
+    return { key, sales: daySales, net: daySales - (c.get(key) ?? 0) - (e.get(key) ?? 0) };
+  });
 }
 
 /** Orders still waiting for payment, with what they owe (items + shipping). Not tied to a period. */

@@ -46,6 +46,13 @@ describe("explain", () => {
     expect(explain("averageOrder", totals).body).toContain("۷۵۹٬۳۷۵ تومان");
   });
 
+  it("says a loss as a loss, not as a negative amount left over", () => {
+    const loss = explain("netProfit", { ...totals, netProfit: -12_150_000, margin: -0.25 }).body;
+    expect(loss).toContain("به‌ازای هر ۱۰۰ هزار تومان فروش، حدود ۲۵ هزار تومان زیان کردید.");
+    expect(loss).not.toContain("برای شما ماند");
+    expect(explain("netProfit", { ...totals, netProfit: 0, margin: 0 }).body).not.toContain("از هر ۱۰۰ هزار تومان");
+  });
+
   it("says when profit rests on part of the sales only", () => {
     const partial = explain("netProfit", { ...totals, coverage: 0.78 }).body;
     expect(partial).toContain("۷۸٪");

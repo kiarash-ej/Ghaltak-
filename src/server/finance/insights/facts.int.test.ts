@@ -157,4 +157,21 @@ describe.skipIf(!hasTestDatabase)("advice facts (database)", () => {
     expect(facts.customers).toEqual({ buyers: 3, returningBuyers: 2, returningSales: 2500 + 250 });
     expect(facts.weekdays).toEqual({ sales: [250, 1500, 0, 0, 0, 2500 + 1000, 1000], orders: 5, daysSinceFirstSale: 65 });
   });
+
+  it("for a period report, only the period's facts: nothing about today", async () => {
+    const totals = { current: { sales: 1 } as FinanceTotals, previous: { sales: 2 } as FinanceTotals };
+    const [all, period] = await Promise.all([
+      loadInsightFacts(sellerId, RANGE, totals, NOW),
+      loadInsightFacts(sellerId, RANGE, totals, NOW, "period"),
+    ]);
+    expect({ products: period.products, ads: period.adsExpenses, customers: period.customers }).toEqual({
+      products: all.products,
+      ads: all.adsExpenses,
+      customers: all.customers,
+    });
+    expect(period.staleUnpaid).toEqual({ orders: 0, amount: 0, withReceipt: 0 });
+    expect(period.stock).toEqual([]);
+    expect(period.links).toEqual([]);
+    expect(period.weekdays).toEqual({ sales: [0, 0, 0, 0, 0, 0, 0], orders: 0, daysSinceFirstSale: null });
+  });
 });

@@ -57,6 +57,19 @@ export function reportPeriods(now: Date): ReportPeriods {
   };
 }
 
+/**
+ * Every Tehran day that [from, to) touches, as date keys, oldest first. A day
+ * counts as soon as it has started, so a range ending "now" at 09:00 includes
+ * today. Each key is taken at the day's noon, safe from any boundary.
+ */
+export function tehranDayKeys(from: Date, to: Date): string[] {
+  const keys: string[] = [];
+  for (let t = tehranMidnight(from).getTime(); t < to.getTime(); t += DAY_MS) {
+    keys.push(tehranDateKey(new Date(t + DAY_MS / 2)));
+  }
+  return keys;
+}
+
 export type DayBucket = { key: string; start: Date };
 
 /** The last `n` Tehran days, oldest first, ending with today. */

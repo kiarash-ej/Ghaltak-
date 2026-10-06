@@ -41,7 +41,8 @@ export default async function ProductProfitPage(props: PageProps<"/finance/produ
   const params = await props.searchParams;
   const { range, error } = resolveFinanceRange(params, new Date());
   const asked = one(params.sort);
-  const sort: SortKey = asked && asked in SORTS ? (asked as SortKey) : "sales";
+  // Own keys only: `in` would also accept "constructor" or "toString" from the URL.
+  const sort: SortKey = asked && Object.hasOwn(SORTS, asked) ? (asked as SortKey) : "sales";
   const missingOnly = one(params.missing) === "1";
 
   const all = await getProductProfit(owner.id, range.from, range.to);
