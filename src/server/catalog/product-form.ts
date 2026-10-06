@@ -52,6 +52,15 @@ export const productSchema = z
       .int()
       .min(1, { error: "قیمت باید بیشتر از صفر باشد." })
       .max(MAX_PRICE, { error: "قیمت بیش از حد مجاز است." }),
+    /** What one unit costs the seller (finance). Null: not entered. Owner only: the action ignores it for operators. */
+    costPrice: z
+      .number({ error: "قیمت خرید را به تومان و با عدد وارد کنید." })
+      .int({ error: "قیمت خرید را به تومان و با عدد وارد کنید." })
+      .min(0, { error: "قیمت خرید نمی‌تواند منفی باشد." })
+      .max(MAX_PRICE, { error: "قیمت خرید بیش از حد مجاز است." })
+      .nullable(),
+    /** Also fill the cost on this product's past sales that had none. */
+    applyCostToPast: z.boolean(),
     category: optionalText(60, "دسته‌بندی"),
     isActive: z.boolean(),
     lowStockThreshold: z
@@ -118,6 +127,9 @@ export function parseProductForm(formData: FormData): ParsedProductForm {
   const result = productSchema.safeParse({
     name: text(formData.get("name")),
     price: parseWholeNumber(formData.get("price")),
+    // Empty is "no cost"; anything else must be a whole number (NaN fails the schema).
+    costPrice: text(formData.get("costPrice")).trim() === "" ? null : (parseWholeNumber(formData.get("costPrice")) ?? Number.NaN),
+    applyCostToPast: formData.get("applyCostToPast") === "on",
     category: text(formData.get("category")),
     isActive: formData.get("isActive") === "on",
     lowStockThreshold:

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/catalog/product-form";
-import { requireSeller } from "@/server/auth";
+import { requireMember } from "@/server/auth";
 import { updateProductAction } from "@/server/catalog/actions";
 import { getProduct, listCategories } from "@/server/catalog/queries";
+import { countLinesWithoutCost } from "@/server/finance/costs";
 import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "ویرایش محصول | غلتک" };
@@ -11,13 +12,17 @@ export const metadata: Metadata = { title: "ویرایش محصول | غلتک" 
 export default async function EditProductPage(
   props: PageProps<"/products/[id]/edit">,
 ) {
-  const seller = await requireSeller();
+  const seller = await requireMember();
+  // The cost price is the owner's (finance): for an operator it is not even
+  // sent to the form, which is a client component.
+  const isOwner = seller.role === "OWNER";
   const { id } = await props.params;
 
   // Scoped by sellerId: another seller's product id behaves like a missing one.
-  const [product, categories] = await Promise.all([
+  const [product, categories, linesWithoutCost] = await Promise.all([
     getProduct(seller.id, id),
     listCategories(seller.id),
+    isOwner ? countLinesWithoutCost(seller.id, id) : 0,
   ]);
   if (!product) notFound();
 
@@ -29,6 +34,7 @@ export default async function EditProductPage(
         categories={categories}
         submitLabel="ذخیرهٔ تغییرات"
         inventoryHref={`/inventory?product=${product.id}`}
+        cost={isOwner ? { initial: product.costPrice, pastSalesWithoutCost: linesWithoutCost } : undefined}
         initial={{
           name: product.name,
           price: product.price,

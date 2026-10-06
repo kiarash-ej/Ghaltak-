@@ -75,7 +75,8 @@ export async function createOrderInTx(
 
   // Variants: only this seller's, only active products (and only the link's
   // products for a purchase link). Prices are read here, never from the
-  // form, and snapshotted onto each OrderItem.
+  // form, and snapshotted onto each OrderItem, together with the product's
+  // cost price (finance): a later cost change never rewrites past profit.
   const variants = await tx.productVariant.findMany({
     where: {
       id: { in: input.items.map((i) => i.variantId) },
@@ -92,7 +93,7 @@ export async function createOrderInTx(
       stock: true,
       color: true,
       size: true,
-      product: { select: { id: true, name: true, price: true } },
+      product: { select: { id: true, name: true, price: true, costPrice: true } },
     },
   });
   const byId = new Map(variants.map((v) => [v.id, v]));
@@ -108,6 +109,7 @@ export async function createOrderInTx(
       productVariantId: variant.id,
       quantity: item.quantity,
       unitPrice: variant.product.price,
+      unitCost: variant.product.costPrice,
     };
   });
 

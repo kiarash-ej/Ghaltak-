@@ -156,3 +156,31 @@ describe("getStockStatus", () => {
     expect(getStockStatus([4, 20], 3)).toBe("OK");
   });
 });
+
+describe("parseProductForm: cost price (finance, owner only)", () => {
+  it("is optional: empty means no cost, never zero", () => {
+    const result = parseProductForm(form(valid));
+    expect(result.success && result.data.costPrice).toBe(null);
+  });
+
+  it("reads Persian digits and separators like the price", () => {
+    const result = parseProductForm(form({ ...valid, costPrice: "۴۵۰٬۰۰۰" }));
+    expect(result.success && result.data.costPrice).toBe(450000);
+  });
+
+  it("allows a cost of zero (a free sample) but not garbage or a negative", () => {
+    expect(parseProductForm(form({ ...valid, costPrice: "0" }))).toMatchObject({ success: true, data: { costPrice: 0 } });
+    for (const costPrice of ["abc", "-5", "12.5"]) {
+      const result = parseProductForm(form({ ...valid, costPrice }));
+      expect(result.success, costPrice).toBe(false);
+      if (!result.success) expect(result.errors.costPrice, costPrice).toBeDefined();
+    }
+  });
+
+  it("reads the «use for past sales» choice", () => {
+    expect(parseProductForm(form({ ...valid, costPrice: "1000", applyCostToPast: "on" }))).toMatchObject({
+      data: { applyCostToPast: true },
+    });
+    expect(parseProductForm(form({ ...valid, costPrice: "1000" }))).toMatchObject({ data: { applyCostToPast: false } });
+  });
+});

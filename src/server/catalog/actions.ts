@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireSeller } from "@/server/auth";
+import { requireMember } from "@/server/auth";
 import { hasProductSlotInTx } from "@/server/billing/usage";
+import { fillMissingCosts } from "@/server/finance/costs";
 import { deleteProductImage, saveProductImage } from "./image-storage";
 import { variantLabel } from "./labels";
 import {
@@ -66,7 +67,9 @@ export async function createProductAction(
   _prev: ProductFormState,
   formData: FormData,
 ): Promise<ProductFormState> {
-  const seller = await requireSeller();
+  const seller = await requireMember();
+  // Cost prices are money figures: the owner's only (A10, finance spec §6.4).
+  const isOwner = seller.role === "OWNER";
 
   const parsed = parseProductForm(formData);
   if (!parsed.success) return { errors: parsed.errors };
@@ -93,6 +96,7 @@ export async function createProductAction(
           sellerId: seller.id,
           name: data.name,
           price: data.price,
+          costPrice: isOwner ? data.costPrice : null,
           category: data.category,
           isActive: data.isActive,
           lowStockThreshold: data.lowStockThreshold,
@@ -137,7 +141,9 @@ export async function updateProductAction(
   _prev: ProductFormState,
   formData: FormData,
 ): Promise<ProductFormState> {
-  const seller = await requireSeller();
+  const seller = await requireMember();
+  // Cost prices are money figures: the owner's only (A10, finance spec §6.4).
+  const isOwner = seller.role === "OWNER";
 
   const existing = await prisma.product.findFirst({
     where: { id: productId, sellerId: seller.id },
@@ -206,6 +212,8 @@ export async function updateProductAction(
         data: {
           name: data.name,
           price: data.price,
+          // An operator's save never touches the cost (they don't see it).
+          ...(isOwner ? { costPrice: data.costPrice } : {}),
           category: data.category,
           isActive: data.isActive,
           lowStockThreshold: data.lowStockThreshold,
@@ -213,6 +221,12 @@ export async function updateProductAction(
         },
       });
       if (updated.count !== 1) throw new Error("product not found");
+
+      // «Also use it for past sales»: only lines that had no cost, of this
+      // product, in this seller's orders. Lines with a cost are never changed.
+      if (isOwner && data.applyCostToPast && data.costPrice !== null) {
+        await fillMissingCosts(tx, seller.id, productId, data.costPrice);
+      }
 
       // Delete first so a new variant may reuse a removed variant's SKU.
       if (removed.length > 0) {

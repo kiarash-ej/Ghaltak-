@@ -45,6 +45,11 @@ type Props = {
   initial?: ProductFormInitial;
   /** Where existing variants' stock is changed (edit form only). */
   inventoryHref?: string;
+  /**
+   * The cost price field (finance). Passed for the owner only: for an operator
+   * the page leaves it out, so the cost never reaches their browser.
+   */
+  cost?: { initial: number | null; pastSalesWithoutCost: number };
 };
 
 const emptyRow = (key: number): VariantRow => ({
@@ -66,12 +71,13 @@ function FieldError({ messages }: { messages?: string[] }) {
   );
 }
 
-export function ProductForm({ action, categories, submitLabel, initial, inventoryHref }: Props) {
+export function ProductForm({ action, categories, submitLabel, initial, inventoryHref, cost }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const errors = state?.errors;
 
   const [name, setName] = useState(initial?.name ?? "");
   const [price, setPrice] = useState(initial ? String(initial.price) : "");
+  const [costPrice, setCostPrice] = useState(cost?.initial != null ? String(cost.initial) : "");
   const [category, setCategory] = useState(initial?.category ?? "");
   const [isActive, setIsActive] = useState(initial?.isActive ?? true);
   const [threshold, setThreshold] = useState(String(initial?.lowStockThreshold ?? 3));
@@ -125,6 +131,8 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
 
   const shownImage = previewUrl ?? (removeImage ? null : (initial?.imageUrl ?? null));
   const parsedPrice = parseWholeNumber(price);
+  const parsedCost = costPrice.trim() === "" ? null : parseWholeNumber(costPrice);
+  const profitPerSale = parsedPrice !== null && parsedCost !== null ? parsedPrice - parsedCost : null;
 
   return (
     <form action={submit} className="flex max-w-3xl flex-col gap-6">
@@ -188,6 +196,43 @@ export function ProductForm({ action, categories, submitLabel, initial, inventor
               <FieldError messages={errors?.category} />
             </div>
           </div>
+
+          {cost && (
+            <div className="flex flex-col gap-2 rounded-xl border border-line bg-raised-2/40 p-3">
+              <Label htmlFor="costPrice">قیمت خرید (تومان، اختیاری)</Label>
+              <Input
+                id="costPrice"
+                name="costPrice"
+                inputMode="numeric"
+                dir="ltr"
+                value={costPrice}
+                onChange={(e) => setCostPrice(e.target.value)}
+                aria-describedby="costPrice-hint"
+              />
+              <p id="costPrice-hint" className="text-xs leading-6 text-muted">
+                هر عدد از این محصول برای خودتان چقدر تمام می‌شود. فقط شما (مالک) آن را می‌بینید و با آن سود هر فروش حساب
+                می‌شود.
+                {profitPerSale !== null && parsedPrice !== null && parsedPrice > 0 && (
+                  <>
+                    {" "}
+                    <span className={cn("font-bold", profitPerSale >= 0 ? "text-success" : "text-danger")}>
+                      سود هر فروش: {formatToman(profitPerSale)} ({formatNumber(Math.round((profitPerSale / parsedPrice) * 100))}٪)
+                    </span>
+                  </>
+                )}
+              </p>
+              <FieldError messages={errors?.costPrice} />
+              {cost.pastSalesWithoutCost > 0 && parsedCost !== null && (
+                <label className="flex items-start gap-2 text-sm">
+                  <input type="checkbox" name="applyCostToPast" className="mt-1 size-4 accent-brand-2" />
+                  <span>
+                    برای {formatNumber(cost.pastSalesWithoutCost)} قلم فروش قبلی این محصول که قیمت خرید نداشتند هم استفاده
+                    شود. فروش‌هایی که قیمت خرید دارند تغییر نمی‌کنند.
+                  </span>
+                </label>
+              )}
+            </div>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">

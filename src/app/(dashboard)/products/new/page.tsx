@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ProductForm } from "@/components/catalog/product-form";
-import { requireSeller } from "@/server/auth";
+import { requireMember } from "@/server/auth";
 import { createProductAction } from "@/server/catalog/actions";
 import { listCategories } from "@/server/catalog/queries";
 import { PageHeader } from "@/components/ui/page-header";
@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 export const metadata: Metadata = { title: "محصول جدید | غلتک" };
 
 export default async function NewProductPage() {
-  const seller = await requireSeller();
+  const seller = await requireMember();
   const categories = await listCategories(seller.id);
 
   return (
@@ -18,6 +18,8 @@ export default async function NewProductPage() {
         action={createProductAction}
         categories={categories}
         submitLabel="ثبت محصول"
+        // The cost price field is the owner's only (finance).
+        cost={seller.role === "OWNER" ? { initial: null, pastSalesWithoutCost: 0 } : undefined}
       />
     </div>
   );
