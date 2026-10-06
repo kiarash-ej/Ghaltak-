@@ -26,11 +26,11 @@ export default async function DataExportPage(props: PageProps<"/settings/data">)
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm leading-7 text-neutral-600">
+      <p className="text-sm leading-7 text-muted">
         از اطلاعات فروشگاهتان فایل CSV بگیرید. این فایل‌ها در اکسل با حروف فارسی درست باز می‌شوند. مبلغ‌ها به تومان و
         تاریخ‌ها شمسی و به وقت ایران‌اند. شمارهٔ کارت، شبا و اطلاعات درگاه هیچ‌وقت در این فایل‌ها نمی‌آید. توضیح بیشتر
         در صفحهٔ{" "}
-        <Link href="/privacy" className="font-medium text-neutral-900 underline underline-offset-4">
+        <Link href="/privacy" className="font-medium text-ink underline underline-offset-4">
           حریم خصوصی
         </Link>
         .
@@ -74,7 +74,7 @@ export default async function DataExportPage(props: PageProps<"/settings/data">)
         <CardContent>
           <form method="GET" action="/settings/data/export/orders" className="flex flex-col gap-4">
             {isFilterError(error) && (
-              <p role="alert" className="text-sm text-red-600">
+              <p role="alert" className="text-sm text-danger">
                 {ERRORS[error]}
               </p>
             )}
@@ -93,7 +93,7 @@ export default async function DataExportPage(props: PageProps<"/settings/data">)
                   id="status"
                   name="status"
                   defaultValue=""
-                  className="h-10 rounded-lg border border-neutral-300 bg-transparent px-3 text-sm"
+                  className="h-10 rounded-lg border border-line-strong bg-transparent px-3 text-sm"
                 >
                   <option value="">همهٔ وضعیت‌ها</option>
                   {ORDER_STATUSES.map((s) => (

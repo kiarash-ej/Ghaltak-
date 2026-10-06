@@ -16,12 +16,12 @@ import {
 } from "@/server/orders/shipping";
 import { saveShippingAction, type ShippingFormState } from "@/server/orders/shipping-actions";
 
-const selectClass = "h-10 w-full rounded-lg border border-neutral-300 bg-transparent px-3 text-sm";
+const selectClass = "h-10 w-full rounded-lg border border-line-strong bg-transparent px-3 text-sm";
 
 function FieldError({ messages }: { messages?: string[] }) {
   if (!messages?.length) return null;
   return (
-    <p role="alert" className="text-sm text-red-600">
+    <p role="alert" className="text-sm text-danger">
       {messages[0]}
     </p>
   );
@@ -62,9 +62,9 @@ export function ShippingPanel({
         {SHIPPING_STATUS_LABELS[shippingStatus]}
       </Badge>
       {method && <span>{shippingMethodLabel(method)}</span>}
-      {cost !== null && <span className="text-neutral-500">· هزینه {formatToman(cost)}</span>}
+      {cost !== null && <span className="text-muted">· هزینه {formatToman(cost)}</span>}
       {trackingCode && (
-        <span className="text-neutral-500">
+        <span className="text-muted">
           · کد رهگیری <span dir="ltr" className="font-mono">{trackingCode}</span>
         </span>
       )}
@@ -135,7 +135,7 @@ export function ShippingPanel({
             <option value="IN_TRANSIT">{SHIPPING_STATUS_LABELS.IN_TRANSIT}</option>
             <option value="FAILED">{SHIPPING_STATUS_LABELS.FAILED}</option>
           </select>
-          <p className="text-xs text-neutral-500">وقتی مرسوله به دست مشتری رسید، وضعیت سفارش را «تحویل‌شده» کنید.</p>
+          <p className="text-xs text-muted">وقتی مرسوله به دست مشتری رسید، وضعیت سفارش را «تحویل‌شده» کنید.</p>
         </div>
       ) : (
         <input type="hidden" name="shippingStatus" value="" />
@@ -156,10 +156,10 @@ export function ShippingPanel({
         >
           ذخیرهٔ اطلاعات ارسال
         </Button>
-        {state?.ok && !pending && <span className="text-sm text-green-700">ذخیره شد.</span>}
+        {state?.ok && !pending && <span className="text-sm text-success">ذخیره شد.</span>}
       </div>
       {state?.message && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger">
           {state.message}
         </p>
       )}

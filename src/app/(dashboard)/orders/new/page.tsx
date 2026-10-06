@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { OrderForm } from "@/components/orders/order-form";
 import { requireSeller } from "@/server/auth";
 import { getOrderFormOptions } from "@/server/orders/queries";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "سفارش جدید | غلتک" };
 
@@ -12,12 +12,11 @@ export default async function NewOrderPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link href="/orders" className="text-sm text-neutral-500 hover:underline">
-          ← سفارش‌ها
-        </Link>
-        <h1 className="text-2xl font-bold">سفارش جدید</h1>
-      </div>
+      <PageHeader
+        back={{ href: "/orders", label: "سفارش‌ها" }}
+        title="سفارش جدید"
+        description="سفارشی که در دایرکت، تلفن یا حضوری گرفته‌اید."
+      />
       <OrderForm customers={customers} variants={variants} />
     </div>
   );

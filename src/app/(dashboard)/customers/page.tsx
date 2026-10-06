@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { requireSeller } from "@/server/auth";
 import { countByTag, listCustomers } from "@/server/customers/queries";
 import { CUSTOMER_TAGS, TAG_LABELS, isCustomerTag } from "@/server/customers/stats";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "مشتریان | غلتک" };
 
@@ -45,12 +46,10 @@ export default async function CustomersPage(props: PageProps<"/customers">) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">مشتریان</h1>
-        <p className="text-sm text-neutral-600">
-          با ثبت هر سفارش (دستی یا با لینک خرید)، مشتری با شمارهٔ موبایلش به این فهرست اضافه می‌شود.
-        </p>
-      </div>
+      <PageHeader
+        title="مشتریان"
+        description="با ثبت هر سفارش (دستی یا با لینک خرید)، مشتری با شمارهٔ موبایلش به این فهرست اضافه می‌شود."
+      />
 
       <nav className="flex flex-wrap gap-2" aria-label="فیلتر برچسب">
         {tabs.map((t) => {
@@ -62,7 +61,7 @@ export default async function CustomersPage(props: PageProps<"/customers">) {
               aria-current={active ? "page" : undefined}
               className={cn(
                 "rounded-full border px-3 py-1.5 text-sm",
-                active ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 hover:bg-neutral-100",
+                active ? "border-transparent bg-action" : "border-line-strong hover:bg-raised-2",
               )}
             >
               {t.label} ({formatNumber(t.count)})
@@ -91,41 +90,53 @@ export default async function CustomersPage(props: PageProps<"/customers">) {
       </form>
 
       {items.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-neutral-300 p-10 text-center text-neutral-600">
+        <p className="rounded-xl border border-dashed border-line-strong p-10 text-center text-muted">
           {counts.total === 0
             ? "هنوز مشتری‌ای ندارید. با ثبت اولین سفارش، مشتری‌هایتان اینجا اضافه می‌شوند."
             : "مشتری‌ای با این مشخصات پیدا نشد."}
         </p>
       ) : (
         <>
-          <p className="text-sm text-neutral-500">{formatNumber(total)} مشتری</p>
-          <ul className="flex flex-col gap-2">
-            {items.map((c) => (
-              <li key={c.id}>
+          <p className="text-sm text-muted">{formatNumber(total)} مشتری</p>
+          <ul className="flex flex-col gap-2.5">
+            {items.map((c, i) => (
+              <li key={c.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}>
                 <Link
                   href={`/customers/${c.id}`}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-neutral-200 p-3 hover:bg-neutral-50"
+                  className="flex items-center gap-3 rounded-2xl border border-line bg-raised p-3.5 transition-colors hover:border-line-strong hover:bg-raised-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2 font-medium">
-                      {c.name ?? "بدون نام"}
-                      <TagBadge tag={c.tag} />
+                  <span
+                    aria-hidden
+                    className="grid size-11 shrink-0 place-items-center rounded-xl bg-raised-2 text-lg font-black text-brand-2"
+                  >
+                    {(c.name ?? "؟").trim().charAt(0)}
+                  </span>
+                  <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 font-semibold">
+                        <span className="truncate">{c.name ?? "بدون نام"}</span>
+                        <TagBadge tag={c.tag} />
+                      </div>
+                      <div className="text-right text-sm text-muted" dir="ltr">
+                        {c.phone}
+                      </div>
                     </div>
-                    <div className="text-sm text-neutral-600" dir="ltr" style={{ textAlign: "right" }}>
-                      {c.phone}
+                    <div className="text-sm text-muted sm:text-end">
+                      {c.stats.purchaseCount > 0 ? (
+                        <>
+                          <span className="font-semibold text-ink-soft">
+                            {formatNumber(c.stats.purchaseCount)} خرید · {formatToman(c.stats.totalSpent)}
+                          </span>
+                          {c.stats.lastPurchaseAt && (
+                            <span className="block text-xs">آخرین خرید {formatDate(c.stats.lastPurchaseAt)}</span>
+                          )}
+                        </>
+                      ) : c.stats.orderCount > 0 ? (
+                        <>{formatNumber(c.stats.orderCount)} سفارش، هنوز بدون پرداخت</>
+                      ) : (
+                        "بدون سفارش"
+                      )}
                     </div>
-                  </div>
-                  <div className="text-sm text-neutral-600">
-                    {c.stats.purchaseCount > 0 ? (
-                      <>
-                        {formatNumber(c.stats.purchaseCount)} خرید · {formatToman(c.stats.totalSpent)}
-                        {c.stats.lastPurchaseAt && <> · آخرین خرید {formatDate(c.stats.lastPurchaseAt)}</>}
-                      </>
-                    ) : c.stats.orderCount > 0 ? (
-                      <>{formatNumber(c.stats.orderCount)} سفارش، هنوز بدون پرداخت</>
-                    ) : (
-                      "بدون سفارش"
-                    )}
                   </div>
                 </Link>
               </li>
@@ -141,7 +152,7 @@ export default async function CustomersPage(props: PageProps<"/customers">) {
               ) : (
                 <span />
               )}
-              <span className="text-sm text-neutral-600">
+              <span className="text-sm text-muted">
                 صفحهٔ {formatNumber(page)} از {formatNumber(pageCount)}
               </span>
               {page < pageCount ? (

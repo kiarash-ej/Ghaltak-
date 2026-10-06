@@ -7,10 +7,12 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        neutral: "bg-neutral-100 text-neutral-700",
-        success: "bg-green-100 text-green-800",
-        warning: "bg-amber-100 text-amber-800",
-        danger: "bg-red-100 text-red-800",
+        neutral: "bg-info-bg text-info",
+        success: "bg-success-bg text-success",
+        warning: "bg-warning-bg text-warning",
+        danger: "bg-danger-bg text-danger",
+        /** A number in the navigation: how many things are waiting. */
+        count: "min-w-5 justify-center bg-count px-1.5 font-bold text-white tabular-nums",
       },
     },
     defaultVariants: { variant: "neutral" },

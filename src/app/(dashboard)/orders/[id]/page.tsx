@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { requireSeller } from "@/server/auth";
 import { amountDue, paymentState } from "@/server/orders/payment";
 import { getOrder, orderCode } from "@/server/orders/queries";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "جزئیات سفارش | غلتک" };
 
@@ -25,27 +26,26 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <Link href="/orders" className="text-sm text-neutral-500 hover:underline">
-          ← سفارش‌ها
-        </Link>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold">
+      <PageHeader
+        back={{ href: "/orders", label: "سفارش‌ها" }}
+        title={
+          <>
             سفارش <span dir="ltr" className="font-mono">{orderCode(order.id)}</span>
-          </h1>
-          <OrderStatusBadge status={order.status} />
-          <Link
-            href={`/orders/${order.id}/print`}
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "ms-auto")}
-          >
+          </>
+        }
+        badge={<OrderStatusBadge status={order.status} />}
+        actions={
+          <Link href={`/orders/${order.id}/print`} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
             چاپ برگهٔ ارسال
           </Link>
-        </div>
-        <p className="text-sm text-neutral-500">
-          ثبت‌شده در {formatDateTime(order.createdAt)}
-          {order.source === "PURCHASE_LINK" ? " · از لینک خرید" : " · ثبت دستی"}
-        </p>
-      </div>
+        }
+        description={
+          <>
+            ثبت‌شده در {formatDateTime(order.createdAt)}
+            {order.source === "PURCHASE_LINK" ? " · از لینک خرید" : " · ثبت دستی"}
+          </>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -111,9 +111,9 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
         <CardHeader>
           <CardTitle>کالاها</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
+        <CardContent className="relative overflow-x-auto">
           <table className="w-full min-w-[32rem] text-sm">
-            <thead className="text-neutral-600">
+            <thead className="text-muted">
               <tr>
                 <th className="py-2 text-start font-medium">کالا</th>
                 <th className="py-2 text-start font-medium">تعداد</th>
@@ -127,10 +127,10 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
                   .filter(Boolean)
                   .join(" / ");
                 return (
-                  <tr key={item.id} className="border-t border-neutral-200">
+                  <tr key={item.id} className="border-t border-line">
                     <td className="py-2">
                       <div className="font-medium">{item.product.name}</div>
-                      {detail && <div className="text-xs text-neutral-500">{detail}</div>}
+                      {detail && <div className="text-xs text-muted">{detail}</div>}
                     </td>
                     <td className="py-2">{formatNumber(item.quantity)}</td>
                     <td className="py-2 whitespace-nowrap">{formatToman(item.unitPrice)}</td>
@@ -142,7 +142,7 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
               })}
             </tbody>
             <tfoot>
-              <tr className="border-t border-neutral-300 font-semibold">
+              <tr className="border-t border-line-strong font-semibold">
                 <td className="py-2" colSpan={3}>
                   جمع کالاها
                 </td>
@@ -156,7 +156,7 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
                     </td>
                     <td className="py-2 whitespace-nowrap">{formatToman(order.shippingCost)}</td>
                   </tr>
-                  <tr className="border-t border-neutral-300 font-semibold">
+                  <tr className="border-t border-line-strong font-semibold">
                     <td className="py-2" colSpan={3}>
                       مبلغ قابل پرداخت
                     </td>
@@ -175,13 +175,13 @@ export default async function OrderPage(props: PageProps<"/orders/[id]">) {
         </CardHeader>
         <CardContent>
           <dl className="grid gap-3 text-sm sm:grid-cols-[8rem_1fr]">
-            <dt className="text-neutral-500">نام</dt>
+            <dt className="text-muted">نام</dt>
             <dd>{order.customer.name ?? "بی‌نام"}</dd>
-            <dt className="text-neutral-500">موبایل</dt>
-            <dd dir="ltr" className="text-start">
+            <dt className="text-muted">موبایل</dt>
+            <dd dir="ltr" className="text-right">
               {order.customer.phone}
             </dd>
-            <dt className="text-neutral-500">آدرس ارسال</dt>
+            <dt className="text-muted">آدرس ارسال</dt>
             <dd>{order.shippingAddress ?? "ثبت نشده"}</dd>
           </dl>
         </CardContent>

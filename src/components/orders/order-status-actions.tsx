@@ -23,7 +23,7 @@ export function OrderStatusActions({
     undefined,
   );
   if (nextStatuses(status).length === 0) {
-    return <p className="text-sm text-neutral-500">این سفارش بسته شده است.</p>;
+    return <p className="text-sm text-muted">این سفارش بسته شده است.</p>;
   }
   // Moves that need details (payment) have their own form on the order page.
   const options = nextStatuses(status).filter((to) => !detailsRequiredFor(to));
@@ -49,7 +49,7 @@ export function OrderStatusActions({
             name="to"
             value={to}
             size="sm"
-            variant={restoresStock(to) ? "destructive" : "default"}
+            variant={restoresStock(to) ? "danger-outline" : "default"}
             disabled={pending}
           >
             {STATUS_LABELS[to]}
@@ -57,7 +57,7 @@ export function OrderStatusActions({
         ))}
       </div>
       {state?.message && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger">
           {state.message}
         </p>
       )}

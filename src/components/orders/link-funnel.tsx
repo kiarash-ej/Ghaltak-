@@ -24,10 +24,10 @@ export function LinkFunnelStats({ counts }: { counts: FunnelCounts }) {
     ["تبدیل", formatConversion(counts.conversion)],
   ] as const;
   return (
-    <dl className="grid grid-cols-4 gap-2 rounded-lg bg-neutral-50 p-2 text-center" aria-label="آمار این ماه">
+    <dl className="grid grid-cols-4 gap-2 rounded-lg bg-raised-2 p-2 text-center" aria-label="آمار این ماه">
       {stats.map(([label, value]) => (
         <div key={label} className="flex flex-col-reverse">
-          <dt className="text-xs text-neutral-500">{label}</dt>
+          <dt className="text-xs text-muted">{label}</dt>
           <dd className="font-semibold">{value}</dd>
         </div>
       ))}
@@ -38,9 +38,9 @@ export function LinkFunnelStats({ counts }: { counts: FunnelCounts }) {
 /** Links with activity this month, plus a total row, for /reports. */
 export function LinkFunnelTable({ links, total }: { links: LinkFunnelRow[]; total: FunnelCounts }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto">
       <table className="w-full text-sm [&_td+td]:ps-3 [&_th+th]:ps-3">
-        <thead className="text-neutral-500">
+        <thead className="text-muted">
           <tr>
             <th className="py-1 text-start font-medium">لینک</th>
             <th className="py-1 text-start font-medium">بازدید</th>
@@ -51,10 +51,10 @@ export function LinkFunnelTable({ links, total }: { links: LinkFunnelRow[]; tota
         </thead>
         <tbody>
           {links.map((l) => (
-            <tr key={l.linkId} className="border-t border-neutral-100">
+            <tr key={l.linkId} className="border-t border-line">
               <td className="py-2">
                 {l.title ?? "بدون عنوان"}
-                {!l.isActive && <span className="text-xs text-neutral-500"> (غیرفعال)</span>}
+                {!l.isActive && <span className="text-xs text-muted"> (غیرفعال)</span>}
               </td>
               <td className="py-2">{formatNumber(l.views)}</td>
               <td className="py-2">{formatNumber(l.orders)}</td>
@@ -65,7 +65,7 @@ export function LinkFunnelTable({ links, total }: { links: LinkFunnelRow[]; tota
         </tbody>
         {links.length > 1 && (
           <tfoot>
-            <tr className="border-t border-neutral-300 font-semibold">
+            <tr className="border-t border-line-strong font-semibold">
               <td className="py-2">جمع کل</td>
               <td className="py-2">{formatNumber(total.views)}</td>
               <td className="py-2">{formatNumber(total.orders)}</td>

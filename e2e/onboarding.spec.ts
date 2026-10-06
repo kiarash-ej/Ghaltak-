@@ -91,11 +91,13 @@ test("a new seller's start checklist ticks step by step, then hides", async ({ p
     const tile = (label: string) => seller.getByRole("link").filter({ hasText: label });
     await expect(tile("سفارش‌های امروز")).toContainText(faDigits(1));
     // A manual order awaits payment: not a sale yet, no receipt yet.
-    await expect(tile("سفارش‌های امروز")).toContainText(`فروش امروز: ${toman(0)}`);
-    await expect(tile("رسیدهای منتظر بررسی")).toContainText(faDigits(0));
+    await expect(tile("فروش امروز")).toContainText(toman(0));
+    const waiting = seller.getByRole("region", { name: "نیاز به رسیدگی" });
+    await expect(waiting.getByRole("link").filter({ hasText: "رسید کارت‌به‌کارت" })).toHaveCount(0);
     // 3 in stock, 1 ordered: 2 left, at or below the threshold of 3.
-    await expect(tile("نیاز به شارژ")).toContainText(faDigits(1));
-    await expect(tile("نیاز به شارژ")).toHaveAttribute("href", "/inventory?filter=low");
+    const restock = waiting.getByRole("link").filter({ hasText: "کالا رو به اتمام" });
+    await expect(restock).toContainText(faDigits(1));
+    await expect(restock).toHaveAttribute("href", "/inventory?filter=low");
   });
 
   await test.step("the guide opens on a phone without logging in", async () => {

@@ -23,7 +23,7 @@ function StatTile({ label, summary, showMoney }: { label: string; summary: Sales
     return (
       <Card>
         <CardContent className="flex flex-col gap-1 pt-6">
-          <div className="text-sm text-neutral-500">{label}</div>
+          <div className="text-sm text-muted">{label}</div>
           <div className="text-2xl font-semibold">{formatNumber(summary.count)} سفارش</div>
         </CardContent>
       </Card>
@@ -32,9 +32,9 @@ function StatTile({ label, summary, showMoney }: { label: string; summary: Sales
   return (
     <Card>
       <CardContent className="flex flex-col gap-1 pt-6">
-        <div className="text-sm text-neutral-500">{label}</div>
+        <div className="text-sm text-muted">{label}</div>
         <div className="text-2xl font-semibold">{formatToman(summary.total)}</div>
-        <div className="text-sm text-neutral-600">
+        <div className="text-sm text-muted">
           {formatNumber(summary.count)} سفارش
           {summary.count > 0 && <> · میانگین {formatToman(summary.average)}</>}
         </div>
@@ -62,7 +62,7 @@ export default async function ReportsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">گزارش فروش</h1>
-        <p className="text-sm text-neutral-500">امروز {formatDate(new Date())}</p>
+        <p className="text-sm text-muted">امروز {formatDate(new Date())}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -90,10 +90,10 @@ export default async function ReportsPage() {
           </CardHeader>
           <CardContent>
             {report.topProducts.length === 0 ? (
-              <p className="text-sm text-neutral-500">این ماه هنوز فروشی نداشته‌اید.</p>
+              <p className="text-sm text-muted">این ماه هنوز فروشی نداشته‌اید.</p>
             ) : (
               <table className="w-full text-sm">
-                <thead className="text-neutral-500">
+                <thead className="text-muted">
                   <tr>
                     <th className="py-1 text-start font-medium">محصول</th>
                     <th className="py-1 text-start font-medium">تعداد</th>
@@ -102,7 +102,7 @@ export default async function ReportsPage() {
                 </thead>
                 <tbody>
                   {report.topProducts.map((p) => (
-                    <tr key={p.productId} className="border-t border-neutral-100">
+                    <tr key={p.productId} className="border-t border-line">
                       <td className="py-2">{p.name}</td>
                       <td className="py-2">{formatNumber(p.quantity)}</td>
                       {showMoney && <td className="py-2 whitespace-nowrap">{formatToman(p.revenue)}</td>}
@@ -123,13 +123,13 @@ export default async function ReportsPage() {
             <div className="flex gap-8">
               <div>
                 <div className="text-2xl font-semibold">{formatNumber(report.customers.newCustomers)}</div>
-                <div className="text-sm text-neutral-600">مشتری جدید</div>
+                <div className="text-sm text-muted">مشتری جدید</div>
               </div>
               <div>
                 <div className="text-2xl font-semibold">
                   {formatNumber(report.customers.returningCustomers)}
                 </div>
-                <div className="text-sm text-neutral-600">مشتری قدیمی</div>
+                <div className="text-sm text-muted">مشتری قدیمی</div>
               </div>
             </div>
             {buyers > 0 && (
@@ -150,7 +150,7 @@ export default async function ReportsPage() {
             <CardTitle>سفارش‌های در جریان</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="flex flex-col divide-y divide-neutral-100 text-sm">
+            <ul className="flex flex-col divide-y divide-line text-sm">
               {report.openOrders.map((o) => (
                 <li key={o.status}>
                   <Link
@@ -175,25 +175,25 @@ export default async function ReportsPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {report.lowStock.rows.length === 0 ? (
-              <p className="text-sm text-neutral-500">موجودی همهٔ محصولات کافی است.</p>
+              <p className="text-sm text-muted">موجودی همهٔ محصولات کافی است.</p>
             ) : (
-              <ul className="flex flex-col divide-y divide-neutral-100 text-sm">
+              <ul className="flex flex-col divide-y divide-line text-sm">
                 {report.lowStock.rows.map((v) => (
                   <li key={v.variantId} className="flex items-center justify-between gap-3 py-2">
                     <span>
                       {v.productName}
                       {(v.color || v.size) && (
-                        <span className="text-neutral-500"> · {[v.color, v.size].filter(Boolean).join(" / ")}</span>
+                        <span className="text-muted"> · {[v.color, v.size].filter(Boolean).join(" / ")}</span>
                       )}
                     </span>
-                    <span className={v.stock <= 0 ? "font-semibold text-red-700" : "font-semibold"}>
+                    <span className={v.stock <= 0 ? "font-semibold text-danger" : "font-semibold"}>
                       {v.stock <= 0 ? "ناموجود" : formatNumber(v.stock)}
                     </span>
                   </li>
                 ))}
               </ul>
             )}
-            <Link href="/inventory?filter=low" className="text-sm text-neutral-600 hover:underline">
+            <Link href="/inventory?filter=low" className="text-sm text-muted hover:underline">
               دیدن همه در صفحهٔ موجودی ←
             </Link>
           </CardContent>
@@ -207,17 +207,17 @@ export default async function ReportsPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {activeLinks.length === 0 ? (
-            <p className="text-sm text-neutral-500">این ماه هنوز کسی لینک‌های خرید شما را باز نکرده است.</p>
+            <p className="text-sm text-muted">این ماه هنوز کسی لینک‌های خرید شما را باز نکرده است.</p>
           ) : (
             <LinkFunnelTable links={activeLinks} total={funnel.total} />
           )}
-          <Link href="/orders/links" className="text-sm text-neutral-600 hover:underline">
+          <Link href="/orders/links" className="text-sm text-muted hover:underline">
             مدیریت لینک‌های خرید ←
           </Link>
         </CardContent>
       </Card>
 
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-muted">
         منظور از فروش، سفارش‌های پرداخت‌شده است (پرداخت‌شده، در حال آماده‌سازی، ارسال‌شده و تحویل‌شده) و هر سفارش
         در روز ثبتش به وقت ایران حساب می‌شود. سفارش‌های لغوشده، مرجوعی و در انتظار پرداخت حساب نمی‌شوند. مبلغ‌ها
         بدون هزینهٔ ارسال‌اند. {FUNNEL_NOTE}

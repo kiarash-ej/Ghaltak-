@@ -9,7 +9,7 @@ export function SubscriptionBanner({ banner }: { banner: Banner }) {
       role="status"
       className={cn(
         "mb-4 flex flex-col print:hidden gap-2 rounded-lg border p-3 text-sm sm:flex-row sm:items-center sm:justify-between",
-        banner.tone === "danger" ? "border-red-200 bg-red-50 text-red-900" : "border-amber-200 bg-amber-50 text-amber-900",
+        banner.tone === "danger" ? "border-danger/30 bg-danger-bg text-danger" : "border-warning/30 bg-warning-bg text-warning",
       )}
     >
       <p>{banner.text}</p>

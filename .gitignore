@@ -52,3 +52,6 @@ next-env.d.ts
 /.e2e-uploads/
 /.next-e2e/
 /.next-e2e-billing/
+
+# Brainstorming mockups (superpowers visual companion)
+.superpowers/

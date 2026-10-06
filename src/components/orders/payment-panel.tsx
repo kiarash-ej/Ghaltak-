@@ -50,7 +50,7 @@ export function PaymentPanel({
       href={receiptSrc}
       target="_blank"
       rel="noopener"
-      className="inline-block w-fit overflow-hidden rounded-lg border border-neutral-200"
+      className="inline-block w-fit overflow-hidden rounded-lg border border-line"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={receiptSrc} alt="رسید پرداخت" className="max-h-72 w-auto" />
@@ -63,7 +63,7 @@ export function PaymentPanel({
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="success">پرداخت‌شده</Badge>
           {method && <span>{PAYMENT_METHOD_LABELS[method]}</span>}
-          {paidAtText && <span className="text-neutral-500">· {paidAtText}</span>}
+          {paidAtText && <span className="text-muted">· {paidAtText}</span>}
         </div>
         {receiptLink}
       </div>
@@ -71,7 +71,7 @@ export function PaymentPanel({
   }
 
   if (payment === "NOT_APPLICABLE") {
-    return <p className="text-sm text-neutral-500">پرداختی برای این سفارش ثبت نشده است.</p>;
+    return <p className="text-sm text-muted">پرداختی برای این سفارش ثبت نشده است.</p>;
   }
 
   return (
@@ -86,11 +86,11 @@ export function PaymentPanel({
             <Button type="submit" variant="ghost" size="sm" disabled={rejecting}>
               رد رسید (مشتری می‌تواند دوباره رسید بفرستد)
             </Button>
-            {rejectState?.message && <p className="text-sm text-red-600">{rejectState.message}</p>}
+            {rejectState?.message && <p className="text-sm text-danger">{rejectState.message}</p>}
           </form>
         </div>
       ) : (
-        <p className="text-sm text-neutral-600">مشتری هنوز پرداخت نکرده است.</p>
+        <p className="text-sm text-muted">مشتری هنوز پرداخت نکرده است.</p>
       )}
 
       <form
@@ -99,7 +99,7 @@ export function PaymentPanel({
           if (receipt) formData.set("receipt", receipt);
           confirmAction(formData);
         }}
-        className="flex flex-col gap-4 border-t border-neutral-200 pt-4"
+        className="flex flex-col gap-4 border-t border-line pt-4"
       >
         <input type="hidden" name="seenReceipt" value={receiptKey ?? ""} />
         <div className="flex max-w-xs flex-col gap-2">
@@ -109,7 +109,7 @@ export function PaymentPanel({
             name="method"
             value={chosenMethod}
             onChange={(e) => setChosenMethod(e.target.value as PaymentMethod)}
-            className="h-10 rounded-lg border border-neutral-300 bg-transparent px-3 text-sm"
+            className="h-10 rounded-lg border border-line-strong bg-transparent px-3 text-sm"
           >
             {PAYMENT_METHODS.map((m) => (
               <option key={m} value={m}>
@@ -135,7 +135,7 @@ export function PaymentPanel({
                 setShrinking(false);
               }}
             />
-            {shrinking && <p className="text-xs text-neutral-500">در حال کوچک‌کردن تصویر…</p>}
+            {shrinking && <p className="text-xs text-muted">در حال کوچک‌کردن تصویر…</p>}
           </div>
         )}
 
@@ -143,10 +143,10 @@ export function PaymentPanel({
           <Button type="submit" disabled={confirming || shrinking}>
             {confirming ? "در حال ثبت…" : "تأیید پرداخت"}
           </Button>
-          <span className="text-xs text-neutral-500">زمان پرداخت همین لحظه ثبت می‌شود.</span>
+          <span className="text-xs text-muted">زمان پرداخت همین لحظه ثبت می‌شود.</span>
         </div>
         {confirmState?.message && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-danger">
             {confirmState.message}
           </p>
         )}

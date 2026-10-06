@@ -3,6 +3,7 @@ import { SwitchStoreButton } from "@/components/team/switch-store-button";
 import { requireMember } from "@/server/auth";
 import { storesOf } from "@/server/account";
 import { switchStoreAction } from "@/server/team/actions";
+import { PageHeader } from "@/components/ui/page-header";
 
 // Choosing a store (A10): after signing in with more than one membership, and
 // from «تغییر فروشگاه» in the sidebar.
@@ -15,8 +16,7 @@ export default async function SelectStorePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-4">
-      <h1 className="text-2xl font-bold">انتخاب فروشگاه</h1>
-      <p className="text-neutral-600">شما عضو چند فروشگاه هستید. می‌خواهید وارد کدام شوید؟</p>
+      <PageHeader title="انتخاب فروشگاه" description="شما عضو چند فروشگاه هستید. می‌خواهید وارد کدام شوید؟" />
       <div className="flex flex-col gap-2">
         {stores.map((s) => (
           <SwitchStoreButton

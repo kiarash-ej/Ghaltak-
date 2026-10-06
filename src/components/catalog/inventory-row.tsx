@@ -52,17 +52,17 @@ export function InventoryRow({ row }: { row: Row }) {
   const label = variantLabel(row);
 
   return (
-    <li className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-3">
+    <li className="flex flex-col gap-3 rounded-xl border border-line p-3">
       <div className="flex flex-wrap items-center gap-3">
         {row.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={row.imageUrl}
             alt=""
-            className="size-12 shrink-0 rounded-lg border border-neutral-200 object-cover"
+            className="size-12 shrink-0 rounded-lg border border-line object-cover"
           />
         ) : (
-          <div className="size-12 shrink-0 rounded-lg bg-neutral-100" aria-hidden />
+          <div className="size-12 shrink-0 rounded-lg bg-raised-2" aria-hidden />
         )}
 
         <div className="min-w-0 flex-1">
@@ -70,7 +70,7 @@ export function InventoryRow({ row }: { row: Row }) {
             {row.productName}
             {!row.isActive && <Badge>غیرفعال</Badge>}
           </div>
-          <div className="text-sm text-neutral-600">
+          <div className="text-sm text-muted">
             {label}
             {row.sku && (
               <>
@@ -84,7 +84,7 @@ export function InventoryRow({ row }: { row: Row }) {
         <div className="flex items-center gap-3">
           <div className="text-center">
             <div className="text-2xl font-bold leading-none">{formatNumber(row.stock)}</div>
-            <div className="mt-1 text-xs text-neutral-500">
+            <div className="mt-1 text-xs text-muted">
               حد هشدار {formatNumber(row.lowStockThreshold)}
             </div>
           </div>
@@ -111,7 +111,7 @@ export function InventoryRow({ row }: { row: Row }) {
       </div>
 
       {state?.ok && !open && (
-        <p role="status" className="text-sm text-green-700">
+        <p role="status" className="text-sm text-success">
           موجودی به {formatNumber(state.newStock)} رسید.
         </p>
       )}
@@ -119,7 +119,7 @@ export function InventoryRow({ row }: { row: Row }) {
       {open && (
         <form
           action={formAction}
-          className="flex flex-col gap-3 rounded-lg bg-neutral-50 p-3"
+          className="flex flex-col gap-3 rounded-lg bg-raised-2 p-3"
           aria-label={`تغییر موجودی ${row.productName} ${label}`}
         >
           <input type="hidden" name="expectedStock" value={row.stock} />
@@ -132,8 +132,8 @@ export function InventoryRow({ row }: { row: Row }) {
                 className={cn(
                   "cursor-pointer rounded-lg border px-3 py-1.5 text-sm",
                   mode === m.value
-                    ? "border-neutral-900 bg-neutral-900 text-white"
-                    : "border-neutral-300 bg-white",
+                    ? "border-transparent bg-action"
+                    : "border-line-strong bg-raised",
                 )}
               >
                 <input
@@ -179,7 +179,7 @@ export function InventoryRow({ row }: { row: Row }) {
           </div>
 
           {preview !== null && (
-            <p className={cn("text-sm", preview < 0 ? "text-red-700" : "text-neutral-700")}>
+            <p className={cn("text-sm", preview < 0 ? "text-danger" : "text-ink-soft")}>
               {preview < 0
                 ? `بیشتر از موجودی فعلی (${formatNumber(row.stock)}) است.`
                 : `موجودی از ${formatNumber(row.stock)} به ${formatNumber(preview)} تغییر می‌کند.`}
@@ -187,7 +187,7 @@ export function InventoryRow({ row }: { row: Row }) {
           )}
 
           {state && !state.ok && (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="text-sm text-danger">
               {state.error}
             </p>
           )}

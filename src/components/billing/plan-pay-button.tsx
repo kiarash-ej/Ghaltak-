@@ -24,7 +24,7 @@ export function PlanPayButton({
         {pending ? "در حال انتقال به درگاه…" : label}
       </Button>
       {state?.message && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger">
           {state.message}
         </p>
       )}

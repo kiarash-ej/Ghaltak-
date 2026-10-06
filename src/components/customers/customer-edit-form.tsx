@@ -14,7 +14,7 @@ type Props = {
 function FieldError({ messages }: { messages?: string[] }) {
   if (!messages?.length) return null;
   return (
-    <p role="alert" className="text-sm text-red-600">
+    <p role="alert" className="text-sm text-danger">
       {messages.join(" ")}
     </p>
   );
@@ -74,13 +74,13 @@ export function CustomerEditForm({ customerId, initial }: Props) {
           maxLength={500}
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+          className="w-full rounded-lg border border-line-strong bg-transparent px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         />
         <FieldError messages={errors?.address} />
       </div>
 
       {state && !state.ok && state.message && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger">
           {state.message}
         </p>
       )}
@@ -90,7 +90,7 @@ export function CustomerEditForm({ customerId, initial }: Props) {
           {pending ? "در حال ذخیره…" : "ذخیرهٔ تغییرات"}
         </Button>
         {state?.ok && !pending && (
-          <span role="status" className="text-sm text-green-700">
+          <span role="status" className="text-sm text-success">
             ذخیره شد.
           </span>
         )}

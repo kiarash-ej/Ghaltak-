@@ -33,7 +33,8 @@ function resolveLocal(spec: string, from: string): string | null {
   else if (spec.startsWith(".")) base = path.posix.join(path.posix.dirname(from), spec);
   else return null;
   for (const ext of [".ts", ".tsx", "/index.ts", "/index.tsx"]) {
-    if (existsSync(base + ext)) return base + ext;
+    // Forward slashes on every OS (path.join gives backslashes on Windows).
+    if (existsSync(base + ext)) return (base + ext).split(path.sep).join("/");
   }
   throw new Error(`${from}: can't resolve ${spec}`);
 }
