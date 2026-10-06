@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
+import { after } from "next/server";
 import { AttentionList, attentionRows } from "@/components/dashboard/attention-list";
 import { DailyBrief } from "@/components/home/daily-brief";
 import { OnboardingChecklist } from "@/components/home/onboarding-checklist";
@@ -11,6 +12,7 @@ import { getDailyBrief } from "@/server/dashboard/brief";
 import { dismissBriefAction } from "@/server/dashboard/brief-actions";
 import { BRIEF_COOKIE, greeting } from "@/server/dashboard/brief-text";
 import { buildBriefView } from "@/server/dashboard/brief-view";
+import { ensureRecurringExpenses } from "@/server/finance/expenses";
 import { isOnboardingComplete, onboardingSteps } from "@/server/home/onboarding";
 import { getOnboardingFacts, getTodaySummary } from "@/server/home/queries";
 import { reportPeriods } from "@/server/reports/periods";
@@ -24,6 +26,8 @@ export default async function DashboardHome() {
   const seller = await requireMember();
   const isOwner = seller.role === "OWNER";
   const now = new Date();
+  // This month's rows of monthly expenses (finance spec §6.1), after the response: Home shows no expenses yet.
+  if (isOwner) after(() => ensureRecurringExpenses(seller.id, now));
   const [facts, summary, attention, brief, month, cookieStore] = await Promise.all([
     getOnboardingFacts(seller.id),
     getTodaySummary(seller.id, now),

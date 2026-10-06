@@ -1,22 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FinanceChart } from "@/components/finance/finance-chart";
+import { FinanceHeader } from "@/components/finance/finance-header";
 import { InsightList } from "@/components/finance/insight-list";
-import { FINANCE_TABS } from "@/components/finance/finance-tabs";
-import { PeriodBar } from "@/components/finance/period-bar";
 import { ProfitBreakdown } from "@/components/finance/profit-breakdown";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { NavTabs } from "@/components/ui/nav-tabs";
-import { PageHeader } from "@/components/ui/page-header";
 import { Stat } from "@/components/ui/stat";
 import { formatNumber, formatToman } from "@/lib/format";
 import { requireMember } from "@/server/auth";
 import { compactToman } from "@/server/dashboard/brief-text";
+import { ensureRecurringExpenses } from "@/server/finance/expenses";
 import { compare, explain } from "@/server/finance/glossary";
 import { advise } from "@/server/finance/insights";
 import { loadInsightFacts } from "@/server/finance/insights/facts";
-import { resolvePeriod, type FinanceRange, type PeriodError } from "@/server/finance/periods";
+import { resolveFinanceRange } from "@/server/finance/periods";
 import { getFinanceSeries, getFinanceTotals, getUnpaid } from "@/server/finance/summary";
 import { expireUnpaidLinkOrders } from "@/server/orders/expire-orders";
 
@@ -32,10 +30,10 @@ const pct = (r: number | null) => (r === null ? 0 : r);
 export default async function FinancePage(props: PageProps<"/finance">) {
   const member = await requireMember();
   const now = new Date();
-  const resolved = resolvePeriod(await props.searchParams, now);
-  const error: PeriodError | undefined = "error" in resolved ? resolved.error : undefined;
-  const range = "error" in resolved ? (resolvePeriod({}, now) as FinanceRange) : resolved;
+  const { range, error } = resolveFinanceRange(await props.searchParams, now);
   const isOwner = member.role === "OWNER";
+  // Monthly repeats are made into this month's expense rows lazily (spec §6.1).
+  if (isOwner) await ensureRecurringExpenses(member.id, now);
 
   const [totals, before] = await Promise.all([
     getFinanceTotals(member.id, range.from, range.to),
@@ -43,13 +41,7 @@ export default async function FinancePage(props: PageProps<"/finance">) {
   ]);
   const against = range.compareLabel;
 
-  const header = (
-    <>
-      <PageHeader title="مالی و گزارش" description={`${range.label} · مقایسه با ${against}`} />
-      <NavTabs label="بخش‌های مالی" tabs={FINANCE_TABS} />
-      <PeriodBar basePath="/finance" range={range} error={error} />
-    </>
-  );
+  const header = <FinanceHeader basePath="/finance" range={range} error={error} isOwner={isOwner} />;
 
   if (!isOwner) {
     return (
@@ -88,7 +80,7 @@ export default async function FinancePage(props: PageProps<"/finance">) {
       {partial && totals.coverage !== null && (
         <p role="status" className="flex flex-wrap items-center gap-2 rounded-xl border border-warning/40 bg-warning-bg px-4 py-3 text-sm text-warning">
           فقط {formatNumber(Math.round(totals.coverage * 100))}٪ فروش‌های این بازه قیمت خرید دارند، پس سود واقعی کمتر از این عددهاست.
-          <Link href="/products" className="font-bold underline underline-offset-4">
+          <Link href="/finance/products?missing=1" className="font-bold underline underline-offset-4">
             ثبت قیمت خرید محصولات
           </Link>
         </p>

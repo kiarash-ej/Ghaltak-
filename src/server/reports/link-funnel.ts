@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { reportPeriods, tehranDateKey } from "./periods";
 import { SALE_STATUSES } from "./queries";
 
-// Purchase-link funnel (B8), for this Jalali month: how many times each link
+// Purchase-link funnel (B8), for this Jalali month (or a finance period): how many times each link
 // was opened, how many orders it brought, and how many of those were paid.
 // Aggregated in SQL and scoped by the seller, like the rest of the report.
 //
@@ -24,7 +24,7 @@ export type LinkFunnelRow = FunnelCounts & {
 };
 
 export type LinkFunnel = {
-  /** Start of this month (Tehran midnight on the 1st). */
+  /** Start of the range: this month's 1st at Tehran midnight, unless a range was given. */
   since: Date;
   /** Every link of the seller, busiest first. */
   links: LinkFunnelRow[];
@@ -37,10 +37,13 @@ function conversion(paid: number, views: number): number | null {
   return views > 0 ? paid / views : null;
 }
 
-export async function getLinkFunnel(sellerId: string, now = new Date()): Promise<LinkFunnel> {
-  const since = reportPeriods(now).month;
-  // The month's first Tehran day, as LinkDailyView.day stores it (noon avoids the boundary).
+/** `range`: [from, to) on Tehran days (a finance period); this month so far without it. */
+export async function getLinkFunnel(sellerId: string, now = new Date(), range?: { from: Date; to: Date }): Promise<LinkFunnel> {
+  const since = range?.from ?? reportPeriods(now).month;
+  const until = range?.to ?? now;
+  // The range's first and last Tehran days, as LinkDailyView.day stores them (noon avoids the boundary).
   const firstDay = tehranDateKey(new Date(since.getTime() + 12 * 60 * 60 * 1000));
+  const lastDay = tehranDateKey(new Date(until.getTime() - 1));
 
   const rows = await prisma.$queryRaw<
     { linkId: string; title: string | null; isActive: boolean; views: bigint; orders: bigint; paid: bigint }[]
@@ -54,7 +57,7 @@ export async function getLinkFunnel(sellerId: string, now = new Date()): Promise
       SELECT d."purchaseLinkId", SUM(d."views") AS views
       FROM "LinkDailyView" d
       JOIN "PurchaseLink" dl ON dl."id" = d."purchaseLinkId"
-      WHERE dl."sellerId" = ${sellerId} AND d."day" >= ${firstDay}::date
+      WHERE dl."sellerId" = ${sellerId} AND d."day" >= ${firstDay}::date AND d."day" <= ${lastDay}::date
       GROUP BY d."purchaseLinkId"
     ) v ON v."purchaseLinkId" = l."id"
     LEFT JOIN (
@@ -62,7 +65,8 @@ export async function getLinkFunnel(sellerId: string, now = new Date()): Promise
              COUNT(*) AS orders,
              COUNT(*) FILTER (WHERE o."status" IN (${saleStatusSql})) AS paid
       FROM "Order" o
-      WHERE o."sellerId" = ${sellerId} AND o."purchaseLinkId" IS NOT NULL AND o."createdAt" >= ${since}
+      WHERE o."sellerId" = ${sellerId} AND o."purchaseLinkId" IS NOT NULL
+        AND o."createdAt" >= ${since} AND o."createdAt" < ${until}
       GROUP BY o."purchaseLinkId"
     ) o ON o."purchaseLinkId" = l."id"
     WHERE l."sellerId" = ${sellerId}
