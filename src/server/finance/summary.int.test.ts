@@ -101,6 +101,7 @@ describe.skipIf(!hasTestDatabase)("finance numbers (database)", () => {
       margin: 2800 / 5500,
       averageOrder: 2750,
       ordersPlaced: 5,
+      returnedOrders: 1,
       returnRate: 1 / 3,
       cancelRate: 1 / 5,
     });

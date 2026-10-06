@@ -21,7 +21,7 @@ const saleStatusSql = Prisma.join(SALE_STATUSES.map((s) => Prisma.sql`${s}::"Ord
 const orderDay = Prisma.sql`to_char((o."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${APP_TIME_ZONE})::date, 'YYYY-MM-DD')`;
 
 /** The Tehran days of [from, to) as date keys, first and last inclusive. */
-function dayKeys(from: Date, to: Date) {
+export function dayKeys(from: Date, to: Date) {
   return { first: tehranDateKey(from), last: tehranDateKey(new Date(to.getTime() - 1)) };
 }
 
@@ -38,6 +38,8 @@ export type FinanceTotals = {
   margin: number | null;
   averageOrder: number | null;
   ordersPlaced: number;
+  /** Orders placed in the period that were returned. */
+  returnedOrders: number;
   /** Returned ÷ (sales + returned); null when neither happened. */
   returnRate: number | null;
   /** Canceled ÷ every order placed; null without orders. */
@@ -89,6 +91,7 @@ export async function getFinanceTotals(sellerId: string, from: Date, to: Date): 
     margin: sales > 0 ? netProfit / sales : null,
     averageOrder: saleOrders > 0 ? Math.round(sales / saleOrders) : null,
     ordersPlaced: placed,
+    returnedOrders: returned,
     returnRate: saleOrders + returned > 0 ? returned / (saleOrders + returned) : null,
     cancelRate: placed > 0 ? Number(orders.canceled) / placed : null,
   };

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FinanceChart } from "@/components/finance/finance-chart";
+import { InsightList } from "@/components/finance/insight-list";
 import { FINANCE_TABS } from "@/components/finance/finance-tabs";
 import { PeriodBar } from "@/components/finance/period-bar";
 import { ProfitBreakdown } from "@/components/finance/profit-breakdown";
@@ -13,12 +14,15 @@ import { formatNumber, formatToman } from "@/lib/format";
 import { requireMember } from "@/server/auth";
 import { compactToman } from "@/server/dashboard/brief-text";
 import { compare, explain } from "@/server/finance/glossary";
+import { advise } from "@/server/finance/insights";
+import { loadInsightFacts } from "@/server/finance/insights/facts";
 import { resolvePeriod, type FinanceRange, type PeriodError } from "@/server/finance/periods";
 import { getFinanceSeries, getFinanceTotals, getUnpaid } from "@/server/finance/summary";
+import { expireUnpaidLinkOrders } from "@/server/orders/expire-orders";
 
 // Finance overview (docs/superpowers/specs/2026-10-06-ghaltak-ui-finance-design.md §6.4,
-// layout B): six headline numbers with ؟, the daily chart, where the money
-// went. The owner sees money; an operator sees counts only, and only counts
+// layout B): six headline numbers with ؟, the daily chart, advice, where the
+// money went. The owner sees money; an operator sees counts only, and only counts
 // are ever passed to a client component on their page (A10).
 
 export const metadata: Metadata = { title: "مالی و گزارش | غلتک" };
@@ -62,7 +66,15 @@ export default async function FinancePage(props: PageProps<"/finance">) {
     );
   }
 
-  const [series, unpaid] = await Promise.all([getFinanceSeries(member.id, range.from, range.to), getUnpaid(member.id)]);
+  // Abandoned purchase-link orders are canceled lazily (as on /orders), so
+  // "unpaid" and its advice don't count orders that have already expired.
+  await expireUnpaidLinkOrders(member.id, now);
+  const [series, unpaid, facts] = await Promise.all([
+    getFinanceSeries(member.id, range.from, range.to),
+    getUnpaid(member.id),
+    loadInsightFacts(member.id, range, { current: totals, previous: before }, now),
+  ]);
+  const insights = advise(facts);
   const sales = compactToman(totals.sales);
   const net = compactToman(Math.abs(totals.netProfit));
   const aov = compactToman(totals.averageOrder ?? 0);
@@ -143,7 +155,8 @@ export default async function FinancePage(props: PageProps<"/finance">) {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      {/* Desktop: chart and breakdown on one side, advice beside them. Phone: chart, advice, breakdown. */}
+      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr] lg:items-start">
         <Card className="min-w-0">
           <CardHeader>
             <CardTitle>فروش و سود خالص، روزبه‌روز</CardTitle>
@@ -151,6 +164,16 @@ export default async function FinancePage(props: PageProps<"/finance">) {
           </CardHeader>
           <CardContent>
             <FinanceChart points={series} caption={`نمودار فروش و سود خالص روزانه، ${range.label}`} />
+          </CardContent>
+        </Card>
+
+        <Card className="min-w-0 lg:row-span-2">
+          <CardHeader>
+            <CardTitle>پیشنهادهای غلتک</CardTitle>
+            <CardDescription>از روی عددهای خود فروشگاه؛ پیشنهاد است، نه حکم.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <InsightList insights={insights} />
           </CardContent>
         </Card>
 

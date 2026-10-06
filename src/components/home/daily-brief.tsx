@@ -121,7 +121,7 @@ export function DailyBrief({
                   </span>
                 ))}
                 {money && (
-                  <Link href="/reports" className="ms-auto text-sm font-bold text-[#ff8a5b] hover:underline">
+                  <Link href="/finance" className="ms-auto text-sm font-bold text-[#ff8a5b] hover:underline">
                     گزارش کامل ←
                   </Link>
                 )}

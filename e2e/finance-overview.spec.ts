@@ -73,7 +73,8 @@ test("finance overview: profit from cost prices; operators get counts only", asy
     const ownerSent = await sent(owner);
     const operatorSent = await sent(operator);
     expect(ownerSent).toContain(faDigits(210)); // so the check below could fail
-    for (const leak of [String(PRICE), String(PRICE - COST), faDigits(210), faDigits(126), "تومان"]) {
+    expect(ownerSent).toContain("پیشنهادهای غلتک");
+    for (const leak of [String(PRICE), String(PRICE - COST), faDigits(210), faDigits(126), "تومان", "پیشنهادهای غلتک", "data-insight"]) {
       expect(operatorSent, leak).not.toContain(leak);
     }
     await context.close();
