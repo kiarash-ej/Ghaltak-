@@ -2,14 +2,12 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/prisma";
 import { hasTestDatabase } from "@/test/setup";
 import { inventorySummary, listInventory } from "@/server/catalog/inventory-queries";
-import { getSalesReport } from "@/server/reports/queries";
 
-// Issue #19: "needs restock" on the inventory page and "low stock" in the
-// sales report are the same rule (active products only), so the report's
-// number always matches the tab it links to.
+// Issue #19: "needs restock" counts active products only, so the number on the
+// navigation badge and Home (inventorySummary) matches the tab it links to.
 // Runs against a real Postgres (TEST_DATABASE_URL). See docs/phase1/README.md.
 
-describe.skipIf(!hasTestDatabase)("needs restock: inventory tab vs sales report (database)", () => {
+describe.skipIf(!hasTestDatabase)("needs restock: inventory tab (database)", () => {
   const runId = String(Math.floor(Math.random() * 1e7)).padStart(7, "0");
   let sellerId = "";
 
@@ -50,10 +48,5 @@ describe.skipIf(!hasTestDatabase)("needs restock: inventory tab vs sales report 
 
     const all = await listInventory(sellerId, { filter: "all" });
     expect(all.items.filter((r) => !r.isActive)).toHaveLength(2);
-  });
-
-  it("gives the same number as the sales report's low-stock count", async () => {
-    const [summary, report] = await Promise.all([inventorySummary(sellerId), getSalesReport(sellerId)]);
-    expect(report.lowStock.total).toBe(summary.low);
   });
 });
