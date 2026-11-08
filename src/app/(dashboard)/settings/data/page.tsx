@@ -68,8 +68,8 @@ export default async function DataExportPage(props: PageProps<"/settings/data">)
         <CardHeader>
           <CardTitle>سفارش‌ها</CardTitle>
           <CardDescription>
-            برای هر سفارش یک ردیف، با محصولات، مبلغ، پرداخت و ارسال. ستون «جزو فروش» با همان تعریف گزارش فروش پر
-            می‌شود. برای گرفتن همهٔ سفارش‌ها، تاریخ‌ها را خالی بگذارید.
+            برای هر سفارش یک ردیف، با محصولات، مبلغ، پرداخت و ارسال. ستون «جزو فروش» با همان تعریف «فروش» در «مالی و
+            گزارش» پر می‌شود. برای گرفتن همهٔ سفارش‌ها، تاریخ‌ها را خالی بگذارید.
           </CardDescription>
         </CardHeader>
         <CardContent>
