@@ -1,5 +1,7 @@
 # Track A — Catalog (Person A)
 
+> **Phase 1 record.** Changed since: product photos and receipts go through `src/server/storage/` (local or S3, Phase 2 A7); the inventory filter is called «نیاز به شارژ»; the sales report's low-stock list is gone, and the low-stock count now feeds the menu badge and Home. Current state: [root README](../../README.md).
+
 Read [README.md](./README.md) first (shared rules, Step 0, the `adjustStock` contract).
 
 **Your job:** everything a seller needs to manage what they sell and who they sell to: products, variants,

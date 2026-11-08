@@ -1,7 +1,13 @@
 # End-to-end tests
 
-Each test runs against a real browser, app server and database. The main ones are below; the others
-(`card-to-card`, `customer-sms`, `online-payment`) describe themselves at the top of the file.
+Each test runs against a real browser, app server and database. The main ones are below; the others describe
+themselves at the top of the file:
+
+- payments and the customer: `card-to-card`, `online-payment`, `customer-sms`, `link-funnel`, `print-sheet`
+- the seller's account: `billing` (also runs a second server with `BILLING_ENABLED=true`), `team`
+- finance and Home: `cost-price`, `finance-overview`, `finance-advice`, `finance-expenses`, `finance-reports`,
+  `daily-brief`
+- public pages: `landing`, `public-theme`, `security-headers`
 
 ## `order-lifecycle.spec.ts`
 
@@ -9,7 +15,7 @@ What happens after an order is placed. The seller enters a manual order and take
 
 - stock comes back exactly
 - the stock history shows «مرجوعی» or «لغو سفارش» with a link to the order
-- the sales report stops counting the order
+- «فروش» (`/finance/sales`) stops counting the order
 
 ## `data-export.spec.ts`
 
@@ -27,7 +33,7 @@ It drives the whole Phase 1 buy flow in a real browser, against a real app serve
 2. **Customer** (Pixel 7 size, no account) opens the link, picks color/size and quantity, orders, and uploads a card-to-card receipt.
 3. **Seller** sees the «رسید منتظر بررسی» badge and the receipt, confirms payment, prepares and ships with a tracking code.
 4. **Customer** sees "payment confirmed", the tracking code and the amount due. The page shows no phone numbers.
-5. **Seller**: stock went down by the ordered quantity, and the sales report counts the sale.
+5. **Seller**: stock went down by the ordered quantity, and «فروش» (`/finance/sales`) counts the sale.
 
 Each run creates its own seller and customer, so every number checked is exact and nothing needs to be wiped.
 
@@ -35,9 +41,9 @@ Each run creates its own seller and customer, so every number checked is exact a
 
 The dashboard's «شروع کار» checklist (C5). A brand-new seller sees five undone steps. The test does each one (store
 details, product, card number, purchase link, order) and checks it ticks. A store name alone doesn't complete step 1;
-a contact does. After the fifth step the checklist is gone and «خلاصهٔ امروز» counts the order and the item that now
-needs restocking. Then a phone with no session opens `/help` and a guide: every screenshot loads and nothing scrolls
-sideways.
+a contact does. After the fifth step the checklist is gone, «خلاصهٔ امروز» counts the order, and «نیاز به رسیدگی»
+shows the item that now needs restocking («کالا رو به اتمام»). Then a phone with no session opens `/help` and a guide:
+every screenshot loads and nothing scrolls sideways.
 
 ## `help-screenshots.spec.ts` (not a test)
 
@@ -88,4 +94,4 @@ Screenshots and a trace are saved in `test-results/`. Open a trace with:
 npx playwright show-trace test-results/<test>/trace.zip
 ```
 
-In CI the report and traces are uploaded as the `playwright-report` artifact.
+In CI the report and traces are uploaded as the `playwright-report` artifact when a run fails.

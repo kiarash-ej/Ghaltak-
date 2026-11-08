@@ -1,6 +1,6 @@
 # Ghaltak UI overhaul and finance section: design
 
-**Status:** approved in brainstorming (2026-10-06), awaiting written-spec review.
+**Status:** built. All nine steps are merged (2026-10-06); see [Implementation status](#implementation-status) for what changed on the way and what is still open. The sections below are the design as approved and are kept as written.
 **Owner:** Track B (Person B), with reviews from Person A and Person C for the files in their folders.
 **Why now:** competitors are appearing. The product works; it now has to look and feel like the best option, and give sellers a real picture of their money.
 
@@ -12,6 +12,38 @@ Mockups from the brainstorming session (open in a browser; they use the brand lo
 `.superpowers/` is not committed (it is in `.gitignore`); the decisions below are the source of truth.
 
 ---
+
+## Implementation status
+
+Checked against `main` after #74 (November 2026).
+
+| Step | PR | State |
+|---|---|---|
+| 1–4: design system, shell, Home and daily brief, page pass | #67 | Done, as one PR instead of one per step |
+| 5: cost prices and expenses (schema) | #68 | Done |
+| 6: finance overview, periods, numbers, glossary, chart | #69 | Done |
+| 7: advice, the twelve rules | #70 | Done |
+| 8: sales, product profit and expenses tabs; `/reports` redirects to `/finance` | #71 | Done |
+| 9: period reports, print/PDF, recaps on Home | #72 | Done |
+| Cleanup and review fixes | #73, #74 | Done: old report queries removed; custom range capped at two years; stopping a resumed monthly expense ends it instead of deleting it; chart includes today |
+
+**Built differently from the text below**
+- Colour roles (§3.1): `bg` is called `canvas`; there are extra roles (`line-strong`, `ink-soft`, `focus`, `action`, `count`, `destructive`); dark `faint` is `#808ca8` for contrast; the gradients are `bg-action`, `bg-fire`, `bg-glow`, `text-fire`. Tabular figures use the `tabular-nums` class per element, not a global `tnum`.
+- Kit (§3.4): no `Select`, `Field` or `Pill`, no button loading state, no `brand` badge tone. Added: `PageHeader`, `CountUp`, `JsMarker`. Finance charts live in `src/components/finance/`.
+- Definitions (§6.2): there is no `definitions.ts`; the numbers are in `src/server/finance/summary.ts` and the ؟ texts in `glossary.ts`.
+- Overview (§6.4): the rest of the tips open in place (a disclosure), not on a separate page. Operators keep the nav label «مالی و گزارش».
+- Advice (§6.5): several rules have extra minimums (rule 3 needs costs for half of the product's sales, rule 6 at least three returns, rule 11 at least five buyers, rule 12 at least 20 orders over eight weeks) and rule 3 links to the product form. Period reports show only the rules that make sense for a closed period.
+- Daily brief (§7.1): shows until it is closed for the day, compares sales (not order count) with last week, and shows net profit only when 90% of yesterday's sales have a cost price.
+
+**Not built yet**
+- §3.4/§8: loading skeletons (`loading.tsx`); `EmptyState` is used only on `/finance/reports`.
+- §4.2: «ثبت هزینه» in the phone's ➕ sheet.
+- §5: a net-profit tile on Home, the «unpaid over 2 days» row in «نیاز به رسیدگی», a «سفارش جدید» button on desktop Home; low stock lists every low variant, not only best sellers.
+- §6.1: the store-deletion SQL in `docs/phase2/DEPLOY.md` (it is in open PR #58).
+- §6.6: ؟ texts for coverage, cancel rate and unpaid orders; the print page writes its notes by hand.
+- §10: a database test that a period report matches the overview for the same dates; an e2e test for the phone bottom bar and ➕ sheet; automated axe and reduced-motion checks.
+- §11: there is no «تازه‌ها» note. (The `/help` screenshots were retaken in November 2026, with the reports guide rewritten for `/finance`.)
+- Phase 3 of the UI (§9: deeper page work, a light theme toggle, more tips): not started, as planned.
 
 ## 1. Decisions
 

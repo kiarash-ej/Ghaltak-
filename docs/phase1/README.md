@@ -1,6 +1,7 @@
 # Phase 1 — Shared rules and foundation
 
 > **Phase 1 is complete** (A1–A5, B1–B5 merged). Next: [Phase 2](../phase2/README.md). The shared rules below still apply.
+> This file records Phase 1 as it was built. For what the app is and does today, start with the [root README](../../README.md).
 
 Ghaltak is a platform that helps small Iranian online sellers (Instagram/Telegram) manage products, inventory,
 customers, orders, payments and shipping in one place. Phase 1 is the MVP. Two people, each with a coding agent,
@@ -24,10 +25,9 @@ Read this file first, then your track file.
 
 **Week 5:** the joint end-to-end test of the buy flow is done: `e2e/buy-flow.spec.ts` (Playwright, #23) runs in CI on every PR. Pilot prep moves to Phase 2, week 0.
 
-**Still open:**
-- **Branch protection on `main`:** blocked, see Step 0 below.
+**Still open:** nothing. Branch protection on `main` (blocked during Phase 1, see Step 0 below) is on now that the repo is public.
 
-Checks on `main`: lint, type-check, build, and 223 tests including the database tests.
+Checks on `main` at the end of Phase 1: lint, type-check, build, and 223 tests including the database tests. (Today's numbers are in the root README.)
 
 ## Step 0 — Shared foundation (do this BEFORE the tracks start)
 
@@ -46,23 +46,24 @@ Status: **merged into `main`** (PR #1). The tracks can start. Checked items belo
 - [x] CI: `.github/workflows/ci.yml` runs lint, type-check, tests and build on every PR
 - [x] `.env.example` with every variable the app needs
 - [x] `adjustStock` stub at `src/server/catalog/inventory.stub.ts` (deleted in A5, once the real function was live)
-- [ ] Branch protection on `main` (PR required, CI must pass): **blocked.** GitHub does not allow branch protection or rulesets on a private repo owned by a free personal account. It needs GitHub Pro on the owner's account (or the repo made public). Until then, follow rule 3 by hand: never push to `main` directly, always merge through a PR with green CI
+- [x] Branch protection on `main` (PR required, CI must pass): **on** since the repo was made public. During Phase 1 it was **blocked.** GitHub does not allow branch protection or rulesets on a private repo owned by a free personal account. It needs GitHub Pro on the owner's account (or the repo made public). Until then, follow rule 3 by hand: never push to `main` directly, always merge through a PR with green CI
 
 ### How to run it locally
 
 ```bash
 npm install
-cp .env.example .env        # then fill in DATABASE_URL and SESSION_SECRET
+cp .env.example .env        # then fill in DATABASE_URL, SESSION_SECRET and SECRETS_KEY
+npm run db:generate         # generate the Prisma client
 npm run db:deploy           # apply migrations
 npm run db:seed             # demo data
 npm run dev
 ```
 
-Log in with `09120000000`. Without SMS credentials the 6-digit code is printed in the server console (`[dev sms] login code for ...`).
+Log in with `09120000000`. Without SMS credentials the 6-digit code is printed in the server console (`[sms DEV] LOGIN_OTP to 0912***0000: <code>`).
 
 ### Database integration tests
 
-Files named `*.int.test.ts` test code against a real Postgres. They are **skipped** unless `TEST_DATABASE_URL` is set, and they must never point at your development database (they create and delete their own rows). CI runs them against a throwaway Postgres service.
+Files named `*.int.test.ts` test code against a real Postgres. They are **skipped** unless `TEST_DATABASE_URL` is set, and they must never point at your development database (they create and delete their own rows). CI runs them against the runner's own PostgreSQL 16.
 
 One-time setup, then run (PowerShell):
 
@@ -77,7 +78,7 @@ After pulling new migrations, run `db:deploy` against the test database again.
 ### Shared conventions added after Step 0
 
 - **Iran time.** Dates are stored in UTC and always formatted in `Asia/Tehran` (`APP_TIME_ZONE` in `src/lib/format.ts`), whatever time zone the server runs in. Anything that computes "today" or "this month" (Track B's report) must use Tehran day boundaries too.
-- **Light theme only.** The components are designed for light mode; the dark-mode switch from the Next.js template was removed until a dark theme is designed.
+- **Light theme only** (Phase 1). The components were designed for light mode; the dark-mode switch from the Next.js template was removed until a dark theme was designed. Since then the public pages have a light/dark switch (#65) and the dashboard is dark (#67); checkout and print pages stay light.
 - **Stale sessions.** If the session cookie is valid but its seller no longer exists, `requireSeller()` sends the user to `/logout`, which clears the cookie.
 
 ### Deviations from the original plan

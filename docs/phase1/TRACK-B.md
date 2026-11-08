@@ -1,5 +1,7 @@
 # Track B — Sales (Person B)
 
+> **Phase 1 record.** Changed since: the sales report at `/reports` became «مالی و گزارش» at `/finance` (#71) and its queries were removed (#73); `PaymentGateway` lives in `src/server/payments/types.ts` with a Zarinpal client (Phase 2 B6); receipts are in the private storage bucket; the seller's card number is shown to the customer (B6). Current state: [root README](../../README.md).
+
 Read [README.md](./README.md) first (shared rules, Step 0, the `adjustStock` contract).
 
 **Your job:** everything from "a customer wants to buy" to "the order is delivered": orders, the public purchase
