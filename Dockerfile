@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # Production image for Ghaltak (C1): one instance of `next start`, which
 # applies pending migrations before it starts serving. Deploying, environment
 # variables and rollback: docs/phase2/DEPLOY.md.
@@ -9,6 +8,8 @@
 # Docker Hub and the npm registry can be slow or blocked from Iran. Both are
 # build arguments so a mirror can be used, e.g.
 #   --build-arg NODE_IMAGE=docker.arvancloud.ir/node:24-bookworm-slim
+# No `# syntax=docker/dockerfile:1` line: it makes every build fetch the
+# frontend from Docker Hub, which refuses servers in Iran (403), mirror or not.
 
 ARG NODE_IMAGE=node:24-bookworm-slim
 
