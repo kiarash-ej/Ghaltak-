@@ -30,6 +30,11 @@ WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000
+# OpenSSL for Prisma's schema engine (`prisma migrate deploy` at startup). The
+# slim image has none, so Prisma can't tell which libssl it has, guesses 1.1
+# (which bookworm doesn't ship) and the migration can fail to start.
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
 # All of node_modules, dev dependencies included: `prisma migrate deploy` needs
 # the prisma CLI and dotenv (prisma7.config.ts) at startup.
 COPY --from=build --chown=node:node /app/package.json /app/package-lock.json /app/next.config.ts /app/prisma7.config.ts ./
