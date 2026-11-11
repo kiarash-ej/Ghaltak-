@@ -17,6 +17,11 @@ FROM ${NODE_IMAGE} AS build
 ARG NPM_REGISTRY=https://registry.npmjs.org/
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+# OpenSSL here too: `npm ci` downloads Prisma's schema engine for the OpenSSL
+# it finds. Without it Prisma picks the 1.1 engine, the runtime image (which
+# has OpenSSL 3) wants another one, and tries to download it at startup into a
+# node_modules it can't write to.
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl   && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund --registry="$NPM_REGISTRY"
 COPY . .
@@ -43,6 +48,10 @@ COPY --from=build --chown=node:node /app/prisma ./prisma
 COPY --from=build --chown=node:node /app/public ./public
 COPY --from=build --chown=node:node /app/src/generated ./src/generated
 COPY --from=build --chown=node:node /app/.next ./.next
+# Hosts like Parspack (OpenShift) run the container as a random user in group
+# 0, not as `node`. Everything the app writes at runtime must be writable by
+# that group: Next.js's cache and the default upload folder.
+RUN mkdir -p .next/cache uploads   && chgrp -R 0 .next/cache uploads && chmod -R g=u .next/cache uploads
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
