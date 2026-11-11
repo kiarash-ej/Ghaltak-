@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  FARAZ_DEFAULT_LINE,
   consoleProvider,
+  farazProvider,
   kavenegarProvider,
   lookupTokens,
   maskMobile,
+  parseFarazPattern,
   parseSmsIrTemplate,
   providerFromEnv,
   smsIrProvider,
@@ -134,6 +137,81 @@ describe("smsIrProvider", () => {
   });
 });
 
+describe("farazProvider", () => {
+  const templates = { LOGIN_OTP: { code: "SJ3FgPrE0C", params: ["code"] }, ORDER_SHIPPED: { code: "Pt9sh1p", params: ["order", "method", "tracking"] } };
+
+  it("posts the pattern with the key in the Api-Key header, and returns the request id", async () => {
+    const fetch = fakeFetch(201, { status: "success", data: 7714420, messages: null });
+    const provider = farazProvider({ apiKey: API_KEY, lineNumber: "3000505", templates, fetch });
+
+    const result = await provider.send({ to: "09121234567", kind: "ORDER_SHIPPED", tokens: ["A1B2C3", " پست پیشتاز ", "123"] });
+
+    expect(result).toEqual({ ok: true, providerId: "7714420" });
+    const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.iranpayamak.com/ws/v1/sms/pattern");
+    expect(init.method).toBe("POST");
+    expect((init.headers as Record<string, string>)["Api-Key"]).toBe(API_KEY);
+    expect(JSON.parse(String(init.body))).toEqual({
+      code: "Pt9sh1p",
+      attributes: { order: "A1B2C3", method: "پست پیشتاز", tracking: "123" },
+      recipient: "09121234567",
+      line_number: "3000505",
+      number_format: "english",
+    });
+  });
+
+  it("reports Faraz's error, never the API key", async () => {
+    const provider = farazProvider({
+      apiKey: API_KEY,
+      lineNumber: "3000505",
+      templates,
+      fetch: fakeFetch(401, { status: "error", data: null, message: "Unauthorized" }),
+    });
+    const result = await provider.send({ to: "09121234567", kind: "LOGIN_OTP", tokens: ["482913"] });
+    expect(result).toEqual({ ok: false, error: "Faraz status 401" });
+    expect(JSON.stringify(result)).not.toContain(API_KEY);
+  });
+
+  it("an HTTP success without status \"success\" is still a failure", async () => {
+    const provider = farazProvider({ apiKey: API_KEY, lineNumber: "1", templates, fetch: fakeFetch(200, { status: "error" }) });
+    expect(await provider.send({ to: "09121234567", kind: "LOGIN_OTP", tokens: ["1"] })).toEqual({ ok: false, error: "Faraz status 200" });
+  });
+
+  it("turns a timeout or network error into a failure without the key", async () => {
+    const fetch = vi.fn(async () => {
+      throw Object.assign(new Error(`Api-Key ${API_KEY} rejected`), { name: "TimeoutError" });
+    });
+    const result = await farazProvider({ apiKey: API_KEY, lineNumber: "1", templates, fetch }).send({
+      to: "09121234567",
+      kind: "LOGIN_OTP",
+      tokens: ["482913"],
+    });
+    expect(result).toEqual({ ok: false, error: "Faraz request failed (TimeoutError)" });
+    expect(JSON.stringify(result)).not.toContain(API_KEY);
+  });
+
+  it("fails without calling Faraz for a kind with no pattern, the wrong token count or an empty value", async () => {
+    const fetch = fakeFetch(201, { status: "success", data: 1 });
+    const provider = farazProvider({ apiKey: API_KEY, lineNumber: "1", templates, fetch });
+    const send = (kind: "LOGIN_OTP" | "ORDER_PAID", tokens: string[]) => provider.send({ to: "09121234567", kind, tokens });
+
+    expect(await send("ORDER_PAID", ["A1B2C3"])).toEqual({ ok: false, error: "no Faraz pattern configured for ORDER_PAID" });
+    expect(await send("LOGIN_OTP", ["1", "2"])).toMatchObject({ ok: false });
+    expect(await send("LOGIN_OTP", ["  "])).toMatchObject({ ok: false });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("parseFarazPattern", () => {
+  it("reads <patternCode>:<var>[,<var>...]", () => {
+    expect(parseFarazPattern("SJ3FgPrE0C:code")).toEqual({ code: "SJ3FgPrE0C", params: ["code"] });
+    expect(parseFarazPattern(" ab-12_x : order, link ")).toEqual({ code: "ab-12_x", params: ["order", "link"] });
+    expect(parseFarazPattern("SJ3FgPrE0C")).toBeNull();
+    expect(parseFarazPattern("SJ3FgPrE0C:")).toBeNull();
+    expect(parseFarazPattern("SJ3FgPrE0C:1code")).toBeNull(); // Faraz variable names start with a letter or _
+  });
+});
+
 describe("parseSmsIrTemplate", () => {
   it("reads <templateId>:<Param>[,<Param>...]", () => {
     expect(parseSmsIrTemplate("123456:Code")).toEqual({ id: 123456, params: ["Code"] });
@@ -166,6 +244,36 @@ describe("providerFromEnv", () => {
     expect(await provider.send({ to: "09121234567", kind: "LOGIN_OTP", tokens: ["123456"] })).toMatchObject({
       ok: false,
     });
+  });
+
+  it("uses Faraz when its key is set, even with the other keys too; the default line without FARAZ_LINE_NUMBER", async () => {
+    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ status: "success", data: 9 }), { status: 201 }),
+    );
+    try {
+      const provider = providerFromEnv({
+        NODE_ENV: "production",
+        FARAZ_API_KEY: API_KEY,
+        FARAZ_TEMPLATE: "SJ3FgPrE0C:code",
+        SMSIR_API_KEY: "smsir-key",
+        KAVENEGAR_API_KEY: "kavenegar-key",
+      });
+      expect(await provider.send({ to: "09121234567", kind: "LOGIN_OTP", tokens: ["482913"] })).toEqual({ ok: true, providerId: "9" });
+      const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+      expect(url).toBe("https://api.iranpayamak.com/ws/v1/sms/pattern");
+      expect(JSON.parse(String(init.body)).line_number).toBe(FARAZ_DEFAULT_LINE);
+    } finally {
+      fetch.mockRestore();
+    }
+  });
+
+  it("a malformed Faraz pattern variable fails with a message naming it", async () => {
+    const provider = providerFromEnv({ FARAZ_API_KEY: API_KEY, FARAZ_TEMPLATE_ORDER_PAID: "SJ3FgPrE0C" });
+    expect(await provider.send({ to: "09121234567", kind: "ORDER_PAID", tokens: ["A1B2C3"] })).toEqual({
+      ok: false,
+      error: "FARAZ_TEMPLATE_ORDER_PAID must look like <patternCode>:<variable>, e.g. SJ3FgPrE0C:code",
+    });
+    expect(templateEnvName("LOGIN_OTP", "FARAZ")).toBe("FARAZ_TEMPLATE");
   });
 
   it("uses sms.ir when its key is set, even with a Kavenegar key too", async () => {

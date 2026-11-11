@@ -55,7 +55,7 @@ export function unconfiguredProvider(): SmsProvider {
   return {
     mode: "LIVE",
     async send() {
-      return { ok: false, error: "no SMS provider configured (SMSIR_API_KEY or KAVENEGAR_API_KEY)" };
+      return { ok: false, error: "no SMS provider configured (FARAZ_API_KEY, SMSIR_API_KEY or KAVENEGAR_API_KEY)" };
     },
   };
 }
@@ -186,10 +186,85 @@ export function smsIrProvider(config: SmsIrConfig): SmsProvider {
   };
 }
 
+/** A Faraz SMS pattern: its code and the names of its variables, in token order. */
+export type FarazPattern = { code: string; params: string[] };
+
+export type FarazConfig = {
+  apiKey: string;
+  /** The sending line («خط فرستنده») in the Faraz panel. */
+  lineNumber: string;
+  /** The approved pattern for each kind, or why its variable couldn't be read. */
+  templates: Partial<Record<SmsKind, FarazPattern | { error: string }>>;
+  timeoutMs?: number;
+  fetch?: typeof fetch;
+};
+
+/** Faraz's documented default line, used when FARAZ_LINE_NUMBER is not set. */
+export const FARAZ_DEFAULT_LINE = "90008361";
+
+/**
+ * "<patternCode>:<var>[,<var>...]" → the pattern, e.g. "SJ3FgPrE0C:code" for a
+ * pattern whose text has %code%. The variable names are the ones defined on the
+ * pattern in the Faraz panel; the message's tokens fill them in order.
+ */
+export function parseFarazPattern(value: string): FarazPattern | null {
+  const match = /^\s*([A-Za-z0-9_-]+)\s*:\s*([A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*)\s*$/.exec(value);
+  if (!match) return null;
+  return { code: match[1], params: match[2].split(",").map((p) => p.trim()) };
+}
+
+/**
+ * Faraz SMS (IPPanel) pattern API (https://docs.farazsms.com/service/post-ws-v1-sms-pattern):
+ * POST /ws/v1/sms/pattern with the key in the Api-Key header; sent at once,
+ * without a queue. The key is never logged or put in an error. A value longer
+ * than the length set on the pattern is held for manual review by Faraz, so
+ * patterns' variables should be given enough room in the panel.
+ */
+export function farazProvider(config: FarazConfig): SmsProvider {
+  const doFetch = config.fetch ?? fetch;
+  const timeoutMs = config.timeoutMs ?? 10_000;
+
+  return {
+    mode: "LIVE",
+    async send({ to, kind, tokens }) {
+      const template = config.templates[kind];
+      if (!template) return { ok: false, error: `no Faraz pattern configured for ${kind}` };
+      if ("error" in template) return { ok: false, error: template.error };
+      if (tokens.length !== template.params.length) {
+        return { ok: false, error: `Faraz pattern for ${kind} has ${template.params.length} variables, got ${tokens.length} tokens` };
+      }
+      const values = tokens.map((t) => t.trim());
+      if (values.some((v) => v === "")) return { ok: false, error: "each Faraz variable must have a value" };
+
+      try {
+        const res = await doFetch("https://api.iranpayamak.com/ws/v1/sms/pattern", {
+          method: "POST",
+          headers: { "Api-Key": config.apiKey, "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            code: template.code,
+            attributes: Object.fromEntries(template.params.map((name, i) => [name, values[i]])),
+            recipient: to,
+            line_number: config.lineNumber,
+            number_format: "english",
+          }),
+          signal: AbortSignal.timeout(timeoutMs),
+        });
+        const body = (await res.json().catch(() => null)) as { status?: string; data?: number | string | null } | null;
+        if (!res.ok || body?.status !== "success") return { ok: false, error: `Faraz status ${res.status}` };
+        const id = body.data;
+        return { ok: true, providerId: id === undefined || id === null ? null : String(id) };
+      } catch (err) {
+        // Timeout or network error. Only the error's name, as for the others.
+        return { ok: false, error: `Faraz request failed (${(err as Error)?.name ?? "Error"})` };
+      }
+    },
+  };
+}
+
 type Env = Record<string, string | undefined>;
 
 /** The template env variable for each kind. LOGIN_OTP keeps Phase 1's name. */
-export function templateEnvName(kind: SmsKind, prefix: "KAVENEGAR" | "SMSIR" = "KAVENEGAR"): string {
+export function templateEnvName(kind: SmsKind, prefix: "KAVENEGAR" | "SMSIR" | "FARAZ" = "KAVENEGAR"): string {
   return kind === "LOGIN_OTP" ? `${prefix}_TEMPLATE` : `${prefix}_TEMPLATE_${kind}`;
 }
 
@@ -204,12 +279,26 @@ const KINDS: SmsKind[] = [
 ];
 
 /**
- * sms.ir when SMSIR_API_KEY is set, otherwise Kavenegar when KAVENEGAR_API_KEY
- * is set. Without either: the console in development, and a provider that
- * always fails in production, so login codes are never printed to production
- * logs.
+ * Faraz SMS when FARAZ_API_KEY is set, otherwise sms.ir when SMSIR_API_KEY is
+ * set, otherwise Kavenegar when KAVENEGAR_API_KEY is set. Without any: the
+ * console in development, and a provider that always fails in production, so
+ * login codes are never printed to production logs.
  */
 export function providerFromEnv(env: Env = process.env): SmsProvider {
+  const farazKey = env.FARAZ_API_KEY;
+  if (farazKey) {
+    const templates: FarazConfig["templates"] = {};
+    for (const kind of KINDS) {
+      const name = templateEnvName(kind, "FARAZ");
+      const value = env[name];
+      if (!value) continue;
+      templates[kind] = parseFarazPattern(value) ?? {
+        error: `${name} must look like <patternCode>:<variable>, e.g. SJ3FgPrE0C:code`,
+      };
+    }
+    return farazProvider({ apiKey: farazKey, lineNumber: env.FARAZ_LINE_NUMBER?.trim() || FARAZ_DEFAULT_LINE, templates });
+  }
+
   const smsIrKey = env.SMSIR_API_KEY;
   if (smsIrKey) {
     const templates: SmsIrConfig["templates"] = {};
