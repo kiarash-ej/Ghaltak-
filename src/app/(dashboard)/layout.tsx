@@ -1,4 +1,5 @@
 import { SubscriptionBanner } from "@/components/billing/subscription-banner";
+import { AutoRefresh } from "@/components/dashboard/auto-refresh";
 import { BottomBar, MobileTopBar } from "@/components/dashboard/mobile-bars";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { settingsHomeFor } from "@/components/settings/settings-tabs";
@@ -9,6 +10,7 @@ import { subscriptionBanner } from "@/server/billing/banner";
 import { scheduleSubscriptionReminder } from "@/server/billing/reminder";
 import { getEffectivePlan } from "@/server/billing/usage";
 import { getAttention, ordersWaiting } from "@/server/dashboard/attention";
+import { countUnreadNotifications } from "@/server/notifications/seller-notifications";
 
 // The seller dashboard's frame (docs/superpowers/specs/2026-10-06-ghaltak-ui-finance-design.md §4):
 // dark theme, sidebar on desktop, top bar + bottom bar on phones.
@@ -16,22 +18,24 @@ import { getAttention, ordersWaiting } from "@/server/dashboard/attention";
 export default async function DashboardLayout({ children }: LayoutProps<"/">) {
   const seller = await requireMember();
   const now = new Date();
-  const [{ stored, effective }, storeCount, attention] = await Promise.all([
+  const [{ stored, effective }, storeCount, attention, unread] = await Promise.all([
     getEffectivePlan(seller.id, now),
     prisma.membership.count({ where: { userId: seller.userId } }),
     getAttention(seller.id),
+    countUnreadNotifications(seller.id, seller.role),
   ]);
   // The subscription is the owner's business: operators don't see its warnings.
   const banner = seller.role === "OWNER" ? subscriptionBanner(stored.plan, effective, now) : null;
   scheduleSubscriptionReminder(seller.id);
 
   const settingsHref = settingsHomeFor(seller.role);
-  const badges = { orders: ordersWaiting(attention), stock: attention.lowStock };
+  const badges = { orders: ordersWaiting(attention), stock: attention.lowStock, notifications: unread };
   const canSwitchStore = storeCount > 1;
 
   return (
     <div data-app-theme="dark" className="flex min-h-dvh flex-1 flex-col overflow-x-clip md:flex-row print:block">
       <JsMarker />
+      <AutoRefresh />
       <Sidebar storeName={seller.name} canSwitchStore={canSwitchStore} settingsHref={settingsHref} badges={badges} />
       <MobileTopBar
         storeName={seller.name}

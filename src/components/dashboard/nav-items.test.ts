@@ -22,6 +22,7 @@ describe("activeNavKey", () => {
     expect(activeNavKey("/reports")).toBe("finance");
     expect(activeNavKey("/finance/reports/1405-07")).toBe("finance");
     expect(activeNavKey("/customers/abc")).toBe("customers");
+    expect(activeNavKey("/notifications")).toBe("notifications");
     expect(activeNavKey("/settings/devices")).toBe("settings");
   });
 

@@ -57,5 +57,5 @@ export const TRIAL_LIMITS_PLAN: PaidPlanId = "BASIC";
 /** Days after a paid period ends before the store falls back to FREE limits. The trial has none. */
 export const GRACE_DAYS = 7;
 
-/** The SUBSCRIPTION_REMINDER SMS goes out this many days before a period ends. */
+/** The renewal reminder (an in-app notification) goes out this many days before a period ends. */
 export const REMINDER_DAYS_BEFORE_END = 3;

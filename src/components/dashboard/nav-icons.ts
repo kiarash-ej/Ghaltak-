@@ -1,4 +1,4 @@
-import { ChartLine, ClipboardList, House, Link2, Package, Settings, Users, type LucideIcon } from "lucide-react";
+import { Bell, ChartLine, ClipboardList, House, Link2, Package, Settings, Users, type LucideIcon } from "lucide-react";
 import type { NavKey } from "./nav-items";
 
 export const NAV_ICONS: Record<NavKey, LucideIcon> = {
@@ -8,5 +8,6 @@ export const NAV_ICONS: Record<NavKey, LucideIcon> = {
   links: Link2,
   finance: ChartLine,
   customers: Users,
+  notifications: Bell,
   settings: Settings,
 };

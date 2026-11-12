@@ -215,7 +215,7 @@ liara deploy            # liara.json را می‌خواند: پلتفرم Docker
 | `ORDER_SHIPPED` | `KAVENEGAR_TEMPLATE_ORDER_SHIPPED` | B (B7) | `%token`: کد سفارش، `%token2`: کد رهگیری، `%token3`: لینک صفحهٔ سفارش | ثبت نشده |
 | `PAYMENT_REMINDER` | `KAVENEGAR_TEMPLATE_PAYMENT_REMINDER` | B (B7، P1) | مثل `ORDER_PLACED` | ثبت نشده |
 | `MEMBER_INVITE` | `KAVENEGAR_TEMPLATE_MEMBER_INVITE` | A (A10) | `%token`: نام فروشگاه | ثبت نشده |
-| `SUBSCRIPTION_REMINDER` | `KAVENEGAR_TEMPLATE_SUBSCRIPTION_REMINDER` | A (A9) | `%token`: تاریخ پایان دوره به شمسی، `%token2`: نام فروشگاه | ثبت نشده |
+| `SUBSCRIPTION_REMINDER` | `KAVENEGAR_TEMPLATE_SUBSCRIPTION_REMINDER` | A (A9) | `%token`: تاریخ پایان دوره به شمسی، `%token2`: نام فروشگاه | لازم نیست: دیگر فرستاده نمی‌شود (اعلان داخل برنامه جای آن آمده) |
 
 - ترتیب توکن‌های پیامک مشتری همان کد B7 است: `customerSmsTokens()` در `src/server/notifications/customer-sms-tokens.ts` (#36). اگر یکی عوض شود، دیگری هم باید عوض شود.
 - **کد سفارش** همان `orderCode()` است (۶ نویسه، مثل صفحهٔ سفارش).

@@ -57,6 +57,7 @@ model Seller {
   gateway           SellerGateway?
   paymentAttempts   PaymentAttempt[]
   smsMessages       SmsMessage[]
+  notifications     Notification[]
 }
 
 // One-time SMS login codes. The code itself is never stored, only its hash.
@@ -230,6 +231,7 @@ model Order {
   items           OrderItem[]
   paymentAttempts PaymentAttempt[]
   smsMessages     SmsMessage[]
+  notifications   Notification[]
 
   @@index([sellerId, status])
   @@index([sellerId, createdAt])
@@ -347,7 +349,7 @@ model Subscription {
   // A paid plan change waiting for the current paid period to end.
   nextPlan         PlanId?
   nextPlanFrom     DateTime?
-  // The currentPeriodEnd the SUBSCRIPTION_REMINDER SMS was sent for: one per period.
+  // The currentPeriodEnd the renewal reminder (a Notification) was made for: one per period.
   reminderSentFor  DateTime?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
@@ -486,6 +488,37 @@ model SmsMessage {
   // SQL, for these writes: it sets the timestamps in UTC.
   // (Rows without an order have orderId NULL, which Postgres never treats as equal.)
   @@unique([orderId, kind])
+  @@index([sellerId, createdAt])
+}
+
+enum NotificationKind {
+  ORDER_NEW // a customer ordered through a purchase link
+  RECEIPT_UPLOADED // a customer uploaded a card-to-card receipt
+  ORDER_PAID_ONLINE // a customer paid through the seller's gateway
+  SUBSCRIPTION_ENDING // the trial or paid period ends soon (owner only)
+}
+
+// In-app notifications for the store's members (the bell). An event feed:
+// what is still waiting is src/server/dashboard/attention.ts. Read state is
+// per store, not per member. Written by src/server/notifications/seller-notifications.ts.
+model Notification {
+  id        String           @id @default(cuid())
+  sellerId  String
+  seller    Seller           @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  kind      NotificationKind
+  orderId   String?
+  order     Order?           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// The Persian text, built when the event happens.
+  text      String
+  /// Hidden from operators (the subscription is the owner's business).
+  ownerOnly Boolean          @default(false)
+  /// One notification per event, even if the event's code runs twice:
+  /// inserted with createMany({ skipDuplicates: true }).
+  dedupeKey String           @unique
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([sellerId, readAt])
   @@index([sellerId, createdAt])
 }
 

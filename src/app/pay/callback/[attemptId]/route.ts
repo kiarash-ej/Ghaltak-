@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { scheduleCustomerSms } from "@/server/notifications/schedule";
+import { notifyOrderEvent } from "@/server/notifications/seller-notifications";
 import { handleGatewayReturn } from "@/server/payments/online-payment";
 import { appUrl } from "@/server/payments/request-origin";
 
@@ -30,8 +31,11 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/pay/callback/[at
   }
 
   if (!result.publicToken) return new NextResponse("Not found", { status: 404 });
-  // A repeated return is harmless: sendSms keeps one ORDER_PAID per order.
-  if (result.outcome === "paid" && result.orderId) await scheduleCustomerSms("ORDER_PAID", result.orderId);
+  // A repeated return is harmless: one notification and one ORDER_PAID SMS per order.
+  if (result.outcome === "paid" && result.orderId) {
+    await notifyOrderEvent("ORDER_PAID_ONLINE", result.orderId);
+    await scheduleCustomerSms("ORDER_PAID", result.orderId);
+  }
   const back = appUrl(`/buy/order/${result.publicToken}`, req.url);
   back.searchParams.set("payment", result.outcome);
   return NextResponse.redirect(back, 303);
