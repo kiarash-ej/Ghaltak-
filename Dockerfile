@@ -3,7 +3,7 @@
 # variables and rollback: docs/phase2/DEPLOY.md.
 #
 #   docker build -t ghaltak .
-#   docker run --env-file .env.production -p 3000:3000 ghaltak
+#   docker run --env-file .env.production -p 8080:8080 ghaltak
 #
 # Docker Hub and the npm registry can be slow or blocked from Iran. Both are
 # build arguments so a mirror can be used, e.g.
@@ -32,9 +32,11 @@ RUN npm run db:generate && npm run build
 
 FROM ${NODE_IMAGE}
 WORKDIR /app
+# Port 8080: Parspack's default for its health checks and PORT, and it resets
+# them to 8080 on every rebuild, so the app listens where they already point.
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    PORT=3000
+    PORT=8080
 # OpenSSL for Prisma's schema engine (`prisma migrate deploy` at startup). The
 # slim image has none, so Prisma can't tell which libssl it has, guesses 1.1
 # (which bookworm doesn't ship) and the migration can fail to start.
@@ -53,7 +55,7 @@ COPY --from=build --chown=node:node /app/.next ./.next
 # that group: Next.js's cache and the default upload folder.
 RUN mkdir -p .next/cache uploads   && chgrp -R 0 .next/cache uploads && chmod -R g=u .next/cache uploads
 USER node
-EXPOSE 3000
+EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+process.env.PORT+'/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
 # Migrations first; if they fail the container exits instead of serving. With
