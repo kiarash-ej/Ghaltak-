@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { NAV_ICONS } from "./nav-icons";
 import { BUSINESS_NAV, PRIMARY_NAV, activeNavKey, type NavItem } from "./nav-items";
 
-export type NavBadges = { orders: number; stock: number };
+export type NavBadges = { orders: number; stock: number; notifications: number };
 
 /** One sidebar entry: icon, label, waiting-count badge; the active one glows. */
 export function NavLink({
@@ -44,7 +44,7 @@ export function NavLink({
       <Icon className={cn("size-[18px] shrink-0", active ? "text-brand-2" : "text-muted group-hover:text-ink")} aria-hidden />
       <span className="flex-1">{item.label}</span>
       {count > 0 && (
-        <Badge variant="count" aria-label={`${formatNumber(count)} مورد منتظر`}>
+        <Badge variant="count" aria-label={`${formatNumber(count)} ${item.badge === "notifications" ? "اعلان تازه" : "مورد منتظر"}`}>
           {formatNumber(count)}
         </Badge>
       )}

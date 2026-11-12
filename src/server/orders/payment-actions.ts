@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireSeller } from "@/server/auth";
 import { scheduleCustomerSms } from "@/server/notifications/schedule";
+import { notifyOrderEvent } from "@/server/notifications/seller-notifications";
 import { isPaymentMethod } from "./payment";
 import { PaymentError, confirmPaymentInTx } from "./payment-store";
 import { isWellFormedToken } from "./purchase-links";
@@ -155,6 +156,8 @@ export async function uploadReceiptAction(
     };
   }
   await deleteReceipt(order.receiptImageUrl);
+  // One per uploaded file: a receipt sent again after a rejection is news too.
+  await notifyOrderEvent("RECEIPT_UPLOADED", order.id, saved.key);
 
   revalidatePath(`/buy/order/${publicToken}`);
   revalidatePath("/orders");

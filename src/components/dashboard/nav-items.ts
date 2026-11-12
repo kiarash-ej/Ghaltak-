@@ -2,7 +2,7 @@
 // The handiest pages come first: on phones these four sit in the bottom bar.
 // The rest are under «کسب‌وکار» in the sidebar and in the ☰ menu on phones.
 
-export type NavKey = "home" | "orders" | "products" | "links" | "finance" | "customers" | "settings";
+export type NavKey = "home" | "orders" | "products" | "links" | "finance" | "customers" | "notifications" | "settings";
 
 export type NavItem = {
   key: NavKey;
@@ -12,8 +12,8 @@ export type NavItem = {
   short?: string;
   /** Path prefixes that belong to this entry. */
   match: string[];
-  /** Which waiting-count badge it shows (src/server/dashboard/attention.ts). */
-  badge?: "orders" | "stock";
+  /** Which count badge it shows: waiting work (src/server/dashboard/attention.ts) or unread notifications. */
+  badge?: "orders" | "stock" | "notifications";
 };
 
 export const PRIMARY_NAV: NavItem[] = [
@@ -33,6 +33,7 @@ export const PRIMARY_NAV: NavItem[] = [
 export const BUSINESS_NAV: NavItem[] = [
   { key: "finance", href: "/finance", label: "مالی و گزارش", match: ["/reports", "/finance"] },
   { key: "customers", href: "/customers", label: "مشتریان", match: ["/customers"] },
+  { key: "notifications", href: "/notifications", label: "اعلان‌ها", match: ["/notifications"], badge: "notifications" },
   { key: "settings", href: "/settings", label: "تنظیمات", match: ["/settings"] },
 ];
 

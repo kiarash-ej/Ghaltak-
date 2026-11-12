@@ -19,7 +19,7 @@ const closeOnUse = (node: ReactNode) => <SheetClose asChild>{node}</SheetClose>;
 const iconButton =
   "relative grid size-10 place-items-center rounded-xl border border-line bg-raised text-ink-soft transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
-/** Phone top bar (spec §4.2): logo, the bell (what's waiting) and ☰ (the rest). */
+/** Phone top bar (spec §4.2): logo, the bell (what's waiting and what's new) and ☰ (the rest). */
 export function MobileTopBar({
   storeName,
   canSwitchStore,
@@ -35,6 +35,13 @@ export function MobileTopBar({
 }) {
   const active = activeNavKey(usePathname());
   const waiting = attentionRows(attention).length;
+  const unread = badges.notifications;
+  const bellLabel = [
+    waiting > 0 && `${formatNumber(waiting)} مورد نیاز به رسیدگی`,
+    unread > 0 && `${formatNumber(unread)} اعلان تازه`,
+  ]
+    .filter(Boolean)
+    .join("، ");
   const business = BUSINESS_NAV.map((i) => (i.key === "settings" ? { ...i, href: settingsHref } : i));
 
   return (
@@ -50,13 +57,25 @@ export function MobileTopBar({
         <Sheet
           title="نیاز به رسیدگی"
           trigger={
-            <button type="button" className={iconButton} aria-label={waiting > 0 ? `${formatNumber(waiting)} مورد نیاز به رسیدگی` : "نیاز به رسیدگی"}>
+            <button type="button" className={iconButton} aria-label={bellLabel || "نیاز به رسیدگی"}>
               <Bell className="size-5" aria-hidden />
-              {waiting > 0 && <span aria-hidden className="absolute top-2 left-2 size-2 rounded-full bg-brand-2 ring-2 ring-raised" />}
+              {(waiting > 0 || unread > 0) && <span aria-hidden className="absolute top-2 left-2 size-2 rounded-full bg-brand-2 ring-2 ring-raised" />}
             </button>
           }
         >
           <AttentionList counts={attention} wrap={closeOnUse} />
+          <SheetClose asChild>
+            <Link
+              href="/notifications"
+              className="mt-3 flex items-center gap-3 rounded-xl border border-line bg-raised px-3.5 py-3 text-sm font-semibold transition-colors hover:bg-raised-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <Bell className="size-4 shrink-0 text-muted" aria-hidden />
+              <span className="flex-1">اعلان‌ها</span>
+              {unread > 0 && (
+                <span className="rounded-full bg-count px-2 py-0.5 text-xs font-bold text-white">{formatNumber(unread)} تازه</span>
+              )}
+            </Link>
+          </SheetClose>
         </Sheet>
         <Sheet side="end" title="منو" trigger={<button type="button" className={iconButton} aria-label="منو"><Menu className="size-5" aria-hidden /></button>}>
           <nav aria-label="منوی کسب‌وکار" className="flex flex-col gap-1">

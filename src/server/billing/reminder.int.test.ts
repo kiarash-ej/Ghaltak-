@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "@/lib/prisma";
-import type { SendSms } from "@/server/sms/types";
+import type { NotifySeller } from "@/server/notifications/seller-notifications";
 import { hasTestDatabase } from "@/test/setup";
 import { remindSubscriptionEnding } from "./reminder";
 
@@ -34,42 +34,46 @@ describe.skipIf(!hasTestDatabase)("subscription reminder (database)", () => {
     sellerIds.push(s.id);
     return s;
   }
-  const okSend = () => vi.fn<SendSms>(async () => ({ ok: true, status: "SENT" }));
+  const failing = vi.fn<NotifySeller>(async () => "failed");
+  const reminders = (sellerId: string) =>
+    prisma.notification.findMany({ where: { sellerId, kind: "SUBSCRIPTION_ENDING" }, orderBy: { createdAt: "asc" } });
 
-  it("sends one SMS within 3 days of the end, with the Jalali date and store name", async () => {
+  it("makes one owner-only notification within 3 days of the end, and no SMS", async () => {
     const s = await store("BASIC", new Date(Date.now() + 2 * DAY));
-    const send = okSend();
-    const results = await Promise.all([
-      remindSubscriptionEnding(s.id, { send }),
-      remindSubscriptionEnding(s.id, { send }),
-    ]);
+    const results = await Promise.all([remindSubscriptionEnding(s.id), remindSubscriptionEnding(s.id)]);
     expect(results.sort()).toEqual(["not-due", "sent"]);
-    expect(await remindSubscriptionEnding(s.id, { send })).toBe("not-due");
-    expect(send).toHaveBeenCalledTimes(1);
-    expect(send.mock.calls[0][0]).toMatchObject({ to: s.mobile, kind: "SUBSCRIPTION_REMINDER" });
-    expect(send.mock.calls[0][0].tokens[1]).toBe("بوتیک رز");
+    expect(await remindSubscriptionEnding(s.id)).toBe("not-due");
+
+    const rows = await reminders(s.id);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ ownerOnly: true, readAt: null, orderId: null });
+    expect(rows[0].text).toContain("اشتراک");
+    expect(await prisma.smsMessage.count({ where: { sellerId: s.id } })).toBe(0);
   });
 
   it("not before 3 days, not on FREE, not with billing off", async () => {
-    const send = okSend();
-    expect(await remindSubscriptionEnding((await store("TRIAL", new Date(Date.now() + 5 * DAY))).id, { send })).toBe("not-due");
-    expect(await remindSubscriptionEnding((await store("FREE", new Date())).id, { send })).toBe("not-due");
+    const ids = [
+      (await store("TRIAL", new Date(Date.now() + 5 * DAY))).id,
+      (await store("FREE", new Date())).id,
+    ];
+    for (const id of ids) expect(await remindSubscriptionEnding(id)).toBe("not-due");
     process.env.BILLING_ENABLED = "false";
-    expect(await remindSubscriptionEnding((await store("TRIAL", new Date(Date.now() + DAY))).id, { send })).toBe("not-due");
-    expect(send).not.toHaveBeenCalled();
+    const off = (await store("TRIAL", new Date(Date.now() + DAY))).id;
+    expect(await remindSubscriptionEnding(off)).toBe("not-due");
+    expect(await prisma.notification.count({ where: { sellerId: { in: [...ids, off] } } })).toBe(0);
   });
 
-  it("a failed SMS is tried again on the next visit; a renewed period gets its own reminder", async () => {
+  it("a failed notification is tried again on the next visit; a renewed period gets its own reminder", async () => {
     const s = await store("TRIAL", new Date(Date.now() + DAY));
-    const failing = vi.fn<SendSms>(async () => ({ ok: false, reason: "PROVIDER_ERROR" }));
-    expect(await remindSubscriptionEnding(s.id, { send: failing })).toBe("failed");
-    const send = okSend();
-    expect(await remindSubscriptionEnding(s.id, { send })).toBe("sent");
+    expect(await remindSubscriptionEnding(s.id, { notify: failing })).toBe("failed");
+    expect(await remindSubscriptionEnding(s.id)).toBe("sent");
+    expect((await reminders(s.id))[0].text).toContain("دورهٔ آزمایشی");
 
     await prisma.subscription.update({
       where: { sellerId: s.id },
       data: { plan: "BASIC", currentPeriodEnd: new Date(Date.now() + 30 * DAY) },
     });
-    expect(await remindSubscriptionEnding(s.id, { send, now: new Date(Date.now() + 28 * DAY) })).toBe("sent");
+    expect(await remindSubscriptionEnding(s.id, { now: new Date(Date.now() + 28 * DAY) })).toBe("sent");
+    expect(await reminders(s.id)).toHaveLength(2);
   });
 });
