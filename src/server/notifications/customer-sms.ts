@@ -39,7 +39,9 @@ export async function notifyCustomer(
         publicToken: true,
         trackingCode: true,
         customer: { select: { phone: true } },
-        seller: { select: { smsOnOrderPlaced: true, smsOnPaid: true, smsOnShipped: true } },
+        seller: {
+          select: { smsOnOrderPlaced: true, smsOnPaid: true, smsOnShipped: true, smsOnPaymentReminder: true },
+        },
       },
     });
     if (!order?.publicToken) return { ok: false, reason: "NO_ORDER" };

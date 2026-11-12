@@ -24,3 +24,28 @@ export async function countSmsThisMonth(sellerId: string, now: Date = new Date()
     },
   });
 }
+
+export type QuotaSmsKind = (typeof QUOTA_SMS_KINDS)[number];
+
+/**
+ * The same count as countSmsThisMonth, split by kind, so the seller can see
+ * where the month's quota went. Every quota kind is present (0 when unused).
+ */
+export async function countSmsByKindThisMonth(
+  sellerId: string,
+  now: Date = new Date(),
+): Promise<Record<QuotaSmsKind, number>> {
+  const rows = await prisma.smsMessage.groupBy({
+    by: ["kind"],
+    where: {
+      sellerId,
+      kind: { in: [...QUOTA_SMS_KINDS] },
+      status: { in: ["SENT", "DEV"] },
+      createdAt: { gte: reportPeriods(now).month },
+    },
+    _count: { _all: true },
+  });
+  const counts = Object.fromEntries(QUOTA_SMS_KINDS.map((k) => [k, 0])) as Record<QuotaSmsKind, number>;
+  for (const row of rows) counts[row.kind as QuotaSmsKind] = row._count._all;
+  return counts;
+}

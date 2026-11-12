@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { scheduleCustomerSms, scheduleUnpaidReminders } from "@/server/notifications/schedule";
+import { scheduleUnpaidReminders } from "@/server/notifications/schedule";
 import { notifyOrderEvent } from "@/server/notifications/seller-notifications";
 import { parseBuyForm } from "./buy-form";
 import { OrderError } from "./create-order";
@@ -54,7 +54,8 @@ export async function submitPurchaseAction(
   }
 
   await notifyOrderEvent("ORDER_NEW", orderId);
-  await scheduleCustomerSms("ORDER_PLACED", orderId);
+  // No ORDER_PLACED SMS: the redirect below shows the customer the same code,
+  // amount and payment steps. An unpaid order gets PAYMENT_REMINDER with the link.
   await scheduleUnpaidReminders(link.sellerId);
   revalidatePath("/orders");
   redirect(`/buy/order/${publicToken}`);

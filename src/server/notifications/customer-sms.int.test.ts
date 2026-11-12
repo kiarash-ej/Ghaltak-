@@ -41,7 +41,7 @@ describe.skipIf(!hasTestDatabase)("customer SMS (database)", () => {
   beforeEach(async () => {
     await prisma.seller.update({
       where: { id: sellerId },
-      data: { smsOnOrderPlaced: true, smsOnPaid: true, smsOnShipped: true },
+      data: { smsOnOrderPlaced: true, smsOnPaid: true, smsOnShipped: true, smsOnPaymentReminder: true },
     });
   });
   afterAll(async () => {

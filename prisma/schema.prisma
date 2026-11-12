@@ -38,10 +38,13 @@ model Seller {
   cardHolder          String?
   shebaEncrypted      String?
 
-  // Which customer SMS messages this seller sends (Phase 2, B7).
-  smsOnOrderPlaced Boolean @default(true)
-  smsOnPaid        Boolean @default(true)
-  smsOnShipped     Boolean @default(true)
+  // Which customer SMS messages this seller sends (Phase 2, B7). An SMS is
+  // only for a customer who is NOT looking at their order page: see
+  // src/server/notifications/customer-sms-tokens.ts for when each one goes out.
+  smsOnOrderPlaced     Boolean @default(true)
+  smsOnPaid            Boolean @default(true)
+  smsOnShipped         Boolean @default(true)
+  smsOnPaymentReminder Boolean @default(true)
 
   products          Product[]
   variants          ProductVariant[]

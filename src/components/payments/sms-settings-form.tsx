@@ -4,12 +4,18 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import type { SmsSettingsState } from "@/server/notifications/settings-actions";
 
-type Switches = { smsOnOrderPlaced: boolean; smsOnPaid: boolean; smsOnShipped: boolean };
+type Switches = {
+  smsOnOrderPlaced: boolean;
+  smsOnPaid: boolean;
+  smsOnShipped: boolean;
+  smsOnPaymentReminder: boolean;
+};
 
 const ROWS: { name: keyof Switches; label: string; hint: string }[] = [
-  { name: "smsOnOrderPlaced", label: "ثبت سفارش", hint: "کد سفارش و لینک پیگیری و پرداخت. یادآوری پرداخت هم با همین گزینه روشن یا خاموش می‌شود." },
-  { name: "smsOnPaid", label: "تأیید پرداخت", hint: "وقتی پرداختی را تأیید می‌کنید یا مشتری آنلاین پرداخت می‌کند." },
+  { name: "smsOnOrderPlaced", label: "ثبت سفارش", hint: "وقتی خودتان سفارشی را ثبت می‌کنید: کد سفارش و لینک پیگیری و پرداخت. مشتری لینک خرید همان لحظه صفحهٔ سفارشش را می‌بیند و پیامک نمی‌گیرد." },
+  { name: "smsOnPaid", label: "تأیید پرداخت", hint: "وقتی پرداختی را تأیید می‌کنید. بعد از پرداخت آنلاین، مشتری نتیجه را در صفحهٔ سفارش می‌بیند و پیامک نمی‌گیرد." },
   { name: "smsOnShipped", label: "ارسال", hint: "وقتی سفارش را ارسال می‌کنید، همراه با کد رهگیری." },
+  { name: "smsOnPaymentReminder", label: "یادآوری پرداخت", hint: "برای سفارش لینک خرید که هنوز پرداخت نشده، یک روز پیش از لغو خودکار، همراه با لینک پرداخت." },
 ];
 
 export function SmsSettingsForm({
@@ -25,7 +31,8 @@ export function SmsSettingsForm({
   return (
     <form action={action} className="flex max-w-lg flex-col gap-4">
       <p className="text-sm text-muted">
-        پیامک‌ها خودکار به موبایل مشتری می‌روند و هر کدام برای هر سفارش حداکثر یک بار فرستاده می‌شود.
+        پیامک‌ها خودکار به موبایل مشتری می‌روند و هر کدام برای هر سفارش حداکثر یک بار فرستاده می‌شود. فقط وقتی
+        پیامک می‌رود که مشتری خودش همان لحظه خبر را در صفحهٔ سفارش نمی‌بیند، تا سهمیهٔ پیامک شما بی‌دلیل مصرف نشود.
       </p>
       {quotaReached && (
         <p role="alert" className="rounded-lg bg-warning-bg p-3 text-sm text-warning">

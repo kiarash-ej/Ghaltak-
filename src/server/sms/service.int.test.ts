@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { hasTestDatabase } from "@/test/setup";
 import type { ProviderResult, SmsProvider } from "./providers";
 import { createSmsService, MAX_SEND_ATTEMPTS, STALE_CLAIM_MS } from "./service";
-import { countSmsThisMonth } from "./usage";
+import { countSmsByKindThisMonth, countSmsThisMonth } from "./usage";
 
 // Runs against a real Postgres (TEST_DATABASE_URL). See docs/phase1/README.md.
 
@@ -159,5 +159,11 @@ describe.skipIf(!hasTestDatabase)("sendSms service (database)", () => {
     });
     expect(before).toBe(3);
     expect(await countSmsThisMonth(sellerId)).toBe(4);
+
+    // The same messages by kind: every quota kind is listed, and they add up.
+    const byKind = await countSmsByKindThisMonth(sellerId);
+    expect(Object.keys(byKind).sort()).toEqual(["ORDER_PAID", "ORDER_PLACED", "ORDER_SHIPPED", "PAYMENT_REMINDER"]);
+    expect(Object.values(byKind).reduce((a, b) => a + b, 0)).toBe(4);
+    expect(byKind.ORDER_SHIPPED).toBeGreaterThanOrEqual(1);
   });
 });

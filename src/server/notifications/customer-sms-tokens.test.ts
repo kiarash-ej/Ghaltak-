@@ -30,10 +30,10 @@ describe("customerSmsTokens", () => {
 });
 
 describe("SMS_SWITCH", () => {
-  it("maps every kind to one of the seller's three switches", () => {
+  it("gives every kind its own switch", () => {
     expect(SMS_SWITCH).toEqual({
       ORDER_PLACED: "smsOnOrderPlaced",
-      PAYMENT_REMINDER: "smsOnOrderPlaced",
+      PAYMENT_REMINDER: "smsOnPaymentReminder",
       ORDER_PAID: "smsOnPaid",
       ORDER_SHIPPED: "smsOnShipped",
     });

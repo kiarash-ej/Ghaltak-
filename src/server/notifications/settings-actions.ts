@@ -18,6 +18,7 @@ export async function saveSmsSettingsAction(
       smsOnOrderPlaced: formData.get("smsOnOrderPlaced") === "on",
       smsOnPaid: formData.get("smsOnPaid") === "on",
       smsOnShipped: formData.get("smsOnShipped") === "on",
+      smsOnPaymentReminder: formData.get("smsOnPaymentReminder") === "on",
     },
   });
   revalidatePath("/settings/payments");
