@@ -104,7 +104,7 @@
 |---|---|---|
 | `Seller` | `logoUrl`، `contactPhone`، `instagram`، `telegram` | A6، نمایش روی صفحه‌های عمومی |
 | `Seller` | `cardNumberEncrypted`، `cardHolder`، `shebaEncrypted` (شماره کارت و شبا فقط رمزشده با `src/lib/crypto.ts`) | B6، راهنمای کارت‌به‌کارت (کمبود ثبت‌شده در B3) |
-| `Seller` | `smsOnOrderPlaced`، `smsOnPaid`، `smsOnShipped` (Boolean، پیش‌فرض true) | B7 |
+| `Seller` | `smsOnOrderPlaced`، `smsOnPaid`، `smsOnShipped` (Boolean، پیش‌فرض true)؛ بعداً `smsOnPaymentReminder` هم اضافه شد | B7 |
 | `SellerGateway` | جدید: `sellerId` یکتا، `provider` (`ZARINPAL`/`IDPAY`)، `credentialsEncrypted`، `isActive` | B6 |
 | `PaymentMethod` | مقدار جدید `ONLINE` | B6 |
 | `PaymentAttempt` | جدید: `sellerId`، `orderId?`، `invoiceId?`، `provider`، `amount` (تومان)، `authority` (یکتا برای هر درگاه: `(provider, authority)`)، `status` (`PENDING`/`VERIFIED`/`FAILED`/`CANCELED`)، `failureReason` (`CANCELED_BY_USER`/`AMOUNT_MISMATCH`/`GATEWAY_ERROR`/`EXPIRED`)، `failureDetail`، `refId`، `cardPanMasked`، `verifiedAt` | B6، A9 |

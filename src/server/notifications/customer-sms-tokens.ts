@@ -43,10 +43,24 @@ export function customerSmsTokens(kind: CustomerSmsKind, data: CustomerSmsData):
   }
 }
 
-/** Which Seller switch controls each kind. The reminder follows «ثبت سفارش». */
-export const SMS_SWITCH: Record<CustomerSmsKind, "smsOnOrderPlaced" | "smsOnPaid" | "smsOnShipped"> = {
+// When each one goes out. An SMS costs money, so it is only sent to a customer
+// who is NOT already looking at the news on their order page:
+//
+//   ORDER_PLACED      orders the seller enters by hand. Not purchase-link
+//                     orders: that customer lands on the order page itself.
+//   ORDER_PAID        payments the seller confirms (by hand or from a receipt).
+//                     Not online payments: the gateway returns the customer
+//                     to the order page, which says it is paid.
+//   ORDER_SHIPPED     always: the customer left long ago.
+//   PAYMENT_REMINDER  unpaid purchase-link orders, a day before they expire.
+//                     Its link is also how a link customer finds the page again.
+
+export type SmsSwitch = "smsOnOrderPlaced" | "smsOnPaid" | "smsOnShipped" | "smsOnPaymentReminder";
+
+/** Which Seller switch controls each kind. */
+export const SMS_SWITCH: Record<CustomerSmsKind, SmsSwitch> = {
   ORDER_PLACED: "smsOnOrderPlaced",
-  PAYMENT_REMINDER: "smsOnOrderPlaced",
+  PAYMENT_REMINDER: "smsOnPaymentReminder",
   ORDER_PAID: "smsOnPaid",
   ORDER_SHIPPED: "smsOnShipped",
 };
