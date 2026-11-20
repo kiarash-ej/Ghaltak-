@@ -110,6 +110,7 @@ export async function getPublicOrder(publicToken: string) {
       createdAt: true,
       paidAt: true,
       receiptImageUrl: true,
+      receiptRejectedAt: true,
       shippingMethod: true,
       shippingCost: true,
       trackingCode: true,
@@ -136,6 +137,8 @@ export async function getPublicOrder(publicToken: string) {
     status: order.status,
     // Only the state, never the receipt itself: the customer page is public.
     payment: paymentState(order),
+    /** The seller turned down the last receipt and none has been sent since. */
+    receiptRejected: order.receiptRejectedAt !== null && order.receiptImageUrl === null,
     totalPrice: order.totalPrice,
     shippingCost: order.shippingCost,
     amountDue: amountDue(order),

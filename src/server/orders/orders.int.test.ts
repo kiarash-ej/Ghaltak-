@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { hasTestDatabase } from "@/test/setup";
 import { prisma } from "@/lib/prisma";
+import { MAX_STOCK } from "@/server/catalog/product-form";
 import { OrderError, createOrderInTx } from "./create-order";
 import { expireUnpaidLinkOrders } from "./expire-orders";
 import { OutOfStockError, returnStock } from "./stock";
@@ -149,5 +150,41 @@ describe.skipIf(!hasTestDatabase)("orders and stock (database)", () => {
     expect(byId[withReceipt.id]).toBe("PENDING_PAYMENT");
     expect(byId[manual.id]).toBe("PENDING_PAYMENT");
     expect(await stockOf()).toBe(3);
+  });
+
+  it("gives an old order a fresh window after its receipt is rejected", async () => {
+    const justRejected = await order(1, { purchaseLinkId: linkId, phone: `09384${runId.slice(-6)}` });
+    const rejectedLongAgo = await order(1, { purchaseLinkId: linkId, phone: `09385${runId.slice(-6)}` });
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    await prisma.order.update({
+      where: { id: justRejected.id },
+      data: { createdAt: threeDaysAgo, receiptRejectedAt: new Date(Date.now() - 60 * 60 * 1000) },
+    });
+    await prisma.order.update({
+      where: { id: rejectedLongAgo.id },
+      data: { createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), receiptRejectedAt: threeDaysAgo },
+    });
+
+    expect(await expireUnpaidLinkOrders(sellerId)).toBe(1);
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: justRejected.id } })).status).toBe("PENDING_PAYMENT");
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: rejectedLongAgo.id } })).status).toBe("CANCELED");
+
+    // The window is the same TTL, counted from the rejection.
+    expect(await expireUnpaidLinkOrders(sellerId, new Date(Date.now() + 48 * 60 * 60 * 1000))).toBe(1);
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: justRejected.id } })).status).toBe("CANCELED");
+  });
+
+  it("returns an expired order's stock even when the seller raised stock to the ceiling meanwhile", async () => {
+    const held = await order(2, { purchaseLinkId: linkId, phone: `09386${runId.slice(-6)}` });
+    const next = await order(1, { purchaseLinkId: linkId, phone: `09387${runId.slice(-6)}` });
+    await prisma.order.updateMany({
+      where: { id: { in: [held.id, next.id] } },
+      data: { createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
+    });
+    await prisma.productVariant.update({ where: { id: variantId }, data: { stock: MAX_STOCK } });
+
+    // Used to throw on the first order, for ever: the list, finance and every link broke.
+    expect(await expireUnpaidLinkOrders(sellerId)).toBe(2);
+    expect(await stockOf()).toBe(MAX_STOCK + 3);
   });
 });

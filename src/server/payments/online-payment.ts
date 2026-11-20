@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { amountDue, paymentState } from "@/server/orders/payment";
+import { ONLINE_PAYMENT_GRACE_MINUTES, UNSETTLED_PAYMENT_DAYS } from "@/server/orders/purchase-limits";
 import { confirmPaymentInTx } from "@/server/orders/payment-store";
 import { orderCode } from "@/server/orders/queries";
 import { gatewayForSeller } from "./gateway-store";
@@ -240,6 +241,57 @@ export async function handleGatewayReturn(
     log("[payment return] failed", { attemptId: attempt.id, name: e?.name, code: e?.code });
     return done(recorded ? "pending" : "failed");
   }
+}
+
+/**
+ * A payment whose customer never came back from the gateway (closed tab, lost
+ * connection) or whose verification couldn't finish is still PENDING, or
+ * VERIFIED but NOT_APPLIED. Only handleGatewayReturn settles a payment, and
+ * the browser's return was the only thing calling it, so such a payment
+ * stayed open for ever: money taken, order unpaid.
+ *
+ * This asks the gateway again. A PENDING attempt is only asked about after
+ * STALE_PAYMENT_MINUTES, when the gateway's page has long expired: earlier the
+ * customer may still be paying, and "not paid yet" would mark a payment in
+ * progress as failed. Attempts older than UNSETTLED_PAYMENT_DAYS are left
+ * alone. Returns the orders that became paid, for the caller to announce.
+ * Never throws.
+ */
+export const STALE_PAYMENT_MINUTES = ONLINE_PAYMENT_GRACE_MINUTES;
+
+export async function retryStaleOrderPayments(
+  scope: { sellerId?: string; orderId?: string },
+  opts: { gatewayFor?: GatewayFor; now?: () => Date; log?: (msg: string, data: object) => void; take?: number } = {},
+): Promise<string[]> {
+  const now = opts.now ?? (() => new Date());
+  const log = opts.log ?? ((msg, data) => console.error(msg, data));
+  const paid: string[] = [];
+  if (!scope.sellerId && !scope.orderId) return paid;
+  try {
+    const stale = await prisma.paymentAttempt.findMany({
+      where: {
+        ...(scope.sellerId ? { sellerId: scope.sellerId } : {}),
+        orderId: scope.orderId ?? { not: null },
+        authority: { not: null },
+        createdAt: { gt: new Date(now().getTime() - UNSETTLED_PAYMENT_DAYS * 24 * 60 * 60 * 1000) },
+        OR: [
+          { status: "PENDING", createdAt: { lt: new Date(now().getTime() - STALE_PAYMENT_MINUTES * 60 * 1000) } },
+          { status: "VERIFIED", failureDetail: PAYMENT_NOTE.NOT_APPLIED },
+        ],
+      },
+      orderBy: { createdAt: "asc" },
+      take: opts.take ?? 10,
+      select: { id: true, authority: true },
+    });
+    for (const attempt of stale) {
+      const result = await handleGatewayReturn({ attemptId: attempt.id, authority: attempt.authority, status: "OK" }, opts);
+      if (result.outcome === "paid" && result.orderId) paid.push(result.orderId);
+    }
+  } catch (err) {
+    const e = err as { name?: string; code?: string };
+    log("[payment retry] failed", { name: e?.name, code: e?.code });
+  }
+  return paid;
 }
 
 /**

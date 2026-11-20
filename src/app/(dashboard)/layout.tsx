@@ -10,6 +10,7 @@ import { subscriptionBanner } from "@/server/billing/banner";
 import { scheduleSubscriptionReminder } from "@/server/billing/reminder";
 import { getEffectivePlan } from "@/server/billing/usage";
 import { getAttention, ordersWaiting } from "@/server/dashboard/attention";
+import { dashboardPulse } from "@/server/dashboard/pulse";
 import { countUnreadNotifications } from "@/server/notifications/seller-notifications";
 
 // The seller dashboard's frame (docs/superpowers/specs/2026-10-06-ghaltak-ui-finance-design.md §4):
@@ -35,7 +36,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/">) {
   return (
     <div data-app-theme="dark" className="flex min-h-dvh flex-1 flex-col overflow-x-clip md:flex-row print:block">
       <JsMarker />
-      <AutoRefresh />
+      <AutoRefresh pulse={dashboardPulse(attention, unread)} />
       <Sidebar storeName={seller.name} canSwitchStore={canSwitchStore} settingsHref={settingsHref} badges={badges} />
       <MobileTopBar
         storeName={seller.name}

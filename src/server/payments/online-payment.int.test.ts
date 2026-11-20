@@ -3,7 +3,7 @@ import { hasTestDatabase } from "@/test/setup";
 import { prisma } from "@/lib/prisma";
 import { expireUnpaidLinkOrders } from "@/server/orders/expire-orders";
 import { listOrders } from "@/server/orders/queries";
-import { OnlinePaymentError, handleGatewayReturn, startOnlinePayment } from "./online-payment";
+import { OnlinePaymentError, handleGatewayReturn, retryStaleOrderPayments, startOnlinePayment } from "./online-payment";
 import type { PaymentGateway } from "./types";
 
 // Online payment edge cases against a real Postgres (docs/phase2/TRACK-B.md,
@@ -311,9 +311,51 @@ describe.skipIf(!hasTestDatabase)("online payment (database)", () => {
     expect((await prisma.order.findUniqueOrThrow({ where: { id: paying.id } })).status).toBe("PENDING_PAYMENT");
     expect((await prisma.order.findUniqueOrThrow({ where: { id: abandoned.id } })).status).toBe("CANCELED");
 
-    // Once the attempt is older than the grace period, the order expires too.
-    await expireUnpaidLinkOrders(sellerId, new Date(Date.now() + 31 * 60 * 1000));
+    // After the grace period the payment is still unsettled: the customer may
+    // have paid and never come back, so the order is held until the gateway is asked.
+    const later = new Date(Date.now() + 31 * 60 * 1000);
+    await expireUnpaidLinkOrders(sellerId, later);
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: paying.id } })).status).toBe("PENDING_PAYMENT");
+
+    // The gateway says it was never paid: the attempt fails, and the order expires.
+    gw.verifyResult = { ok: false, amountMismatch: false, transient: false, detail: "-51" };
+    expect(await retryStaleOrderPayments({ orderId: paying.id }, { gatewayFor, now: () => later })).toEqual([]);
+    expect(await prisma.paymentAttempt.findFirstOrThrow({ where: { orderId: paying.id } })).toMatchObject({
+      status: "FAILED",
+      failureReason: "GATEWAY_ERROR",
+    });
+    await expireUnpaidLinkOrders(sellerId, later);
     expect((await prisma.order.findUniqueOrThrow({ where: { id: paying.id } })).status).toBe("CANCELED");
+  });
+
+  it("settles a payment whose customer never came back from the gateway", async () => {
+    const order = await newOrder({ source: "PURCHASE_LINK" });
+    await startAndGetAuthority(order.publicToken!);
+
+    // Too early: the customer may still be on the gateway's page.
+    expect(await retryStaleOrderPayments({ orderId: order.id }, { gatewayFor })).toEqual([]);
+    expect(gw.verifyCalls).toHaveLength(0);
+
+    const later = () => new Date(Date.now() + 31 * 60 * 1000);
+    expect(await retryStaleOrderPayments({ orderId: order.id }, { gatewayFor, now: later })).toEqual([order.id]);
+    expect(await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).toMatchObject({
+      status: "PAID",
+      paymentMethod: "ONLINE",
+    });
+    // Settled: asking again changes nothing and doesn't call the gateway.
+    expect(await retryStaleOrderPayments({ orderId: order.id }, { gatewayFor, now: later })).toEqual([]);
+    expect(gw.verifyCalls).toHaveLength(1);
+  });
+
+  it("only settles payments in the scope it was given", async () => {
+    const order = await newOrder({ source: "PURCHASE_LINK" });
+    await startAndGetAuthority(order.publicToken!);
+    const later = () => new Date(Date.now() + 31 * 60 * 1000);
+
+    expect(await retryStaleOrderPayments({}, { gatewayFor, now: later })).toEqual([]);
+    expect(await retryStaleOrderPayments({ sellerId: "another-store", orderId: order.id }, { gatewayFor, now: later })).toEqual([]);
+    expect(gw.verifyCalls).toHaveLength(0);
+    expect((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("PENDING_PAYMENT");
   });
 
   it("refuses to start for a paid order, or when the seller has no active gateway", async () => {

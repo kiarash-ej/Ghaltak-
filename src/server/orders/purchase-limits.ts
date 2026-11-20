@@ -27,6 +27,12 @@ export const UNPAID_ORDER_TTL_HOURS = 48;
  * customer may be on the gateway's page right now (Phase 2, B6).
  */
 export const ONLINE_PAYMENT_GRACE_MINUTES = 30;
+/**
+ * An online payment that reached the gateway but was never settled (the
+ * customer may have paid and not come back) keeps its order from expiring for
+ * this long, while the seller's pages ask the gateway again (payments/recheck.ts).
+ */
+export const UNSETTLED_PAYMENT_DAYS = 7;
 
 export function purchaseQuotaProblem(counts: {
   openOrdersForPhone: number;

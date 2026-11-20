@@ -25,6 +25,9 @@ const serverEnv = {
   E2E_FAKE_GATEWAY: "1",
   UPLOAD_DIR: path.resolve(".e2e-uploads"),
   TRUSTED_PROXY_HOPS: "1",
+  // Every test logs in from the same address: the login form's per-IP limit
+  // (src/app/login/actions.ts) would refuse them after the first ten.
+  LOGIN_CODES_PER_IP: "1000",
 };
 
 export default defineConfig({
