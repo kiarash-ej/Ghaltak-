@@ -1,8 +1,10 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import * as z from "zod";
 import { normalizeIranMobile, toEnglishDigits } from "@/lib/format";
+import { clientIp, createRateLimiter } from "@/server/orders/rate-limit";
 import { requestOtp, verifyOtp } from "@/server/otp";
 import { createSession, deleteSession } from "@/server/session";
 
@@ -19,10 +21,19 @@ const ERRORS = {
   SMS_FAILED: "پیامک کد تأیید فرستاده نشد. دوباره تلاش کنید.",
   INVALID_CODE: "کد تأیید درست نیست. کد شش‌رقمی پیامک را دوباره بررسی کنید.",
   EXPIRED_CODE: "اعتبار این کد تمام شده است. با «تغییر شماره یا دریافت کد جدید» کد تازه بگیرید.",
+  RATE_LIMITED: "از این شبکه درخواست‌های زیادی فرستاده شده است. چند دقیقهٔ دیگر دوباره تلاش کنید.",
+  BUSY: "الان درخواست کد ورود زیاد است. چند دقیقهٔ دیگر دوباره تلاش کنید.",
   PLAN_ENDED: "اشتراک فروشگاه تمام شده است. به مالک فروشگاه بگویید آن را تمدید کند.",
 } as const;
 
 const codeSchema = z.string().regex(/^\d{6}$/);
+
+// The login form is public, and every code request costs an SMS to a number
+// the visitor chose. The per-number limits (otp.ts) don't stop one client
+// walking through many numbers, so both steps are also limited per IP.
+// Generous on purpose: many Iranian mobile users share an IP (carrier NAT).
+const codeRequestLimiter = createRateLimiter({ limit: 10, windowMs: 10 * 60 * 1000 });
+const codeGuessLimiter = createRateLimiter({ limit: 30, windowMs: 10 * 60 * 1000 });
 
 export async function loginAction(
   _prev: LoginState,
@@ -35,8 +46,11 @@ export async function loginAction(
     return { step: "mobile", error: ERRORS.INVALID_MOBILE };
   }
 
+  const ip = clientIp(await headers());
+
   // Step 1: send the SMS code.
   if (step !== "code") {
+    if (!codeRequestLimiter.hit(ip)) return { step: "mobile", mobile, error: ERRORS.RATE_LIMITED };
     const result = await requestOtp(mobile);
     if (!result.ok) {
       return { step: "mobile", mobile, error: ERRORS[result.error] };
@@ -45,6 +59,7 @@ export async function loginAction(
   }
 
   // Step 2: verify the code and start a session.
+  if (!codeGuessLimiter.hit(ip)) return { step: "code", mobile, error: ERRORS.RATE_LIMITED };
   const parsed = codeSchema.safeParse(
     toEnglishDigits(String(formData.get("code") ?? "")).trim(),
   );

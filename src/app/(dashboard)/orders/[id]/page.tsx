@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { requireSeller } from "@/server/auth";
 import { amountDue, paymentState } from "@/server/orders/payment";
 import { getOrder, orderCode } from "@/server/orders/queries";
+import { recheckOrderPayments } from "@/server/payments/recheck";
 import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata: Metadata = { title: "جزئیات سفارش | غلتک" };
@@ -21,6 +22,8 @@ export const metadata: Metadata = { title: "جزئیات سفارش | غلتک" 
 export default async function OrderPage(props: PageProps<"/orders/[id]">) {
   const seller = await requireSeller();
   const { id } = await props.params;
+  // Scoped by the seller: an id from another store settles nothing.
+  await recheckOrderPayments({ sellerId: seller.id, orderId: id }, { tellCustomer: true });
   const order = await getOrder(seller.id, id);
   if (!order) notFound();
 

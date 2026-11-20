@@ -217,6 +217,9 @@ model Order {
   paymentMethod   PaymentMethod?
   paidAt          DateTime?
   receiptImageUrl String?
+  /// When the seller last rejected a receipt for this order. The customer gets
+  /// a fresh window to send another before the order can expire (expire-orders.ts).
+  receiptRejectedAt DateTime?
 
   // Shipping
   shippingAddress String?

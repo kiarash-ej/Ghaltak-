@@ -14,6 +14,7 @@ import { SHIPPING_STATUS_LABELS } from "@/server/orders/shipping";
 import { formatDateTime, formatNumber, formatToman } from "@/lib/format";
 import { UNPAID_ORDER_TTL_HOURS } from "@/server/orders/purchase-limits";
 import { getPublicOrder } from "@/server/orders/purchase-links";
+import { recheckPaymentsForCustomer } from "@/server/payments/recheck";
 
 // The customer's confirmation/tracking page, reached by the order's public
 // token. Shows the order, no customer phone. The only seller data is what the
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
 const RETURN_MESSAGES: Record<string, { text: string; tone: "good" | "info" | "bad" }> = {
   paid: { text: "پرداخت آنلاین شما انجام شد.", tone: "good" },
   pending: {
-    text: "پرداخت شما در حال بررسی است. چند دقیقه دیگر همین صفحه را تازه کنید. اگر مبلغی از حسابتان کم شده باشد، یا پرداخت سفارش ثبت می‌شود یا مبلغ خودکار به حسابتان برمی‌گردد.",
+    text: "پرداخت شما در حال بررسی است. حدود نیم ساعت دیگر همین صفحه را تازه کنید. اگر مبلغی از حسابتان کم شده باشد، یا پرداخت سفارش ثبت می‌شود یا مبلغ خودکار به حسابتان برمی‌گردد.",
     tone: "info",
   },
   canceled: {
@@ -58,6 +59,8 @@ const TONE_CLASSES = {
 export default async function PublicOrderPage(props: PageProps<"/buy/order/[token]">) {
   const { token } = await props.params;
   const { payment: returned } = await props.searchParams;
+  // A payment made at the gateway whose return never reached us is settled here.
+  await recheckPaymentsForCustomer(token);
   const order = await getPublicOrder(token);
   if (!order) notFound();
   // Payment instructions only while there is something to pay.
@@ -113,6 +116,12 @@ export default async function PublicOrderPage(props: PageProps<"/buy/order/[toke
               />
               <p className="text-center text-xs text-neutral-500">یا کارت‌به‌کارت کنید:</p>
             </>
+          )}
+          {order.payment === "UNPAID" && order.receiptRejected && (
+            <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              فروشنده رسید قبلی شما را تأیید نکرد. اگر مبلغ را واریز کرده‌اید، تصویر واضح رسید را دوباره بفرستید یا با
+              فروشنده تماس بگیرید.
+            </p>
           )}
           {order.payment === "RECEIPT_SUBMITTED" ? (
             <p className="text-sm text-amber-800">رسید شما دریافت شد و در انتظار تأیید فروشنده است.</p>

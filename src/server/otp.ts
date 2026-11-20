@@ -8,6 +8,21 @@ const CODE_TTL_MS = 2 * 60 * 1000; // a code is valid for 2 minutes
 const RESEND_COOLDOWN_MS = 60 * 1000; // at most one SMS per minute per number
 const MAX_REQUESTS_PER_HOUR = 5;
 const MAX_ATTEMPTS = 5;
+/**
+ * Login codes the whole platform sends per hour (LOGIN_SMS_PER_HOUR). The
+ * per-number limits above don't stop someone asking for codes for thousands of
+ * different numbers, and the per-IP limit in the login action doesn't stop
+ * rotating IPs; this ceiling is what keeps the SMS credit from being drained.
+ * Set it well above a real busy hour.
+ */
+const DEFAULT_GLOBAL_PER_HOUR = 300;
+
+export function globalOtpLimit(env: Record<string, string | undefined> = process.env): number {
+  const n = Number(env.LOGIN_SMS_PER_HOUR);
+  return Number.isInteger(n) && n > 0 ? n : DEFAULT_GLOBAL_PER_HOUR;
+}
+
+let lastCeilingLog = 0;
 
 function hashCode(mobile: string, code: string): string {
   const secret = process.env.SESSION_SECRET ?? "";
@@ -16,32 +31,45 @@ function hashCode(mobile: string, code: string): string {
 
 export type RequestOtpResult =
   | { ok: true }
-  | { ok: false; error: "COOLDOWN" | "TOO_MANY_REQUESTS" | "SMS_FAILED" };
+  | { ok: false; error: "COOLDOWN" | "TOO_MANY_REQUESTS" | "BUSY" | "SMS_FAILED" };
 
-export async function requestOtp(mobile: string): Promise<RequestOtpResult> {
+export async function requestOtp(
+  mobile: string,
+  opts: { globalLimit?: number } = {},
+): Promise<RequestOtpResult> {
   const now = Date.now();
+  const hourAgo = new Date(now - 60 * 60 * 1000);
 
-  const recent = await prisma.otpCode.findMany({
-    where: { mobile, createdAt: { gt: new Date(now - 60 * 60 * 1000) } },
-    orderBy: { createdAt: "desc" },
-    select: { createdAt: true },
+  const sentLastHour = await prisma.smsMessage.count({
+    where: { sellerId: null, kind: "LOGIN_OTP", createdAt: { gt: hourAgo } },
   });
-
-  if (recent.length >= MAX_REQUESTS_PER_HOUR) {
-    return { ok: false, error: "TOO_MANY_REQUESTS" };
-  }
-  if (recent[0] && now - recent[0].createdAt.getTime() < RESEND_COOLDOWN_MS) {
-    return { ok: false, error: "COOLDOWN" };
+  if (sentLastHour >= (opts.globalLimit ?? globalOtpLimit())) {
+    if (now - lastCeilingLog > 60 * 1000) {
+      lastCeilingLog = now;
+      console.error(`[otp] hourly login SMS ceiling reached (${sentLastHour}); refusing new codes`);
+    }
+    return { ok: false, error: "BUSY" };
   }
 
   const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
-  const record = await prisma.otpCode.create({
-    data: {
-      mobile,
-      codeHash: hashCode(mobile, code),
-      expiresAt: new Date(now + CODE_TTL_MS),
-    },
+  // Check and insert under a per-number lock: requests for one number sent at
+  // the same moment take turns, so they can't all pass the cooldown together.
+  const claimed = await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`otp:${mobile}`}))`;
+    const recent = await tx.otpCode.findMany({
+      where: { mobile, createdAt: { gt: hourAgo } },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true },
+    });
+    if (recent.length >= MAX_REQUESTS_PER_HOUR) return { error: "TOO_MANY_REQUESTS" as const };
+    if (recent[0] && now - recent[0].createdAt.getTime() < RESEND_COOLDOWN_MS) return { error: "COOLDOWN" as const };
+    return tx.otpCode.create({
+      data: { mobile, codeHash: hashCode(mobile, code), expiresAt: new Date(now + CODE_TTL_MS) },
+      select: { id: true },
+    });
   });
+  if ("error" in claimed) return { ok: false, error: claimed.error };
+  const record = claimed;
 
   // sendSms never throws; it records the message (never the code) and logs failures.
   const sent = await sendSms({ sellerId: null, to: mobile, kind: "LOGIN_OTP", tokens: [code] });

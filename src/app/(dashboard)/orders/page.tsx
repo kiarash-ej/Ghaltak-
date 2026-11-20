@@ -10,6 +10,7 @@ import { requireSeller } from "@/server/auth";
 import { scheduleUnpaidReminders } from "@/server/notifications/schedule";
 import { expireUnpaidLinkOrders } from "@/server/orders/expire-orders";
 import { listOrders } from "@/server/orders/queries";
+import { recheckOrderPayments } from "@/server/payments/recheck";
 import { ORDER_STATUSES, STATUS_LABELS, isOrderStatus } from "@/server/orders/status";
 import { PageHeader } from "@/components/ui/page-header";
 
@@ -25,7 +26,9 @@ export default async function OrdersPage(props: PageProps<"/orders">) {
   const status = isOrderStatus(rawStatus) ? rawStatus : undefined;
   const requestedPage = Number(first(sp.page)) || 1;
 
-  // Abandoned purchase-link orders are canceled lazily, so the list is current.
+  // Online payments that never came back from the gateway are settled first,
+  // then abandoned purchase-link orders are canceled, so the list is current.
+  await recheckOrderPayments({ sellerId: seller.id }, { tellCustomer: true });
   await expireUnpaidLinkOrders(seller.id);
   await scheduleUnpaidReminders(seller.id);
   const { items, total, page, pageCount } = await listOrders(seller.id, {

@@ -5,7 +5,8 @@ import { MAX_STOCK } from "./product-form";
 
 // The single place where ProductVariant.stock changes after creation.
 // Every change is atomic (one conditional UPDATE, so concurrent orders can
-// never oversell), can never go below zero or above MAX_STOCK, and writes a
+// never oversell), can never go below zero or above MAX_STOCK (except when an
+// order gives back what it took), and writes a
 // StockMovement row in the same transaction. Invariant: for every variant,
 // the sum of its StockMovement.delta equals its stock.
 
@@ -54,6 +55,12 @@ export type StockChange = {
   reason: StockMovementReason;
   note?: string | null;
   orderId?: string | null;
+  /**
+   * Skip the MAX_STOCK ceiling. Only for giving back what an order took: the
+   * units exist, and refusing them would leave the order impossible to cancel
+   * or expire (the seller may have raised the stock to the ceiling meanwhile).
+   */
+  uncapped?: boolean;
 };
 
 /**
@@ -72,7 +79,7 @@ export async function changeStock(change: StockChange, tx?: Db): Promise<number>
       where: {
         id: variantId,
         sellerId,
-        stock: delta < 0 ? { gte: -delta } : { lte: MAX_STOCK - delta },
+        ...(delta < 0 ? { stock: { gte: -delta } } : change.uncapped ? {} : { stock: { lte: MAX_STOCK - delta } }),
       },
       data: { stock: { increment: delta } },
     });
@@ -182,7 +189,7 @@ export async function adjustStock(
     if (!variant) throw new VariantNotFoundError();
 
     await changeStock(
-      { sellerId: variant.sellerId, variantId, delta, reason, orderId: options.orderId },
+      { sellerId: variant.sellerId, variantId, delta, reason, orderId: options.orderId, uncapped: delta > 0 },
       db,
     );
   });

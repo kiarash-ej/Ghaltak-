@@ -100,7 +100,9 @@ export async function rejectReceiptAction(
       status: "PENDING_PAYMENT",
       receiptImageUrl: order.receiptImageUrl,
     },
-    data: { receiptImageUrl: null },
+    // The date gives the customer a fresh window to send another receipt:
+    // without it, an order older than the TTL would expire on the next page load.
+    data: { receiptImageUrl: null, receiptRejectedAt: new Date() },
   });
   if (count === 1) await deleteReceipt(order.receiptImageUrl);
 
