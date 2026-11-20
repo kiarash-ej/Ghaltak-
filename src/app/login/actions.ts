@@ -32,8 +32,14 @@ const codeSchema = z.string().regex(/^\d{6}$/);
 // the visitor chose. The per-number limits (otp.ts) don't stop one client
 // walking through many numbers, so both steps are also limited per IP.
 // Generous on purpose: many Iranian mobile users share an IP (carrier NAT).
-const codeRequestLimiter = createRateLimiter({ limit: 10, windowMs: 10 * 60 * 1000 });
-const codeGuessLimiter = createRateLimiter({ limit: 30, windowMs: 10 * 60 * 1000 });
+// LOGIN_CODES_PER_IP changes the number (per 10 minutes); the end-to-end
+// tests raise it, because every test logs in from the same address.
+function codesPerIp(): number {
+  const n = Number(process.env.LOGIN_CODES_PER_IP);
+  return Number.isInteger(n) && n > 0 ? n : 10;
+}
+const codeRequestLimiter = createRateLimiter({ limit: codesPerIp(), windowMs: 10 * 60 * 1000 });
+const codeGuessLimiter = createRateLimiter({ limit: codesPerIp() * 3, windowMs: 10 * 60 * 1000 });
 
 export async function loginAction(
   _prev: LoginState,
